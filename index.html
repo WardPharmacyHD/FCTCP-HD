@@ -730,9 +730,12 @@
     let currentUser = null;
     
     // OPTIONAL: PASTE YOUR SHEETDB API URL HERE SO ALL PHONES AUTO-CONNECT WITHOUT SETTING MANUALLY
-    let defaultSheetDbUrl = ""; 
-    let sheetDbApiUrl = localStorage.getItem('sheetdb_url') || defaultSheetDbUrl;
-    let reportMode = 'daily';
+   // DEFAULT SHEETDB API ENDPOINT
+let defaultSheetDbUrl = "https://sheetdb.io/api/v1/ok0ovi4us96gp"; 
+
+let storedUrl = localStorage.getItem('sheetdb_url');
+let sheetDbApiUrl = (storedUrl && storedUrl.trim() !== "") ? storedUrl : defaultSheetDbUrl;
+let reportMode = 'daily';
 
     let interventionsData = [
       {
