@@ -705,15 +705,21 @@
   <!-- JAVASCRIPT CONNECTIVITY & LOGIC -->
   <script>
     // INITIAL DATABASE STATE WITH WARD LOCATIONS
-    let defaultUsers = {
+   let defaultUsers = {
       admin: { pin: "9999", name: "Admin Pharmacist", ward: "ICU", role: "admin" },
-      sarah: { pin: "1234", name: "Sarah Jenkins, RPh", ward: "WARD 1 - MEDICAL MALE", role: "user" },
-      mark: { pin: "5678", name: "Mark Tan, RPh", ward: "WARD 7 - SURGICAL / ORTHO MALE", role: "user" }
+      khalil: { pin: "1234", name: "Mohd Khalil Ismail", ward: "ICU", role: "user" },
+      ain: { pin: "1234", name: "Nurul Ain Sarmo", ward: "WARD 2 - MEDICAL FEMALE", role: "user" },
+      fiefa: { pin: "1234", name: "Norhafiefa Alieya Hamzah", ward: "WARD 2 - MEDICAL FEMALE", role: "user" },
+      hanim: { pin: "1234", name: "Norhanim Solehah Bt Che Abdullah", ward: "WARD 1 - MEDICAL MALE", role: "user" },
+      shimah: { pin: "1234", name: "Nurul Hashimah Binti Abdul Rahman", ward: "WARD 1 - MEDICAL MALE", role: "user" },
+      hazwani: { pin: "1234", name: "Norhazwani Binti Mohd Zaid", ward: "WARD 6 - PAEDIATRICS 1", role: "user" },
+      huda: { pin: "1234", name: "Nurul Huda Husna Rusmi", ward: "WARD 6 - PAEDIATRICS 1", role: "user" },
+      faeza: { pin: "1234", name: "Noor Faeza binti Ruslan", ward: "WARD 2 - MEDICAL FEMALE", role: "user" },
+      syazwani: { pin: "1234", name: "Nor Syazwani Binti Mohamad", ward: "WARD 8 - SURGICAL / ORTHO FEMALE", role: "user" }
     };
 
-    let storedUsers = JSON.parse(localStorage.getItem('registered_users_db'));
-    let PIN_DATABASE = storedUsers || defaultUsers;
-    PIN_DATABASE['admin'] = defaultUsers['admin'];
+    let storedUsers = JSON.parse(localStorage.getItem('registered_users_db')) || {};
+    let PIN_DATABASE = { ...defaultUsers, ...storedUsers };
 
     let currentUser = null;
     let sheetDbApiUrl = localStorage.getItem('sheetdb_url') || '';
