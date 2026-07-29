@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ward Pharmacy Portal - Borang CP3 Pin 2/24</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .tab-active { border-bottom: 3px solid #0284c7; color: #0284c7; font-weight: 600; }
+    input[type="date"] { cursor: pointer; }
+    @media print {
+      body * { visibility: hidden; }
+      #printable-cp3, #printable-cp3 * { visibility: visible; }
+      #printable-cp3 { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col relative">
+
+  <!-- CLEAN LOGIN / PIN OVERLAY MODAL -->
+  <div id="login-overlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-200">
+      <div class="text-center mb-6">
+        <div class="bg-sky-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-sky-500/30">
+          <i class="fa-solid fa-user-lock text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-bold text-slate-900">Ward Pharmacy Portal</h2>
+        <p class="text-xs text-slate-500 mt-1">Select your profile and enter your 4-digit PIN</p>
+      </div>
+
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Select Pharmacist Profile</label>
+          <select id="login-user-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <!-- Dynamically Populated -->
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Security PIN</label>
+          <input type="password" id="login-pin" maxlength="4" required placeholder="••••" class="w-full text-center tracking-widest text-lg font-bold border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div id="login-error" class="hidden text-xs text-rose-600 font-semibold text-center bg-rose-50 p-2 rounded">
+          Incorrect PIN. Please try again.
+        </div>
+
+        <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center space-x-2">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Unlock Portal</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- CHANGE SECURITY PIN MODAL (FOR NON-ADMINS & ADMINS) -->
+  <div id="change-pin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center mb-4 border-b pb-2">
+        <h3 class="font-bold text-slate-900 text-base flex items-center">
+          <i class="fa-solid fa-key text-amber-500 me-2"></i>Change Security PIN
+        </h3>
+        <button onclick="closeChangePinModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      
+      <form onsubmit="handleChangePinSubmit(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Current PIN</label>
+          <input type="password" id="change-pin-current" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">New 4-Digit PIN</label>
+          <input type="password" id="change-pin-new" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Confirm New PIN</label>
+          <input type="password" id="change-pin-confirm" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div id="change-pin-error" class="hidden text-xs text-rose-600 font-semibold text-center bg-rose-50 p-2 rounded"></div>
+
+        <div class="flex space-x-2 pt-2">
+          <button type="button" onclick="closeChangePinModal()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 rounded-lg text-xs transition">Cancel</button>
+          <button type="submit" class="w-1/2 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 rounded-lg text-xs shadow transition">Update PIN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- EDIT USER PROFILE MODAL (FOR ADMINS) -->
+  <div id="edit-user-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex justify-between items-center mb-4 border-b pb-2">
+        <h3 class="font-bold text-slate-900 text-base flex items-center">
+          <i class="fa-solid fa-user-pen text-sky-600 me-2"></i>Edit Pharmacist Profile
+        </h3>
+        <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveEditedUser(event)" class="space-y-3">
+        <input type="hidden" id="edit-user-key">
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Username (System Key)</label>
+          <input type="text" id="edit-user-username" disabled class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 text-sm font-mono font-bold text-slate-600">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Full Name & Qualification</label>
+          <input type="text" id="edit-user-name" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward</label>
+          <select id="edit-user-ward" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <option value="ICU">ICU</option>
+            <option value="WARD 1 - MEDICAL MALE">WARD 1 - MEDICAL MALE</option>
+            <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
+            <option value="WARD 3 - MULTIDISCIPLINE">WARD 3 - MULTIDISCIPLINE</option>
+            <option value="WARD 4 - PAEDIATRICS 2">WARD 4 - PAEDIATRICS 2</option>
+            <option value="WARD 5 - O&G">WARD 5 - O&G</option>
+            <option value="WARD 6 - PAEDIATRICS 1">WARD 6 - PAEDIATRICS 1</option>
+            <option value="WARD 7 - SURGICAL / ORTHO MALE">WARD 7 - SURGICAL / ORTHO MALE</option>
+            <option value="WARD 8 - SURGICAL / ORTHO FEMALE">WARD 8 - SURGICAL / ORTHO FEMALE</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4-Digit PIN</label>
+            <input type="password" id="edit-user-pin" maxlength="4" required class="w-full text-center font-bold tracking-widest border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">User Role</label>
+            <select id="edit-user-role" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <option value="user">Pharmacist</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex space-x-2 pt-2">
+          <button type="button" onclick="closeEditUserModal()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 rounded-lg text-xs transition">Cancel</button>
+          <button type="submit" class="w-1/2 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 rounded-lg text-xs shadow transition">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CONFIGURATION BANNER FOR SHEETDB API -->
+  <div class="bg-amber-100 border-b border-amber-300 text-amber-900 px-4 py-2 text-xs flex justify-between items-center">
+    <div>
+      <i class="fa-solid fa-plug me-1"></i> <strong>Google Sheets Connection:</strong> 
+      <span id="api-status" class="font-mono bg-amber-200 px-1.5 py-0.5 rounded">Local Demo Mode (Paste SheetDB API URL in config)</span>
+    </div>
+    <button onclick="configureApiUrl()" class="underline font-semibold hover:text-amber-900">Set API URL</button>
+  </div>
+
+  <!-- TOP NAVBAR -->
+  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-sky-600 p-2 rounded-lg text-white">
+          <i class="fa-solid fa-prescription-bottle-medical text-xl"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-none">Ward Pharmacy Portal</h1>
+          <p class="text-xs text-slate-400 mt-1">Clinical Activity & CP3 Report Generator</p>
+        </div>
+      </div>
+      
+      <!-- User Info, Active Shift Date & Account Settings -->
+      <div class="flex items-center space-x-6 text-sm">
+        <div class="hidden sm:flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+          <i class="fa-regular fa-calendar-check text-sky-400"></i>
+          <span class="text-xs text-slate-400">Shift Date:</span>
+          <input type="date" id="global-shift-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
+        </div>
+        
+        <div class="flex items-center space-x-3 border-l border-slate-700 pl-4">
+          <div id="user-avatar" class="w-9 h-9 rounded-full bg-sky-500 flex items-center justify-center font-bold text-white text-sm shadow">
+            AP
+          </div>
+          <div class="hidden md:block">
+            <div class="flex items-center space-x-1.5">
+              <p id="user-display-name" class="font-semibold text-xs leading-none">Admin Pharmacist</p>
+              <span id="user-role-badge" class="text-[9px] bg-amber-500 text-slate-900 font-bold px-1.5 py-0.2 rounded">ADMIN</span>
+            </div>
+            <p class="text-[10px] text-sky-400 font-medium mt-0.5" id="user-ward-display">ICU</p>
+          </div>
+          
+          <!-- CHANGE PIN & LOGOUT BUTTONS -->
+          <div class="flex items-center space-x-1 ml-2">
+            <button onclick="openChangePinModal()" title="Change PIN" class="text-slate-400 hover:text-amber-400 text-xs p-1.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 transition">
+              <i class="fa-solid fa-key"></i>
+            </button>
+            <button onclick="logoutUser()" title="Lock Shift / Logout" class="text-slate-400 hover:text-white text-xs p-1.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 transition">
+              <i class="fa-solid fa-lock"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- NAVIGATION TABS -->
+    <div class="bg-white rounded-xl shadow-sm mb-6 border border-slate-200">
+      <div class="flex border-b border-slate-200 overflow-x-auto">
+        <button onclick="switchTab('checkin')" id="tab-checkin" class="tab-active py-4 px-6 text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-clipboard-user"></i>
+          <span>1. Daily Check-In (Section A)</span>
+        </button>
+        <button onclick="switchTab('interventions')" id="tab-interventions" class="py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-user-doctor"></i>
+          <span>2. Log Interventions (Sections B-E)</span>
+        </button>
+        <button onclick="switchTab('reports')" id="tab-reports" class="py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-file-pdf"></i>
+          <span>3. CP3 Report Generator</span>
+        </button>
+        <button onclick="switchTab('admin')" id="tab-admin" class="py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-shield-halved text-amber-500"></i>
+          <span>4. Admin / Settings</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB 1: DAILY CHECK-IN -->
+    <div id="view-checkin" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Ward Assignment Details -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 md:col-span-1">
+          <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center border-b pb-2">
+            <i class="fa-solid fa-hospital-user text-sky-600 me-2"></i> Ward Assignment
+          </h2>
+          
+          <form id="checkin-form" onsubmit="handleCheckInSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward</label>
+              <select id="ward-name" onchange="applyWardFilterPermissions(); updatePdfReport()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <option value="ICU">ICU</option>
+                <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
+                <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
+                <option value="WARD 3 - MULTIDISCIPLINE">WARD 3 - MULTIDISCIPLINE</option>
+                <option value="WARD 4 - PAEDIATRICS 2">WARD 4 - PAEDIATRICS 2</option>
+                <option value="WARD 5 - O&G">WARD 5 - O&G</option>
+                <option value="WARD 6 - PAEDIATRICS 1">WARD 6 - PAEDIATRICS 1</option>
+                <option value="WARD 7 - SURGICAL / ORTHO MALE">WARD 7 - SURGICAL / ORTHO MALE</option>
+                <option value="WARD 8 - SURGICAL / ORTHO FEMALE">WARD 8 - SURGICAL / ORTHO FEMALE</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Task Commitment</label>
+              <div class="flex space-x-4 mt-1">
+                <label class="flex items-center text-sm text-slate-700 cursor-pointer">
+                  <input type="radio" name="task_type" value="Full Time" checked onchange="updatePdfReport()" class="text-sky-600 focus:ring-sky-500 me-2"> Full Time
+                </label>
+                <label class="flex items-center text-sm text-slate-700 cursor-pointer">
+                  <input type="radio" name="task_type" value="Part Time" onchange="updatePdfReport()" class="text-sky-600 focus:ring-sky-500 me-2"> Part Time
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Attending Physician(s)</label>
+              <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            </div>
+
+            <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center">
+              <i class="fa-solid fa-cloud-arrow-up me-2"></i> Save Shift Check-In
+            </button>
+          </form>
+        </div>
+
+        <!-- Activity Counts & Counselling -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 md:col-span-2 space-y-6">
+          <div>
+            <h2 class="text-base font-bold text-slate-900 mb-3 flex items-center border-b pb-2">
+              <i class="fa-solid fa-stethoscope text-sky-600 me-2"></i> Ward Pharmacy Activity (Section A)
+            </h2>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <label class="flex items-center p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                <input type="checkbox" id="round-routine" checked onchange="updatePdfReport()" class="w-4 h-4 text-sky-600 rounded me-3">
+                <span class="text-sm font-medium">Routine Rounds</span>
+              </label>
+              <label class="flex items-center p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                <input type="checkbox" id="round-grand" onchange="updatePdfReport()" class="w-4 h-4 text-sky-600 rounded me-3">
+                <span class="text-sm font-medium">Grand Rounds</span>
+              </label>
+              <label class="flex items-center p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+                <input type="checkbox" id="round-pharmacist" checked onchange="updatePdfReport()" class="w-4 h-4 text-sky-600 rounded me-3">
+                <span class="text-sm font-medium">Pharmacist Rounds</span>
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <p class="text-xs font-semibold text-slate-500 uppercase">Cases Clerked (CP2)</p>
+                  <p class="text-2xl font-bold text-slate-800 mt-1"><span id="cp2-count">0</span> <span class="text-xs text-slate-500 font-normal">cases</span></p>
+                </div>
+                <div class="flex space-x-1">
+                  <button onclick="updateCounter('cp2-count', -1)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 text-base shadow-sm">-</button>
+                  <button onclick="updateCounter('cp2-count', 1)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 text-base shadow-sm">+</button>
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+                <div>
+                  <p class="text-xs font-semibold text-slate-500 uppercase">Med History Taken (CP1)</p>
+                  <p class="text-2xl font-bold text-slate-800 mt-1"><span id="cp1-count">0</span> <span class="text-xs text-slate-500 font-normal">patients</span></p>
+                </div>
+                <div class="flex space-x-1">
+                  <button onclick="updateCounter('cp1-count', -1)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 text-base shadow-sm">-</button>
+                  <button onclick="updateCounter('cp1-count', 1)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 text-base shadow-sm">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Patient Counselling Sessions -->
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wide">Patient Counselling Sessions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block border-b pb-1">Bedside Counselling</span>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-500">Sessions</span>
+                  <input type="number" id="counsel-bedside-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-500">Patients</span>
+                  <input type="number" id="counsel-bedside-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block border-b pb-1">Discharge Counselling</span>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-500">Sessions</span>
+                  <input type="number" id="counsel-discharge-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-500">Patients</span>
+                  <input type="number" id="counsel-discharge-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+              </div>
+
+              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block border-b pb-1">Group Counselling</span>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-500">Sessions</span>
+                  <input type="number" id="counsel-group-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-500">Patients</span>
+                  <input type="number" id="counsel-group-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: INTERVENTIONS LOGGING -->
+    <div id="view-interventions" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center border-b pb-3">
+          <i class="fa-solid fa-plus-circle text-sky-600 me-2"></i> Intervention Entry
+        </h2>
+
+        <form id="intervention-form" onsubmit="handleInterventionSubmit(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Patient Name</label>
+              <input type="text" id="patient-name" required placeholder="e.g. Tan Ah Kow" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            </div>
+            
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">RN / MRN / Bed No.</label>
+              <input type="text" id="rn-number" required placeholder="e.g. RN-884920" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">CP3 Code Category</label>
+              <select id="cp3-code" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <option value="" disabled selected>Select CP3 Code...</option>
+                
+                <!-- GROUP 2: INAPPROPRIATE REGIMEN (2.1 - 2.8) -->
+                <optgroup label="2. Inappropriate Regimen">
+                  <option value="2.1">2.1 Drug</option>
+                  <option value="2.2">2.2 Dose</option>
+                  <option value="2.3">2.3 Frequency</option>
+                  <option value="2.4">2.4 Duration</option>
+                  <option value="2.5">2.5 Polypharmacy</option>
+                  <option value="2.6">2.6 Contraindication</option>
+                  <option value="2.7">2.7 Drug Interaction</option>
+                  <option value="2.8">2.8 Incompatibility</option>
+                </optgroup>
+
+                <!-- GROUP 1: INCOMPLETE PRESCRIPTION (1.1 - 1.6) -->
+                <optgroup label="1. Incomplete Prescription">
+                  <option value="1.1">1.1 Patient data</option>
+                  <option value="1.2">1.2 Drug</option>
+                  <option value="1.3">1.3 Dose</option>
+                  <option value="1.4">1.4 Frequency</option>
+                  <option value="1.5">1.5 Duration</option>
+                  <option value="1.6">1.6 Dr's Stamp & Sign</option>
+                </optgroup>
+
+                <!-- GROUP 3: MISCELLANEOUS (3.1 - 3.8) -->
+                <optgroup label="3. Miscellaneous">
+                  <option value="3.1">3.1 Wrong Patient</option>
+                  <option value="3.2">3.2 Drug Not in Formulary</option>
+                  <option value="3.3">3.3 Drug Administration Error</option>
+                  <option value="3.4">3.4 Unclear Handwriting</option>
+                  <option value="3.5">3.5 Authenticity of Prescription/Prescriber</option>
+                  <option value="3.6">3.6 Suggest for Vital Signs Monitoring/Laboratory Investigation</option>
+                  <option value="3.7">3.7 TDM</option>
+                  <option value="3.8">3.8 TPN</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Description / Clinical Recommendation (Section C)</label>
+            <textarea id="intervention-desc" required rows="3" placeholder="Describe clinical finding and doctor outcome..." class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <label class="flex items-center text-sm font-medium text-slate-700 cursor-pointer">
+              <input type="checkbox" id="is-accepted" checked class="w-4 h-4 text-emerald-600 rounded me-2">
+              <span class="text-emerald-700 font-semibold">Intervention Accepted by Physician</span>
+            </label>
+
+            <button type="submit" id="submit-btn" class="bg-sky-600 hover:bg-sky-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition shadow flex items-center">
+              <i class="fa-solid fa-plus me-2"></i> Add Entry to Daily Log
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- LOGGED INTERVENTIONS LIST (LAST 5 DAYS RANGE) -->
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-slate-800 text-sm">Logged Interventions (Last 5 Days) (<span id="entry-count">0</span>)</h3>
+            <p class="text-[11px] text-slate-500">Showing entries from active shift date through 4 days prior</p>
+          </div>
+          <span class="text-xs text-slate-500 font-medium">Auto-tallied into Section B totals</span>
+        </div>
+
+        <div id="interventions-list" class="divide-y divide-slate-200"></div>
+      </div>
+    </div>
+
+    <!-- TAB 3: REPORT GENERATOR -->
+    <div id="view-reports" class="hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-2">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Generate Official CP3 Report (Pin 2/24)</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Filter records by single shift or aggregate across monthly date ranges.</p>
+          </div>
+          
+          <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
+            <button onclick="setReportFilterMode('daily')" id="btn-mode-daily" class="px-3 py-1.5 rounded-md bg-white shadow text-sky-700">Daily Report</button>
+            <button onclick="setReportFilterMode('range')" id="btn-mode-range" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900">Monthly / Custom Range</button>
+          </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-end justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            <div id="report-daily-inputs" class="flex items-center space-x-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase">Shift Date</label>
+                <input type="date" id="report-single-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer">
+              </div>
+            </div>
+
+            <div id="report-range-inputs" class="hidden flex items-center space-x-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase">From Date</label>
+                <input type="date" id="report-start-date" value="2026-07-01" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer">
+              </div>
+              <span class="text-slate-400 font-bold mt-4">to</span>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase">To Date</label>
+                <input type="date" id="report-end-date" value="2026-07-31" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase">Ward Filter</label>
+              <select id="report-ward-filter" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none">
+                <option value="ALL" id="ward-opt-all">All Wards Combined</option>
+                <option value="ICU">ICU</option>
+                <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
+                <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
+                <option value="WARD 3 - MULTIDISCIPLINE">WARD 3 - MULTIDISCIPLINE</option>
+                <option value="WARD 4 - PAEDIATRICS 2">WARD 4 - PAEDIATRICS 2</option>
+                <option value="WARD 5 - O&G">WARD 5 - O&G</option>
+                <option value="WARD 6 - PAEDIATRICS 1">WARD 6 - PAEDIATRICS 1</option>
+                <option value="WARD 7 - SURGICAL / ORTHO MALE">WARD 7 - SURGICAL / ORTHO MALE</option>
+                <option value="WARD 8 - SURGICAL / ORTHO FEMALE">WARD 8 - SURGICAL / ORTHO FEMALE</option>
+              </select>
+            </div>
+          </div>
+
+          <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2 w-full md:w-auto justify-center">
+            <i class="fa-solid fa-print"></i>
+            <span>Print / Save PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- PRINTABLE CP3 FORM PREVIEW -->
+      <div id="printable-cp3" class="bg-white p-8 rounded-xl shadow-lg border border-slate-300 max-w-4xl mx-auto text-xs font-mono">
+        <div class="border-b-2 border-slate-800 pb-3 text-center">
+          <h2 class="font-bold text-base uppercase tracking-wide text-slate-900">CLINICAL PHARMACY REPORT FORM (Pin. 2/24)</h2>
+          <p class="text-xs text-slate-600">Pharmacy Department, Hospital</p>
+        </div>
+
+        <div class="my-4 border-b pb-4">
+          <div class="font-bold bg-slate-100 p-1 mb-2 text-slate-900">A: WARD PHARMACY ACTIVITY</div>
+          <div class="grid grid-cols-2 gap-2">
+            <div><strong>Report Period:</strong> <span id="pdf-date">28/07/2026</span></div>
+            <div><strong>Ward:</strong> <span id="pdf-ward">WARD 1 - MEDICAL MALE</span></div>
+            <div><strong>Task:</strong> <span id="pdf-task">Full Time</span></div>
+            <div><strong>Physician(s):</strong> <span id="pdf-physicians">Dr. Aris, Dr. Chen</span></div>
+            <div><strong>Rounds:</strong> <span id="pdf-rounds">Routine, Pharmacist</span></div>
+            <div><strong>Clerking:</strong> CP1: <span id="pdf-cp1">0</span> | CP2: <span id="pdf-cp2">0</span></div>
+          </div>
+        </div>
+
+        <div class="my-4 border-b pb-4">
+          <div class="font-bold bg-slate-100 p-1 mb-2 text-slate-900">B: INTERVENTIONS / REQUESTS SUMMARY (AUTO-TALLIED)</div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="font-bold underline mb-1">(1) Incomplete Prescription</p>
+              <p>1.1 Patient data: <span id="count-1.1">0</span></p>
+              <p>1.2 Drug: <span id="count-1.2">0</span></p>
+              <p>1.3 Dose: <span id="count-1.3">0</span></p>
+              <p>1.4 Frequency: <span id="count-1.4">0</span></p>
+              <p>1.5 Duration: <span id="count-1.5">0</span></p>
+              <p>1.6 Dr Stamp & Sign: <span id="count-1.6">0</span></p>
+            </div>
+            <div>
+              <p class="font-bold underline mb-1">(2) Inappropriate Regimen</p>
+              <p>2.1 Drug: <span id="count-2.1">0</span></p>
+              <p>2.2 Dose: <span id="count-2.2">0</span></p>
+              <p>2.3 Frequency: <span id="count-2.3">0</span></p>
+              <p>2.4 Duration: <span id="count-2.4">0</span></p>
+              <p>2.5 Polypharmacy: <span id="count-2.5">0</span></p>
+              <p>2.6 Contraindication: <span id="count-2.6">0</span></p>
+              <p>2.7 Drug Interaction: <span id="count-2.7">0</span></p>
+              <p>2.8 Incompatibility: <span id="count-2.8">0</span></p>
+              <p class="font-bold mt-2">TOTAL INTERVENTIONS: <span id="count-total">0</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="my-4">
+          <div class="font-bold bg-slate-100 p-1 mb-2 text-slate-900">C: INTERVENTIONS ENCOUNTERED</div>
+          <table class="w-full text-left border-collapse border border-slate-300">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-300">
+                <th class="p-1 border-r">DATE</th>
+                <th class="p-1 border-r">PATIENT NAME</th>
+                <th class="p-1 border-r">RN</th>
+                <th class="p-1 border-r">CODE</th>
+                <th class="p-1">DESCRIPTION</th>
+              </tr>
+            </thead>
+            <tbody id="pdf-interventions-table"></tbody>
+          </table>
+        </div>
+
+        <div class="mt-8 pt-4 border-t flex justify-between items-center text-slate-600">
+          <div>Pharmacist Signature & Stamp: ______________________</div>
+          <div>Logged By: <span id="pdf-logged-by">Sarah Jenkins, RPh</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: ADMIN / SETTINGS PANEL -->
+    <div id="view-admin" class="hidden space-y-6">
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center space-x-3 text-amber-900 text-xs">
+        <i class="fa-solid fa-shield-cat text-2xl text-amber-600"></i>
+        <div>
+          <p class="font-bold">Restricted Administration Environment</p>
+          <p class="text-amber-700 mt-0.5">You are authenticated as an Admin. Changes made here affect system privileges and registered users.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center border-b pb-2">
+            <i class="fa-solid fa-user-plus text-sky-600 me-2"></i> Register New Pharmacist
+          </h2>
+
+          <form onsubmit="handleRegisterUser(event)" class="space-y-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Full Name & Qualification</label>
+              <input type="text" id="reg-name" required placeholder="e.g. Dr. Emily Wong, RPh" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward / Location</label>
+              <select id="reg-ward" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <option value="ICU">ICU</option>
+                <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
+                <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
+                <option value="WARD 3 - MULTIDISCIPLINE">WARD 3 - MULTIDISCIPLINE</option>
+                <option value="WARD 4 - PAEDIATRICS 2">WARD 4 - PAEDIATRICS 2</option>
+                <option value="WARD 5 - O&G">WARD 5 - O&G</option>
+                <option value="WARD 6 - PAEDIATRICS 1">WARD 6 - PAEDIATRICS 1</option>
+                <option value="WARD 7 - SURGICAL / ORTHO MALE">WARD 7 - SURGICAL / ORTHO MALE</option>
+                <option value="WARD 8 - SURGICAL / ORTHO FEMALE">WARD 8 - SURGICAL / ORTHO FEMALE</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3">
+              <div class="col-span-1">
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Username</label>
+                <input type="text" id="reg-key" required placeholder="emily" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              </div>
+              <div class="col-span-1">
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4-Digit PIN</label>
+                <input type="password" id="reg-pin" maxlength="4" required placeholder="••••" class="w-full text-center tracking-widest font-bold border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              </div>
+              <div class="col-span-1">
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">User Role</label>
+                <select id="reg-role" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <option value="user" selected>Pharmacist</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-2 rounded-lg text-sm transition shadow flex items-center justify-center">
+              <i class="fa-solid fa-plus-circle me-2"></i> Register Pharmacist Profile
+            </button>
+          </form>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
+          <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center border-b pb-2">
+            <i class="fa-solid fa-database text-sky-600 me-2"></i> Database & Connection Tools
+          </h2>
+
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
+            <p class="text-xs font-bold text-slate-700">Google Sheets API Status</p>
+            <p class="text-xs text-slate-500">Test if your SheetDB endpoint is actively receiving data from this web client.</p>
+            <button onclick="testApiConnection()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded transition">
+              <i class="fa-solid fa-network-wired me-1"></i> Test Endpoint Connection
+            </button>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
+            <p class="text-xs font-bold text-slate-700">Data Backup & Export</p>
+            <p class="text-xs text-slate-500">Download active intervention data to a local JSON backup file.</p>
+            <button onclick="exportDataBackup()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded transition">
+              <i class="fa-solid fa-download me-1"></i> Export Local JSON Backup
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 bg-slate-50 border-b border-slate-200">
+          <h3 class="font-bold text-slate-800 text-sm">Active Registered Pharmacists Directory</h3>
+        </div>
+        <table class="w-full text-left text-xs">
+          <thead class="bg-slate-100 border-b border-slate-200 text-slate-600 font-semibold uppercase">
+            <tr>
+              <th class="p-3">Username</th>
+              <th class="p-3">Pharmacist Name</th>
+              <th class="p-3">Designated Ward</th>
+              <th class="p-3">Role</th>
+              <th class="p-3">Security PIN</th>
+              <th class="p-3">Action</th>
+            </tr>
+          </thead>
+          <tbody id="user-directory-tbody" class="divide-y divide-slate-200"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT CONNECTIVITY & LOGIC -->
+  <script>
+    // INITIAL DATABASE STATE WITH WARD LOCATIONS
+    let defaultUsers = {
+      admin: { pin: "9999", name: "Admin Pharmacist", ward: "ICU", role: "admin" },
+      sarah: { pin: "1234", name: "Sarah Jenkins, RPh", ward: "WARD 1 - MEDICAL MALE", role: "user" },
+      mark: { pin: "5678", name: "Mark Tan, RPh", ward: "WARD 7 - SURGICAL / ORTHO MALE", role: "user" }
+    };
+
+    let storedUsers = JSON.parse(localStorage.getItem('registered_users_db'));
+    let PIN_DATABASE = storedUsers || defaultUsers;
+    PIN_DATABASE['admin'] = defaultUsers['admin'];
+
+    let currentUser = null;
+    let sheetDbApiUrl = localStorage.getItem('sheetdb_url') || '';
+    let reportMode = 'daily';
+
+    let interventionsData = [
+      {
+        id: "101",
+        date: "2026-07-28",
+        ward: "WARD 1 - MEDICAL MALE",
+        patient: "Tan Ah Kow",
+        rn: "RN-884920",
+        code: "2.2",
+        desc: "Reduced Enoxaparin from 60mg BD to 80mg OD due to reduced renal clearance (GFR 25).",
+        accepted: true,
+        user_name: "Sarah Jenkins, RPh",
+        user_ward: "WARD 1 - MEDICAL MALE"
+      }
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      populateUserLoginDropdown();
+      renderUserDirectoryTable();
+      checkStoredAuthSession();
+      updateApiStatusDisplay();
+      loadSavedCheckIn();
+      loadLastPatientData();
+      renderInterventions();
+      updatePdfReport();
+    });
+
+    // DATE FORMAT HELPER (YYYY-MM-DD -> DD/MM/YYYY)
+    function formatDateDDMMYYYY(dateStr) {
+      if (!dateStr || dateStr === "N/A") return "N/A";
+      const parts = dateStr.trim().split('-');
+      if (parts.length === 3 && parts[0].length === 4) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateStr;
+    }
+
+    // PREVENT NUMBERS BELOW 0
+    function validateNonNegative(inputEl) {
+      if (inputEl.value < 0 || inputEl.value === "") {
+        inputEl.value = 0;
+      }
+    }
+
+    // LOAD LAST PATIENT NAME AND RN FROM LOCAL STORAGE
+    function loadLastPatientData() {
+      const lastPt = localStorage.getItem('last_patient_name');
+      const lastRn = localStorage.getItem('last_rn_number');
+      const nameInput = document.getElementById('patient-name');
+      const rnInput = document.getElementById('rn-number');
+      if (nameInput && lastPt) nameInput.value = lastPt;
+      if (rnInput && lastRn) rnInput.value = lastRn;
+    }
+
+    // CHANGE PIN MODAL HANDLERS
+    function openChangePinModal() {
+      if (!currentUser) return;
+      document.getElementById('change-pin-current').value = '';
+      document.getElementById('change-pin-new').value = '';
+      document.getElementById('change-pin-confirm').value = '';
+      document.getElementById('change-pin-error').classList.add('hidden');
+      document.getElementById('change-pin-modal').classList.remove('hidden');
+    }
+
+    function closeChangePinModal() {
+      document.getElementById('change-pin-modal').classList.add('hidden');
+    }
+
+    function handleChangePinSubmit(e) {
+      e.preventDefault();
+      const currPin = document.getElementById('change-pin-current').value.trim();
+      const newPin = document.getElementById('change-pin-new').value.trim();
+      const confirmPin = document.getElementById('change-pin-confirm').value.trim();
+      const errBox = document.getElementById('change-pin-error');
+
+      if (currPin !== currentUser.pin) {
+        errBox.innerText = 'Current Security PIN is incorrect.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      if (newPin.length !== 4 || isNaN(newPin)) {
+        errBox.innerText = 'New PIN must be exactly 4 numeric digits.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      if (newPin !== confirmPin) {
+        errBox.innerText = 'New PIN and Confirm PIN do not match.';
+        errBox.classList.remove('hidden');
+        return;
+      }
+
+      const activeKey = localStorage.getItem('active_user_key');
+      if (activeKey && PIN_DATABASE[activeKey]) {
+        PIN_DATABASE[activeKey].pin = newPin;
+        currentUser.pin = newPin;
+        localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
+        renderUserDirectoryTable();
+        closeChangePinModal();
+        alert('Security PIN updated successfully!');
+      }
+    }
+
+    // EDIT USER MODAL HANDLERS (ADMIN ONLY)
+    function openEditUserModal(key) {
+      const user = PIN_DATABASE[key];
+      if (!user) return;
+      document.getElementById('edit-user-key').value = key;
+      document.getElementById('edit-user-username').value = key;
+      document.getElementById('edit-user-name').value = user.name || '';
+      document.getElementById('edit-user-ward').value = user.ward || 'WARD 1 - MEDICAL MALE';
+      document.getElementById('edit-user-pin').value = user.pin || '';
+      document.getElementById('edit-user-role').value = user.role || 'user';
+      document.getElementById('edit-user-modal').classList.remove('hidden');
+    }
+
+    function closeEditUserModal() {
+      document.getElementById('edit-user-modal').classList.add('hidden');
+    }
+
+    function handleSaveEditedUser(e) {
+      e.preventDefault();
+      if (!currentUser || !currentUser.role || currentUser.role.toLowerCase() !== 'admin') {
+        alert('Unauthorized! Only administrators can edit user profiles.');
+        return;
+      }
+
+      const key = document.getElementById('edit-user-key').value;
+      if (!PIN_DATABASE[key]) return;
+
+      PIN_DATABASE[key].name = document.getElementById('edit-user-name').value.trim();
+      PIN_DATABASE[key].ward = document.getElementById('edit-user-ward').value;
+      PIN_DATABASE[key].pin = document.getElementById('edit-user-pin').value.trim();
+      PIN_DATABASE[key].role = document.getElementById('edit-user-role').value;
+
+      localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
+
+      if (localStorage.getItem('active_user_key') === key) {
+        currentUser = PIN_DATABASE[key];
+        applyUserSessionUI();
+      }
+
+      populateUserLoginDropdown();
+      renderUserDirectoryTable();
+      closeEditUserModal();
+      alert(`User profile '${key}' updated successfully!`);
+    }
+
+    // APPLY REPORT WARD FILTER PERMISSIONS (ADMIN vs USER)
+    function applyWardFilterPermissions() {
+      const wardFilterSelect = document.getElementById('report-ward-filter');
+      if (!wardFilterSelect) return;
+
+      const allOption = document.getElementById('ward-opt-all');
+      const activeWard = document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE");
+
+      if (currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin') {
+        if (allOption) allOption.disabled = false;
+        wardFilterSelect.disabled = false;
+      } else {
+        if (allOption) allOption.disabled = true;
+        wardFilterSelect.value = activeWard;
+        wardFilterSelect.disabled = true;
+      }
+    }
+
+    function handleCheckInSubmit(e) {
+      e.preventDefault();
+      const checkinData = {
+        ward: document.getElementById('ward-name').value,
+        task: document.querySelector('input[name="task_type"]:checked')?.value || "Full Time",
+        physicians: document.getElementById('physicians').value,
+        roundRoutine: document.getElementById('round-routine')?.checked,
+        roundGrand: document.getElementById('round-grand')?.checked,
+        roundPharmacist: document.getElementById('round-pharmacist')?.checked,
+        cp1: document.getElementById('cp1-count')?.innerText || "0",
+        cp2: document.getElementById('cp2-count')?.innerText || "0",
+        counselBedsideSessions: document.getElementById('counsel-bedside-sessions')?.value || "0",
+        counselBedsidePts: document.getElementById('counsel-bedside-pts')?.value || "0",
+        counselDischargeSessions: document.getElementById('counsel-discharge-sessions')?.value || "0",
+        counselDischargePts: document.getElementById('counsel-discharge-pts')?.value || "0",
+        counselGroupSessions: document.getElementById('counsel-group-sessions')?.value || "0",
+        counselGroupPts: document.getElementById('counsel-group-pts')?.value || "0"
+      };
+
+      localStorage.setItem('saved_shift_checkin', JSON.stringify(checkinData));
+      applyWardFilterPermissions();
+      updatePdfReport();
+      alert('Shift Check-In saved successfully!');
+    }
+
+    function loadSavedCheckIn() {
+      const saved = JSON.parse(localStorage.getItem('saved_shift_checkin'));
+      if (!saved) return;
+
+      if (saved.ward) document.getElementById('ward-name').value = saved.ward;
+      if (saved.physicians) document.getElementById('physicians').value = saved.physicians;
+      if (saved.cp1 !== undefined) document.getElementById('cp1-count').innerText = saved.cp1;
+      if (saved.cp2 !== undefined) document.getElementById('cp2-count').innerText = saved.cp2;
+
+      document.getElementById('counsel-bedside-sessions').value = Math.max(0, parseInt(saved.counselBedsideSessions) || 0);
+      document.getElementById('counsel-bedside-pts').value = Math.max(0, parseInt(saved.counselBedsidePts) || 0);
+      document.getElementById('counsel-discharge-sessions').value = Math.max(0, parseInt(saved.counselDischargeSessions) || 0);
+      document.getElementById('counsel-discharge-pts').value = Math.max(0, parseInt(saved.counselDischargePts) || 0);
+      document.getElementById('counsel-group-sessions').value = Math.max(0, parseInt(saved.counselGroupSessions) || 0);
+      document.getElementById('counsel-group-pts').value = Math.max(0, parseInt(saved.counselGroupPts) || 0);
+
+      if (saved.task) {
+        const radio = document.querySelector(`input[name="task_type"][value="${saved.task}"]`);
+        if (radio) radio.checked = true;
+      }
+
+      if (saved.roundRoutine !== undefined) document.getElementById('round-routine').checked = saved.roundRoutine;
+      if (saved.roundGrand !== undefined) document.getElementById('round-grand').checked = saved.roundGrand;
+      if (saved.roundPharmacist !== undefined) document.getElementById('round-pharmacist').checked = saved.roundPharmacist;
+    }
+
+    function populateUserLoginDropdown() {
+      const select = document.getElementById('login-user-select');
+      if (!select) return;
+      select.innerHTML = '';
+      for (const [key, val] of Object.entries(PIN_DATABASE)) {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.innerText = `${val.name} (${val.ward || 'General'})`;
+        select.appendChild(opt);
+      }
+    }
+
+    function renderUserDirectoryTable() {
+      const tbody = document.getElementById('user-directory-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      for (const [key, val] of Object.entries(PIN_DATABASE)) {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50';
+        tr.innerHTML = `
+          <td class="p-3 font-mono font-bold text-sky-700">${key}</td>
+          <td class="p-3 font-semibold text-slate-800">${val.name}</td>
+          <td class="p-3 text-slate-600 font-medium">${val.ward || '-'}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${val.role && val.role.toLowerCase() === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'}">${val.role || 'user'}</span></td>
+          <td class="p-3 font-mono text-slate-500">••••</td>
+          <td class="p-3">
+            <button onclick="openEditUserModal('${key}')" class="text-sky-600 hover:text-sky-800 font-semibold me-3"><i class="fa-solid fa-pen-to-square me-1"></i>Edit</button>
+            <button onclick="deleteUserKey('${key}')" class="text-rose-600 hover:text-rose-800 font-semibold"><i class="fa-solid fa-trash me-1"></i>Remove</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    function handleRegisterUser(e) {
+      e.preventDefault();
+      if (!currentUser || !currentUser.role || currentUser.role.toLowerCase() !== 'admin') {
+        alert('Unauthorized! Only system administrators can register new users.');
+        return;
+      }
+
+      const key = document.getElementById('reg-key').value.toLowerCase().trim();
+      const name = document.getElementById('reg-name').value.trim();
+      const ward = document.getElementById('reg-ward').value;
+      const pin = document.getElementById('reg-pin').value.trim();
+      const role = document.getElementById('reg-role').value;
+
+      if (PIN_DATABASE[key]) {
+        alert('Username already exists! Please choose a different username.');
+        return;
+      }
+
+      PIN_DATABASE[key] = { pin, name, ward, role };
+      localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
+      
+      populateUserLoginDropdown();
+      renderUserDirectoryTable();
+      alert(`Successfully registered ${name} for ${ward}!`);
+      e.target.reset();
+    }
+
+    function deleteUserKey(key) {
+      if (!currentUser || !currentUser.role || currentUser.role.toLowerCase() !== 'admin') {
+        alert('Unauthorized! Only administrators can delete users.');
+        return;
+      }
+      if (confirm(`Are you sure you want to remove ${key}?`)) {
+        delete PIN_DATABASE[key];
+        localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
+        populateUserLoginDropdown();
+        renderUserDirectoryTable();
+      }
+    }
+
+    function checkStoredAuthSession() {
+      const storedKey = localStorage.getItem('active_user_key');
+      if (storedKey && PIN_DATABASE[storedKey]) {
+        currentUser = PIN_DATABASE[storedKey];
+        applyUserSessionUI();
+      } else {
+        showLoginOverlay();
+      }
+    }
+
+    function showLoginOverlay() {
+      const overlay = document.getElementById('login-overlay');
+      overlay.classList.remove('hidden');
+      overlay.classList.remove('pointer-events-none');
+    }
+
+    function hideLoginOverlay() {
+      const overlay = document.getElementById('login-overlay');
+      overlay.classList.add('hidden');
+      overlay.classList.add('pointer-events-none');
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const userKey = document.getElementById('login-user-select').value;
+      const enteredPin = document.getElementById('login-pin').value;
+      const errBox = document.getElementById('login-error');
+
+      if (PIN_DATABASE[userKey] && PIN_DATABASE[userKey].pin === enteredPin) {
+        currentUser = PIN_DATABASE[userKey];
+        localStorage.setItem('active_user_key', userKey);
+        errBox.classList.add('hidden');
+        document.getElementById('login-pin').value = '';
+        applyUserSessionUI();
+      } else {
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    function applyUserSessionUI() {
+      if (!currentUser) return;
+      hideLoginOverlay();
+      document.getElementById('user-display-name').innerText = currentUser.name;
+      
+      const userWardDisplay = document.getElementById('user-ward-display');
+      if (userWardDisplay) userWardDisplay.innerText = currentUser.ward || "General";
+
+      const initials = currentUser.name.split(' ').map(n => n[0]).slice(0, 2).join('');
+      document.getElementById('user-avatar').innerText = initials;
+
+      const roleBadge = document.getElementById('user-role-badge');
+      if (currentUser.role && currentUser.role.toLowerCase() === 'admin') {
+        roleBadge.classList.remove('hidden');
+      } else {
+        roleBadge.classList.add('hidden');
+      }
+
+      const wardSelect = document.getElementById('ward-name');
+      if (wardSelect && currentUser.ward) {
+        wardSelect.value = currentUser.ward;
+      }
+
+      applyWardFilterPermissions();
+      updatePdfReport();
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('active_user_key');
+      currentUser = null;
+      showLoginOverlay();
+    }
+
+    function switchTab(tabName) {
+      if (tabName === 'admin') {
+        if (!currentUser || !currentUser.role || currentUser.role.toLowerCase() !== 'admin') {
+          alert('Access Denied: Tab 4 (Admin Settings) is restricted to system administrators.');
+          return;
+        }
+      }
+
+      document.getElementById('view-checkin').classList.add('hidden');
+      document.getElementById('view-interventions').classList.add('hidden');
+      document.getElementById('view-reports').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+
+      document.getElementById('tab-checkin').className = "py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-interventions').className = "py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-reports').className = "py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-admin').className = "py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap";
+
+      document.getElementById('view-' + tabName).classList.remove('hidden');
+      document.getElementById('tab-' + tabName).className = "tab-active py-4 px-6 text-sm flex items-center space-x-2 whitespace-nowrap";
+
+      if (tabName === 'reports') {
+        applyWardFilterPermissions();
+        updatePdfReport();
+      }
+    }
+
+    async function testApiConnection() {
+      if (!sheetDbApiUrl) {
+        alert('No SheetDB API URL configured yet. Click "Set API URL" in the banner above.');
+        return;
+      }
+      try {
+        const res = await fetch(sheetDbApiUrl);
+        if (res.ok) {
+          alert('API Connection Successful! Google Sheets endpoint is reachable.');
+        } else {
+          alert('API endpoint returned error code: ' + res.status);
+        }
+      } catch (err) {
+        alert('Failed to connect to API endpoint. Check internet or API URL.');
+      }
+    }
+
+    function exportDataBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interventionsData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `cp3_backup_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function setReportFilterMode(mode) {
+      reportMode = mode;
+      const btnDaily = document.getElementById('btn-mode-daily');
+      const btnRange = document.getElementById('btn-mode-range');
+      const dailyInputs = document.getElementById('report-daily-inputs');
+      const rangeInputs = document.getElementById('report-range-inputs');
+
+      if (mode === 'daily') {
+        btnDaily.className = "px-3 py-1.5 rounded-md bg-white shadow text-sky-700 font-semibold";
+        btnRange.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900";
+        dailyInputs.classList.remove('hidden');
+        rangeInputs.classList.add('hidden');
+      } else {
+        btnRange.className = "px-3 py-1.5 rounded-md bg-white shadow text-sky-700 font-semibold";
+        btnDaily.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900";
+        rangeInputs.classList.remove('hidden');
+        dailyInputs.classList.add('hidden');
+      }
+      updatePdfReport();
+    }
+
+    function configureApiUrl() {
+      const url = prompt("Enter your SheetDB API Endpoint URL (e.g. https://sheetdb.io/api/v1/your_id):", sheetDbApiUrl);
+      if (url !== null) {
+        sheetDbApiUrl = url.trim();
+        localStorage.setItem('sheetdb_url', sheetDbApiUrl);
+        updateApiStatusDisplay();
+      }
+    }
+
+    function updateApiStatusDisplay() {
+      const el = document.getElementById('api-status');
+      if (sheetDbApiUrl) {
+        el.innerText = 'Connected: ' + sheetDbApiUrl.substring(0, 30) + '...';
+        el.className = 'font-mono bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded';
+      } else {
+        el.innerText = 'Local Demo Mode (Paste SheetDB API URL in config)';
+        el.className = 'font-mono bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded';
+      }
+    }
+
+    function syncShiftDate() {
+      document.getElementById('report-single-date').value = document.getElementById('global-shift-date').value;
+      renderInterventions();
+      updatePdfReport();
+    }
+
+    // TALLY COUNTER WITH 0 FLOOR
+    function updateCounter(id, delta) {
+      const el = document.getElementById(id);
+      let val = parseInt(el.innerText) + delta;
+      if (val < 0) val = 0;
+      el.innerText = val;
+      updatePdfReport();
+    }
+
+    async function handleInterventionSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('submit-btn');
+      btn.innerText = 'Saving...';
+      btn.disabled = true;
+
+      const ptName = document.getElementById('patient-name').value.trim();
+      const rnNum = document.getElementById('rn-number').value.trim();
+
+      const payload = {
+        id: Date.now().toString(),
+        date: document.getElementById('global-shift-date').value,
+        ward: document.getElementById('ward-name').value,
+        patient: ptName,
+        rn: rnNum,
+        code: document.getElementById('cp3-code').value,
+        desc: document.getElementById('intervention-desc').value,
+        accepted: document.getElementById('is-accepted').checked ? "YES" : "NO",
+        user_name: currentUser ? currentUser.name : "Anonymous",
+        user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
+      };
+
+      interventionsData.push(payload);
+
+      localStorage.setItem('last_patient_name', ptName);
+      localStorage.setItem('last_rn_number', rnNum);
+
+      if (sheetDbApiUrl) {
+        try {
+          await fetch(sheetDbApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: [payload] })
+          });
+        } catch (err) {
+          console.warn('Saved locally, but failed to reach SheetDB API.');
+        }
+      }
+
+      document.getElementById('intervention-form').reset();
+      document.getElementById('patient-name').value = ptName;
+      document.getElementById('rn-number').value = rnNum;
+
+      btn.innerText = '+ Add Entry to Daily Log';
+      btn.disabled = false;
+
+      renderInterventions();
+      updatePdfReport();
+    }
+
+    // RENDER INTERVENTIONS LOG (SHOWING LAST 5 DAYS)
+    function renderInterventions() {
+      const targetDate = document.getElementById('global-shift-date').value;
+      
+      // Calculate 4 days prior (5 days total)
+      const target = new Date(targetDate);
+      const minDateObj = new Date(target);
+      minDateObj.setDate(minDateObj.getDate() - 4);
+      const minDateStr = minDateObj.toISOString().split('T')[0];
+
+      const filtered = interventionsData.filter(item => {
+        const itemDate = String(item.date).trim();
+        return itemDate >= minDateStr && itemDate <= targetDate;
+      });
+
+      // Sort descending by date
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      document.getElementById('entry-count').innerText = filtered.length;
+      const listEl = document.getElementById('interventions-list');
+      listEl.innerHTML = '';
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No interventions logged in the last 5 days.</div>';
+        return;
+      }
+
+      filtered.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-4 hover:bg-slate-50 flex items-start justify-between';
+        div.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center space-x-2">
+              <span class="font-bold text-sm text-slate-900">${item.patient}</span>
+              <span class="text-xs bg-slate-200 px-2 py-0.5 rounded text-slate-700">${item.rn}</span>
+              <span class="text-xs bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${item.code}</span>
+              <span class="text-xs bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
+              ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
+            </div>
+            <p class="text-xs text-slate-600">${item.desc}</p>
+          </div>
+          <button onclick="deleteEntry('${item.id}')" class="text-slate-400 hover:text-red-500 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+        `;
+        listEl.appendChild(div);
+      });
+    }
+
+    function deleteEntry(id) {
+      interventionsData = interventionsData.filter(item => item.id !== id);
+      renderInterventions();
+      updatePdfReport();
+    }
+
+    function updatePdfReport() {
+      const selectedWard = document.getElementById('report-ward-filter').value;
+      let filtered = [];
+
+      if (reportMode === 'daily') {
+        const singleDate = document.getElementById('report-single-date').value;
+        document.getElementById('pdf-date').innerText = formatDateDDMMYYYY(singleDate);
+        filtered = interventionsData.filter(item => String(item.date).trim() === String(singleDate).trim());
+      } else {
+        const startDate = document.getElementById('report-start-date').value;
+        const endDate = document.getElementById('report-end-date').value;
+        document.getElementById('pdf-date').innerText = `${formatDateDDMMYYYY(startDate)} to ${formatDateDDMMYYYY(endDate)}`;
+        filtered = interventionsData.filter(item => {
+          const itemDate = String(item.date).trim();
+          return itemDate >= startDate && itemDate <= endDate;
+        });
+      }
+
+      const activeWard = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
+
+      if (selectedWard !== 'ALL') {
+        filtered = filtered.filter(item => item.ward === selectedWard);
+        document.getElementById('pdf-ward').innerText = selectedWard;
+      } else {
+        document.getElementById('pdf-ward').innerText = activeWard + " (Combined)";
+      }
+
+      const physiciansInput = document.getElementById('physicians');
+      const cp1Input = document.getElementById('cp1-count');
+      const cp2Input = document.getElementById('cp2-count');
+      const taskInput = document.querySelector('input[name="task_type"]:checked');
+
+      if (physiciansInput) document.getElementById('pdf-physicians').innerText = physiciansInput.value.trim() !== "" ? physiciansInput.value : "-";
+      if (cp1Input) document.getElementById('pdf-cp1').innerText = cp1Input.innerText || "0";
+      if (cp2Input) document.getElementById('pdf-cp2').innerText = cp2Input.innerText || "0";
+      if (taskInput) document.getElementById('pdf-task').innerText = taskInput.value;
+
+      const rounds = [];
+      if (document.getElementById('round-routine')?.checked) rounds.push("Routine");
+      if (document.getElementById('round-grand')?.checked) rounds.push("Grand");
+      if (document.getElementById('round-pharmacist')?.checked) rounds.push("Pharmacist");
+      document.getElementById('pdf-rounds').innerText = rounds.length > 0 ? rounds.join(", ") : "None";
+
+      document.getElementById('pdf-logged-by').innerText = currentUser ? currentUser.name : "Sarah Jenkins, RPh";
+
+      const allCp3Codes = [
+        '1.1', '1.2', '1.3', '1.4', '1.5', '1.6',
+        '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.8',
+        '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8'
+      ];
+
+      allCp3Codes.forEach(code => {
+        const counterEl = document.getElementById(`count-${code}`);
+        if (counterEl) counterEl.innerText = '0';
+      });
+
+      let totalInterventions = 0;
+      filtered.forEach(item => {
+        totalInterventions++;
+        const targetCounter = document.getElementById(`count-${item.code}`);
+        if (targetCounter) {
+          let currentVal = parseInt(targetCounter.innerText) || 0;
+          targetCounter.innerText = (currentVal + 1).toString();
+        }
+      });
+
+      const totalCounterEl = document.getElementById('count-total');
+      if (totalCounterEl) totalCounterEl.innerText = totalInterventions.toString();
+
+      const tbody = document.getElementById('pdf-interventions-table');
+      if (tbody) {
+        tbody.innerHTML = '';
+        if (filtered.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400 italic">No interventions logged for this selected date and ward.</td></tr>';
+        } else {
+          filtered.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b hover:bg-slate-50';
+            tr.innerHTML = `
+              <td class="p-1 border-r font-semibold text-slate-700">${formatDateDDMMYYYY(item.date)}</td>
+              <td class="p-1 border-r font-bold text-slate-900">${item.patient}</td>
+              <td class="p-1 border-r font-mono text-slate-600">${item.rn}</td>
+              <td class="p-1 border-r font-bold text-sky-800">${item.code}</td>
+              <td class="p-1 text-slate-800">${item.desc} ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-emerald-700 font-bold">(Accepted)</span>' : ''}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        }
+      }
+    }
+  </script>
+</body>
+</html>
