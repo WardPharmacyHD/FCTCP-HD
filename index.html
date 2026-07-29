@@ -3,52 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HDgn WARD PHARMACY PORTAL - Borang CP3 Pin 2/24</title>
+  <title>WARD PHARMACY PORTAL HD - Borang CP3 Pin 2/24</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
-    .tab-active { border-bottom: 3px solid #0284c7; color: #0284c7; font-weight: 600; }
+    .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 600; }
     input[type="date"] { cursor: pointer; color-scheme: dark; }
     @media print {
       body * { visibility: hidden; }
-      #printable-cp3, #printable-cp3 * { visibility: visible; }
-      #printable-cp3 { position: absolute; left: 0; top: 0; width: 100%; }
+      #printable-cp3, #printable-cp3 * { visibility: visible; color: #000 !important; background: #fff !important; }
+      #printable-cp3 { position: absolute; left: 0; top: 0; width: 100%; border: none !important; }
+      #printable-cp3 .bg-slate-900 { background: #f1f5f9 !important; color: #000 !important; }
+      #printable-cp3 table { border-color: #cbd5e1 !important; }
+      #printable-cp3 th, #printable-cp3 td { border-color: #cbd5e1 !important; color: #000 !important; }
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col relative">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col relative">
 
   <!-- CLEAN LOGIN / PIN OVERLAY MODAL -->
-  <div id="login-overlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-200">
+  <div id="login-overlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+    <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-700">
       <div class="text-center mb-6">
         <div class="bg-sky-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-sky-500/30">
           <i class="fa-solid fa-user-lock text-2xl"></i>
         </div>
-        <h2 class="text-xl font-bold text-slate-900">HDgn WARD PHARMACY PORTAL</h2>
-        <p class="text-xs text-slate-500 mt-1">Select your profile and enter your 4-digit PIN</p>
+        <h2 class="text-xl font-bold text-slate-100">WARD PHARMACY PORTAL HD</h2>
+        <p class="text-xs text-slate-400 mt-1">Select your profile and enter your 4-digit PIN</p>
       </div>
 
       <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Select Pharmacist Profile</label>
-          <select id="login-user-select" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Select Pharmacist Profile</label>
+          <select id="login-user-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-sm text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
             <!-- Dynamically Populated -->
           </select>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Security PIN</label>
-          <input type="password" id="login-pin" maxlength="4" required placeholder="••••" class="w-full text-center tracking-widest text-lg font-bold border border-slate-300 rounded-lg p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Security PIN</label>
+          <input type="password" id="login-pin" maxlength="4" required placeholder="••••" class="w-full text-center tracking-widest text-lg font-bold bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none">
         </div>
 
-        <div id="login-error" class="hidden text-xs text-rose-600 font-semibold text-center bg-rose-50 p-2 rounded">
+        <div id="login-error" class="hidden text-xs text-rose-400 font-semibold text-center bg-rose-950/60 border border-rose-800/80 p-2 rounded">
           Incorrect PIN. Please try again.
         </div>
 
-        <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center space-x-2">
+        <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center space-x-2">
           <i class="fa-solid fa-right-to-bracket"></i>
           <span>Unlock Portal</span>
         </button>
@@ -56,66 +59,66 @@
     </div>
   </div>
 
-  <!-- CHANGE SECURITY PIN MODAL (FOR NON-ADMINS & ADMINS) -->
-  <div id="change-pin-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200">
-      <div class="flex justify-between items-center mb-4 border-b pb-2">
-        <h3 class="font-bold text-slate-900 text-base flex items-center">
-          <i class="fa-solid fa-key text-amber-500 me-2"></i>Change Security PIN
+  <!-- CHANGE SECURITY PIN MODAL -->
+  <div id="change-pin-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+    <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-700">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+        <h3 class="font-bold text-slate-100 text-base flex items-center">
+          <i class="fa-solid fa-key text-amber-400 me-2"></i>Change Security PIN
         </h3>
-        <button onclick="closeChangePinModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeChangePinModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
       </div>
       
       <form onsubmit="handleChangePinSubmit(event)" class="space-y-3">
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Current PIN</label>
-          <input type="password" id="change-pin-current" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Current PIN</label>
+          <input type="password" id="change-pin-current" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">New 4-Digit PIN</label>
-          <input type="password" id="change-pin-new" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">New 4-Digit PIN</label>
+          <input type="password" id="change-pin-new" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Confirm New PIN</label>
-          <input type="password" id="change-pin-confirm" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Confirm New PIN</label>
+          <input type="password" id="change-pin-confirm" maxlength="4" required placeholder="••••" class="w-full text-center font-bold tracking-widest bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
         </div>
 
-        <div id="change-pin-error" class="hidden text-xs text-rose-600 font-semibold text-center bg-rose-50 p-2 rounded"></div>
+        <div id="change-pin-error" class="hidden text-xs text-rose-400 font-semibold text-center bg-rose-950/60 border border-rose-800/80 p-2 rounded"></div>
 
         <div class="flex space-x-2 pt-2">
-          <button type="button" onclick="closeChangePinModal()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 rounded-lg text-xs transition">Cancel</button>
-          <button type="submit" class="w-1/2 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 rounded-lg text-xs shadow transition">Update PIN</button>
+          <button type="button" onclick="closeChangePinModal()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 rounded-lg text-xs transition">Cancel</button>
+          <button type="submit" class="w-1/2 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2 rounded-lg text-xs shadow transition">Update PIN</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- EDIT USER PROFILE MODAL (FOR ADMINS) -->
-  <div id="edit-user-modal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
-      <div class="flex justify-between items-center mb-4 border-b pb-2">
-        <h3 class="font-bold text-slate-900 text-base flex items-center">
-          <i class="fa-solid fa-user-pen text-sky-600 me-2"></i>Edit Pharmacist Profile
+  <div id="edit-user-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+    <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-700">
+      <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+        <h3 class="font-bold text-slate-100 text-base flex items-center">
+          <i class="fa-solid fa-user-pen text-sky-400 me-2"></i>Edit Pharmacist Profile
         </h3>
-        <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+        <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <form onsubmit="handleSaveEditedUser(event)" class="space-y-3">
         <input type="hidden" id="edit-user-key">
         
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Username (System Key)</label>
-          <input type="text" id="edit-user-username" disabled class="w-full bg-slate-100 border border-slate-300 rounded-lg p-2 text-sm font-mono font-bold text-slate-600">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Username (System Key)</label>
+          <input type="text" id="edit-user-username" disabled class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm font-mono font-bold text-slate-400">
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Full Name & Qualification</label>
-          <input type="text" id="edit-user-name" required class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Full Name & Qualification</label>
+          <input type="text" id="edit-user-name" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward</label>
-          <select id="edit-user-ward" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+          <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Designated Ward</label>
+          <select id="edit-user-ward" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
             <option value="ICU">ICU</option>
             <option value="WARD 1 - MEDICAL MALE">WARD 1 - MEDICAL MALE</option>
@@ -131,12 +134,12 @@
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4-Digit PIN</label>
-            <input type="password" id="edit-user-pin" maxlength="4" required class="w-full text-center font-bold tracking-widest border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">4-Digit PIN</label>
+            <input type="password" id="edit-user-pin" maxlength="4" required class="w-full text-center font-bold tracking-widest bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">User Role</label>
-            <select id="edit-user-role" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">User Role</label>
+            <select id="edit-user-role" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
               <option value="user">Pharmacist</option>
               <option value="admin">Administrator</option>
             </select>
@@ -144,31 +147,31 @@
         </div>
 
         <div class="flex space-x-2 pt-2">
-          <button type="button" onclick="closeEditUserModal()" class="w-1/2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 rounded-lg text-xs transition">Cancel</button>
-          <button type="submit" class="w-1/2 bg-sky-600 hover:bg-sky-700 text-white font-semibold py-2 rounded-lg text-xs shadow transition">Save Changes</button>
+          <button type="button" onclick="closeEditUserModal()" class="w-1/2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold py-2 rounded-lg text-xs transition">Cancel</button>
+          <button type="submit" class="w-1/2 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-2 rounded-lg text-xs shadow transition">Save Changes</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- CONFIGURATION BANNER FOR SHEETDB API -->
-  <div class="bg-amber-100 border-b border-amber-300 text-amber-900 px-4 py-2 text-xs flex justify-between items-center">
+  <div class="bg-amber-950/80 border-b border-amber-800/80 text-amber-200 px-4 py-2 text-xs flex justify-between items-center">
     <div>
       <i class="fa-solid fa-plug me-1"></i> <strong>Google Sheets Connection:</strong> 
-      <span id="api-status" class="font-mono bg-amber-200 px-1.5 py-0.5 rounded">Local Demo Mode (Paste SheetDB API URL in config)</span>
+      <span id="api-status" class="font-mono bg-amber-900/60 border border-amber-700 px-1.5 py-0.5 rounded text-amber-200">Local Demo Mode (Paste SheetDB API URL in config)</span>
     </div>
-    <button onclick="configureApiUrl()" class="underline font-semibold hover:text-amber-900">Set API URL</button>
+    <button onclick="configureApiUrl()" class="underline font-semibold hover:text-white">Set API URL</button>
   </div>
 
   <!-- TOP NAVBAR -->
-  <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
+  <header class="bg-slate-950 border-b border-slate-800 text-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-2 sm:space-x-3">
         <div class="bg-sky-600 p-1.5 sm:p-2 rounded-lg text-white">
           <i class="fa-solid fa-prescription-bottle-medical text-lg sm:text-xl"></i>
         </div>
         <div>
-          <h1 class="font-bold text-sm sm:text-base leading-none">HDgn WARD PHARMACY PORTAL</h1>
+          <h1 class="font-bold text-sm sm:text-base leading-none">WARD PHARMACY PORTAL HD</h1>
           <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1">CP3 Report Generator</p>
         </div>
       </div>
@@ -176,15 +179,14 @@
       <!-- User Info, Active Shift Date & Account Settings -->
       <div class="flex items-center space-x-2 sm:space-x-6 text-sm">
         
-        <!-- VISIBLE ON MOBILE & DESKTOP -->
-        <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-700">
+        <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-900 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-700">
           <i class="fa-regular fa-calendar-check text-sky-400 text-xs sm:text-sm"></i>
           <span class="hidden md:inline text-[10px] sm:text-xs text-slate-400">Shift Date:</span>
           <input type="date" id="global-shift-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer [color-scheme:dark]">
         </div>
         
-        <div class="flex items-center space-x-2 sm:space-x-3 border-l border-slate-700 pl-2 sm:pl-4">
-          <div id="user-avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-500 flex items-center justify-center font-bold text-white text-xs sm:text-sm shadow">
+        <div class="flex items-center space-x-2 sm:space-x-3 border-l border-slate-800 pl-2 sm:pl-4">
+          <div id="user-avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-600 flex items-center justify-center font-bold text-white text-xs sm:text-sm shadow">
             AP
           </div>
           <div class="hidden lg:block">
@@ -197,10 +199,10 @@
           
           <!-- CHANGE PIN & LOGOUT BUTTONS -->
           <div class="flex items-center space-x-1 ml-1">
-            <button onclick="openChangePinModal()" title="Change PIN" class="text-slate-400 hover:text-amber-400 text-xs p-1.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 transition">
+            <button onclick="openChangePinModal()" title="Change PIN" class="text-slate-400 hover:text-amber-400 text-xs p-1.5 bg-slate-900 hover:bg-slate-800 rounded border border-slate-700 transition">
               <i class="fa-solid fa-key"></i>
             </button>
-            <button onclick="logoutUser()" title="Lock Shift / Logout" class="text-slate-400 hover:text-white text-xs p-1.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 transition">
+            <button onclick="logoutUser()" title="Lock Shift / Logout" class="text-slate-400 hover:text-rose-400 text-xs p-1.5 bg-slate-900 hover:bg-slate-800 rounded border border-slate-700 transition">
               <i class="fa-solid fa-lock"></i>
             </button>
           </div>
@@ -213,22 +215,22 @@
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
     <!-- NAVIGATION TABS -->
-    <div class="bg-white rounded-xl shadow-sm mb-6 border border-slate-200">
-      <div class="flex border-b border-slate-200 overflow-x-auto">
+    <div class="bg-slate-800 rounded-xl shadow-sm mb-6 border border-slate-700">
+      <div class="flex border-b border-slate-700 overflow-x-auto">
         <button onclick="switchTab('checkin')" id="tab-checkin" class="tab-active py-4 px-6 text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-clipboard-user"></i>
           <span>1. Daily Check-In (Section A)</span>
         </button>
-        <button onclick="switchTab('interventions')" id="tab-interventions" class="py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap">
+        <button onclick="switchTab('interventions')" id="tab-interventions" class="py-4 px-6 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-user-doctor"></i>
           <span>2. Log Interventions (Sections B-E)</span>
         </button>
-        <button onclick="switchTab('reports')" id="tab-reports" class="py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap">
+        <button onclick="switchTab('reports')" id="tab-reports" class="py-4 px-6 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-file-pdf"></i>
           <span>3. CP3 Report Generator</span>
         </button>
-        <button onclick="switchTab('admin')" id="tab-admin" class="py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap">
-          <i class="fa-solid fa-shield-halved text-amber-500"></i>
+        <button onclick="switchTab('admin')" id="tab-admin" class="py-4 px-6 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-shield-halved text-amber-400"></i>
           <span>4. Admin / Settings</span>
         </button>
       </div>
@@ -239,15 +241,15 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Ward Assignment Details -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 md:col-span-1">
-          <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center border-b pb-2">
-            <i class="fa-solid fa-hospital-user text-sky-600 me-2"></i> Ward Assignment
+        <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 md:col-span-1">
+          <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-2">
+            <i class="fa-solid fa-hospital-user text-sky-400 me-2"></i> Ward Assignment
           </h2>
           
           <form id="checkin-form" onsubmit="handleCheckInSubmit(event)" class="space-y-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward</label>
-              <select id="ward-name" onchange="applyWardFilterPermissions(); updatePdfReport()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Designated Ward</label>
+              <select id="ward-name" onchange="applyWardFilterPermissions(); updatePdfReport()" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
@@ -262,70 +264,70 @@
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Task Commitment</label>
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Task Commitment</label>
               <div class="flex space-x-4 mt-1">
-                <label class="flex items-center text-sm text-slate-700 cursor-pointer">
-                  <input type="radio" name="task_type" value="Full Time" checked onchange="updatePdfReport()" class="text-sky-600 focus:ring-sky-500 me-2"> Full Time
+                <label class="flex items-center text-sm text-slate-300 cursor-pointer">
+                  <input type="radio" name="task_type" value="Full Time" checked onchange="updatePdfReport()" class="text-sky-500 focus:ring-sky-500 me-2 bg-slate-900 border-slate-700"> Full Time
                 </label>
-                <label class="flex items-center text-sm text-slate-700 cursor-pointer">
-                  <input type="radio" name="task_type" value="Part Time" onchange="updatePdfReport()" class="text-sky-600 focus:ring-sky-500 me-2"> Part Time
+                <label class="flex items-center text-sm text-slate-300 cursor-pointer">
+                  <input type="radio" name="task_type" value="Part Time" onchange="updatePdfReport()" class="text-sky-500 focus:ring-sky-500 me-2 bg-slate-900 border-slate-700"> Part Time
                 </label>
               </div>
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Attending Physician(s)</label>
-              <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Attending Physician(s)</label>
+              <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
 
-            <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center">
+            <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center">
               <i class="fa-solid fa-cloud-arrow-up me-2"></i> Save Shift Check-In
             </button>
           </form>
         </div>
 
         <!-- Activity Counts & Counselling -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 md:col-span-2 space-y-6">
+        <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 md:col-span-2 space-y-6">
           <div>
-            <h2 class="text-base font-bold text-slate-900 mb-3 flex items-center border-b pb-2">
-              <i class="fa-solid fa-stethoscope text-sky-600 me-2"></i> Ward Pharmacy Activity (Section A)
+            <h2 class="text-base font-bold text-slate-100 mb-3 flex items-center border-b border-slate-700 pb-2">
+              <i class="fa-solid fa-stethoscope text-sky-400 me-2"></i> Ward Pharmacy Activity (Section A)
             </h2>
             
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-              <label class="flex items-center p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
-                <input type="checkbox" id="round-routine" checked onchange="updatePdfReport()" class="w-4 h-4 text-sky-600 rounded me-3">
-                <span class="text-sm font-medium">Routine Rounds</span>
+              <label class="flex items-center p-3 border border-slate-700/80 bg-slate-900/40 rounded-lg hover:bg-slate-900/80 cursor-pointer">
+                <input type="checkbox" id="round-routine" checked onchange="updatePdfReport()" class="w-4 h-4 text-sky-500 rounded me-3 bg-slate-900 border-slate-700">
+                <span class="text-sm font-medium text-slate-200">Routine Rounds</span>
               </label>
-              <label class="flex items-center p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
-                <input type="checkbox" id="round-grand" onchange="updatePdfReport()" class="w-4 h-4 text-sky-600 rounded me-3">
-                <span class="text-sm font-medium">Grand Rounds</span>
+              <label class="flex items-center p-3 border border-slate-700/80 bg-slate-900/40 rounded-lg hover:bg-slate-900/80 cursor-pointer">
+                <input type="checkbox" id="round-grand" onchange="updatePdfReport()" class="w-4 h-4 text-sky-500 rounded me-3 bg-slate-900 border-slate-700">
+                <span class="text-sm font-medium text-slate-200">Grand Rounds</span>
               </label>
-              <label class="flex items-center p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
-                <input type="checkbox" id="round-pharmacist" checked onchange="updatePdfReport()" class="w-4 h-4 text-sky-600 rounded me-3">
-                <span class="text-sm font-medium">Pharmacist Rounds</span>
+              <label class="flex items-center p-3 border border-slate-700/80 bg-slate-900/40 rounded-lg hover:bg-slate-900/80 cursor-pointer">
+                <input type="checkbox" id="round-pharmacist" checked onchange="updatePdfReport()" class="w-4 h-4 text-sky-500 rounded me-3 bg-slate-900 border-slate-700">
+                <span class="text-sm font-medium text-slate-200">Pharmacist Rounds</span>
               </label>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 flex items-center justify-between">
                 <div>
-                  <p class="text-xs font-semibold text-slate-500 uppercase">Cases Clerked (CP2)</p>
-                  <p class="text-2xl font-bold text-slate-800 mt-1"><span id="cp2-count">0</span> <span class="text-xs text-slate-500 font-normal">cases</span></p>
+                  <p class="text-xs font-semibold text-slate-400 uppercase">Cases Clerked (CP2)</p>
+                  <p class="text-2xl font-bold text-slate-100 mt-1"><span id="cp2-count">0</span> <span class="text-xs text-slate-400 font-normal">cases</span></p>
                 </div>
                 <div class="flex space-x-1">
-                  <button onclick="updateCounter('cp2-count', -1)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 text-base shadow-sm">-</button>
-                  <button onclick="updateCounter('cp2-count', 1)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 text-base shadow-sm">+</button>
+                  <button onclick="updateCounter('cp2-count', -1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">-</button>
+                  <button onclick="updateCounter('cp2-count', 1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">+</button>
                 </div>
               </div>
 
-              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+              <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 flex items-center justify-between">
                 <div>
-                  <p class="text-xs font-semibold text-slate-500 uppercase">Med History Taken (CP1)</p>
-                  <p class="text-2xl font-bold text-slate-800 mt-1"><span id="cp1-count">0</span> <span class="text-xs text-slate-500 font-normal">patients</span></p>
+                  <p class="text-xs font-semibold text-slate-400 uppercase">Med History Taken (CP1)</p>
+                  <p class="text-2xl font-bold text-slate-100 mt-1"><span id="cp1-count">0</span> <span class="text-xs text-slate-400 font-normal">patients</span></p>
                 </div>
                 <div class="flex space-x-1">
-                  <button onclick="updateCounter('cp1-count', -1)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 text-base shadow-sm">-</button>
-                  <button onclick="updateCounter('cp1-count', 1)" class="w-9 h-9 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 font-bold text-slate-700 text-base shadow-sm">+</button>
+                  <button onclick="updateCounter('cp1-count', -1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">-</button>
+                  <button onclick="updateCounter('cp1-count', 1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">+</button>
                 </div>
               </div>
             </div>
@@ -333,42 +335,42 @@
 
           <!-- Patient Counselling Sessions -->
           <div>
-            <h3 class="text-sm font-bold text-slate-800 mb-3 uppercase tracking-wide">Patient Counselling Sessions</h3>
+            <h3 class="text-sm font-bold text-slate-200 mb-3 uppercase tracking-wide">Patient Counselling Sessions</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               
-              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block border-b pb-1">Bedside Counselling</span>
+              <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 space-y-3">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-700/80 pb-1">Bedside Counselling</span>
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-slate-500">Sessions</span>
-                  <input type="number" id="counsel-bedside-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <span class="text-xs font-semibold text-slate-400">Sessions</span>
+                  <input type="number" id="counsel-bedside-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-slate-500">Patients</span>
-                  <input type="number" id="counsel-bedside-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                </div>
-              </div>
-
-              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block border-b pb-1">Discharge Counselling</span>
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-slate-500">Sessions</span>
-                  <input type="number" id="counsel-discharge-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                </div>
-                <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-slate-500">Patients</span>
-                  <input type="number" id="counsel-discharge-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <span class="text-xs font-semibold text-slate-400">Patients</span>
+                  <input type="number" id="counsel-bedside-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 </div>
               </div>
 
-              <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                <span class="text-xs font-bold text-slate-700 uppercase tracking-wider block border-b pb-1">Group Counselling</span>
+              <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 space-y-3">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-700/80 pb-1">Discharge Counselling</span>
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-slate-500">Sessions</span>
-                  <input type="number" id="counsel-group-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <span class="text-xs font-semibold text-slate-400">Sessions</span>
+                  <input type="number" id="counsel-discharge-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 </div>
                 <div class="flex items-center justify-between">
-                  <span class="text-xs font-semibold text-slate-500">Patients</span>
-                  <input type="number" id="counsel-group-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-white border border-slate-300 rounded-lg p-1.5 font-bold text-base text-slate-800 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <span class="text-xs font-semibold text-slate-400">Patients</span>
+                  <input type="number" id="counsel-discharge-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+              </div>
+
+              <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 space-y-3">
+                <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-700/80 pb-1">Group Counselling</span>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-400">Sessions</span>
+                  <input type="number" id="counsel-group-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-400">Patients</span>
+                  <input type="number" id="counsel-group-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 </div>
               </div>
 
@@ -380,77 +382,77 @@
 
     <!-- TAB 2: INTERVENTIONS LOGGING -->
     <div id="view-interventions" class="hidden space-y-6">
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center border-b pb-3">
-          <i class="fa-solid fa-plus-circle text-sky-600 me-2"></i> Intervention Entry
+      <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
+        <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
+          <i class="fa-solid fa-plus-circle text-sky-400 me-2"></i> Intervention Entry
         </h2>
 
         <form id="intervention-form" onsubmit="handleInterventionSubmit(event)" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Patient Name</label>
-              <input type="text" id="patient-name" required placeholder="e.g. Tan Ah Kow" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Patient Name</label>
+              <input type="text" id="patient-name" required placeholder="e.g. Tan Ah Kow" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
             
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">RN / MRN / Bed No.</label>
-              <input type="text" id="rn-number" required placeholder="e.g. RN-884920" class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">RN / MRN / Bed No.</label>
+              <input type="text" id="rn-number" required placeholder="e.g. RN-884920" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">CP3 Code Category</label>
-              <select id="cp3-code" required class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">CP3 Code Category</label>
+              <select id="cp3-code" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 <option value="" disabled selected>Select CP3 Code...</option>
                 
                 <!-- GROUP 2: INAPPROPRIATE REGIMEN (2.1 - 2.8) -->
-                <optgroup label="2. Inappropriate Regimen">
-                  <option value="2.1">2.1 Drug</option>
-                  <option value="2.2">2.2 Dose</option>
-                  <option value="2.3">2.3 Frequency</option>
-                  <option value="2.4">2.4 Duration</option>
-                  <option value="2.5">2.5 Polypharmacy</option>
-                  <option value="2.6">2.6 Contraindication</option>
-                  <option value="2.7">2.7 Drug Interaction</option>
-                  <option value="2.8">2.8 Incompatibility</option>
+                <optgroup label="2. Inappropriate Regimen" class="bg-slate-900 text-sky-400">
+                  <option value="2.1" class="text-slate-100">2.1 Drug</option>
+                  <option value="2.2" class="text-slate-100">2.2 Dose</option>
+                  <option value="2.3" class="text-slate-100">2.3 Frequency</option>
+                  <option value="2.4" class="text-slate-100">2.4 Duration</option>
+                  <option value="2.5" class="text-slate-100">2.5 Polypharmacy</option>
+                  <option value="2.6" class="text-slate-100">2.6 Contraindication</option>
+                  <option value="2.7" class="text-slate-100">2.7 Drug Interaction</option>
+                  <option value="2.8" class="text-slate-100">2.8 Incompatibility</option>
                 </optgroup>
 
                 <!-- GROUP 1: INCOMPLETE PRESCRIPTION (1.1 - 1.6) -->
-                <optgroup label="1. Incomplete Prescription">
-                  <option value="1.1">1.1 Patient data</option>
-                  <option value="1.2">1.2 Drug</option>
-                  <option value="1.3">1.3 Dose</option>
-                  <option value="1.4">1.4 Frequency</option>
-                  <option value="1.5">1.5 Duration</option>
-                  <option value="1.6">1.6 Dr's Stamp & Sign</option>
+                <optgroup label="1. Incomplete Prescription" class="bg-slate-900 text-sky-400">
+                  <option value="1.1" class="text-slate-100">1.1 Patient data</option>
+                  <option value="1.2" class="text-slate-100">1.2 Drug</option>
+                  <option value="1.3" class="text-slate-100">1.3 Dose</option>
+                  <option value="1.4" class="text-slate-100">1.4 Frequency</option>
+                  <option value="1.5" class="text-slate-100">1.5 Duration</option>
+                  <option value="1.6" class="text-slate-100">1.6 Dr's Stamp & Sign</option>
                 </optgroup>
 
                 <!-- GROUP 3: MISCELLANEOUS (3.1 - 3.8) -->
-                <optgroup label="3. Miscellaneous">
-                  <option value="3.1">3.1 Wrong Patient</option>
-                  <option value="3.2">3.2 Drug Not in Formulary</option>
-                  <option value="3.3">3.3 Drug Administration Error</option>
-                  <option value="3.4">3.4 Unclear Handwriting</option>
-                  <option value="3.5">3.5 Authenticity of Prescription/Prescriber</option>
-                  <option value="3.6">3.6 Suggest for Vital Signs Monitoring/Laboratory Investigation</option>
-                  <option value="3.7">3.7 TDM</option>
-                  <option value="3.8">3.8 TPN</option>
+                <optgroup label="3. Miscellaneous" class="bg-slate-900 text-sky-400">
+                  <option value="3.1" class="text-slate-100">3.1 Wrong Patient</option>
+                  <option value="3.2" class="text-slate-100">3.2 Drug Not in Formulary</option>
+                  <option value="3.3" class="text-slate-100">3.3 Drug Administration Error</option>
+                  <option value="3.4" class="text-slate-100">3.4 Unclear Handwriting</option>
+                  <option value="3.5" class="text-slate-100">3.5 Authenticity of Prescription/Prescriber</option>
+                  <option value="3.6" class="text-slate-100">3.6 Suggest for Vital Signs Monitoring/Laboratory Investigation</option>
+                  <option value="3.7" class="text-slate-100">3.7 TDM</option>
+                  <option value="3.8" class="text-slate-100">3.8 TPN</option>
                 </optgroup>
               </select>
             </div>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Description / Clinical Recommendation (Section C)</label>
-            <textarea id="intervention-desc" required rows="3" placeholder="Describe clinical finding and doctor outcome..." class="w-full border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Description / Clinical Recommendation (Section C)</label>
+            <textarea id="intervention-desc" required rows="3" placeholder="Describe clinical finding and doctor outcome..." class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
           </div>
 
           <div class="flex items-center justify-between pt-2">
-            <label class="flex items-center text-sm font-medium text-slate-700 cursor-pointer">
-              <input type="checkbox" id="is-accepted" checked class="w-4 h-4 text-emerald-600 rounded me-2">
-              <span class="text-emerald-700 font-semibold">Intervention Accepted by Physician</span>
+            <label class="flex items-center text-sm font-medium text-slate-300 cursor-pointer">
+              <input type="checkbox" id="is-accepted" checked class="w-4 h-4 text-emerald-500 rounded me-2 bg-slate-900 border-slate-700">
+              <span class="text-emerald-400 font-semibold">Intervention Accepted by Physician</span>
             </label>
 
-            <button type="submit" id="submit-btn" class="bg-sky-600 hover:bg-sky-700 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition shadow flex items-center">
+            <button type="submit" id="submit-btn" class="bg-sky-600 hover:bg-sky-500 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition shadow flex items-center">
               <i class="fa-solid fa-plus me-2"></i> Add Entry to Daily Log
             </button>
           </div>
@@ -458,31 +460,31 @@
       </div>
 
       <!-- LOGGED INTERVENTIONS LIST (LAST 5 DAYS RANGE) -->
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
+        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex justify-between items-center">
           <div>
-            <h3 class="font-bold text-slate-800 text-sm">Logged Interventions (Last 5 Days) (<span id="entry-count">0</span>)</h3>
-            <p class="text-[11px] text-slate-500">Showing entries from active shift date through 4 days prior</p>
+            <h3 class="font-bold text-slate-100 text-sm">Logged Interventions (Last 5 Days) (<span id="entry-count">0</span>)</h3>
+            <p class="text-[11px] text-slate-400">Showing entries from active shift date through 4 days prior</p>
           </div>
-          <span class="text-xs text-slate-500 font-medium">Auto-tallied into Section B totals</span>
+          <span class="text-xs text-slate-400 font-medium">Auto-tallied into Section B totals</span>
         </div>
 
-        <div id="interventions-list" class="divide-y divide-slate-200"></div>
+        <div id="interventions-list" class="divide-y divide-slate-700/80"></div>
       </div>
     </div>
 
     <!-- TAB 3: REPORT GENERATOR -->
     <div id="view-reports" class="hidden space-y-6">
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-2">
+      <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700 pb-3 gap-2">
           <div>
-            <h2 class="text-base font-bold text-slate-900">Generate Official CP3 Report (Pin 2/24)</h2>
-            <p class="text-xs text-slate-500 mt-0.5">Filter records by single shift or aggregate across monthly date ranges.</p>
+            <h2 class="text-base font-bold text-slate-100">Generate Official CP3 Report (Pin 2/24)</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Filter records by single shift or aggregate across monthly date ranges.</p>
           </div>
           
-          <div class="flex bg-slate-100 p-1 rounded-lg text-xs font-semibold">
-            <button onclick="setReportFilterMode('daily')" id="btn-mode-daily" class="px-3 py-1.5 rounded-md bg-white shadow text-sky-700">Daily Report</button>
-            <button onclick="setReportFilterMode('range')" id="btn-mode-range" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900">Monthly / Custom Range</button>
+          <div class="flex bg-slate-900 p-1 rounded-lg text-xs font-semibold border border-slate-700">
+            <button onclick="setReportFilterMode('daily')" id="btn-mode-daily" class="px-3 py-1.5 rounded-md bg-slate-800 text-sky-400 shadow">Daily Report</button>
+            <button onclick="setReportFilterMode('range')" id="btn-mode-range" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200">Monthly / Custom Range</button>
           </div>
         </div>
 
@@ -490,26 +492,26 @@
           <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div id="report-daily-inputs" class="flex items-center space-x-2">
               <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase">Shift Date</label>
-                <input type="date" id="report-single-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase">Shift Date</label>
+                <input type="date" id="report-single-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
             </div>
 
             <div id="report-range-inputs" class="hidden flex items-center space-x-2">
               <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase">From Date</label>
-                <input type="date" id="report-start-date" value="2026-07-01" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase">From Date</label>
+                <input type="date" id="report-start-date" value="2026-07-01" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
               <span class="text-slate-400 font-bold mt-4">to</span>
               <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase">To Date</label>
-                <input type="date" id="report-end-date" value="2026-07-31" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase">To Date</label>
+                <input type="date" id="report-end-date" value="2026-07-31" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
             </div>
 
             <div>
-              <label class="block text-[10px] font-bold text-slate-500 uppercase">Ward Filter</label>
-              <select id="report-ward-filter" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none">
+              <label class="block text-[10px] font-bold text-slate-400 uppercase">Ward Filter</label>
+              <select id="report-ward-filter" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none">
                 <option value="ALL" id="ward-opt-all">All Wards Combined</option>
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
@@ -525,7 +527,7 @@
             </div>
           </div>
 
-          <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2 w-full md:w-auto justify-center">
+          <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2 w-full md:w-auto justify-center">
             <i class="fa-solid fa-print"></i>
             <span>Print / Save PDF</span>
           </button>
@@ -533,14 +535,14 @@
       </div>
 
       <!-- PRINTABLE CP3 FORM PREVIEW -->
-      <div id="printable-cp3" class="bg-white p-8 rounded-xl shadow-lg border border-slate-300 max-w-4xl mx-auto text-xs font-mono">
-        <div class="border-b-2 border-slate-800 pb-3 text-center">
-          <h2 class="font-bold text-base uppercase tracking-wide text-slate-900">CLINICAL PHARMACY REPORT FORM (Pin. 2/24)</h2>
-          <p class="text-xs text-slate-600">Pharmacy Department, Hospital</p>
+      <div id="printable-cp3" class="bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-700 max-w-4xl mx-auto text-xs font-mono text-slate-100">
+        <div class="border-b-2 border-slate-600 pb-3 text-center">
+          <h2 class="font-bold text-base uppercase tracking-wide text-slate-100">CLINICAL PHARMACY REPORT FORM (Pin. 2/24)</h2>
+          <p class="text-xs text-slate-400">Pharmacy Department, Hospital</p>
         </div>
 
-        <div class="my-4 border-b pb-4">
-          <div class="font-bold bg-slate-100 p-1 mb-2 text-slate-900">A: WARD PHARMACY ACTIVITY</div>
+        <div class="my-4 border-b border-slate-700 pb-4">
+          <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">A: WARD PHARMACY ACTIVITY</div>
           <div class="grid grid-cols-2 gap-2">
             <div><strong>Report Period:</strong> <span id="pdf-date">28/07/2026</span></div>
             <div><strong>Ward:</strong> <span id="pdf-ward">WARD 1 - MEDICAL MALE</span></div>
@@ -551,8 +553,8 @@
           </div>
         </div>
 
-        <div class="my-4 border-b pb-4">
-          <div class="font-bold bg-slate-100 p-1 mb-2 text-slate-900">B: INTERVENTIONS / REQUESTS SUMMARY (AUTO-TALLIED)</div>
+        <div class="my-4 border-b border-slate-700 pb-4">
+          <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">B: INTERVENTIONS / REQUESTS SUMMARY (AUTO-TALLIED)</div>
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="font-bold underline mb-1">(1) Incomplete Prescription</p>
@@ -573,20 +575,20 @@
               <p>2.6 Contraindication: <span id="count-2.6">0</span></p>
               <p>2.7 Drug Interaction: <span id="count-2.7">0</span></p>
               <p>2.8 Incompatibility: <span id="count-2.8">0</span></p>
-              <p class="font-bold mt-2">TOTAL INTERVENTIONS: <span id="count-total">0</span></p>
+              <p class="font-bold mt-2 text-sky-400">TOTAL INTERVENTIONS: <span id="count-total">0</span></p>
             </div>
           </div>
         </div>
 
         <div class="my-4">
-          <div class="font-bold bg-slate-100 p-1 mb-2 text-slate-900">C: INTERVENTIONS ENCOUNTERED</div>
-          <table class="w-full text-left border-collapse border border-slate-300">
+          <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">C: INTERVENTIONS ENCOUNTERED</div>
+          <table class="w-full text-left border-collapse border border-slate-700">
             <thead>
-              <tr class="bg-slate-50 border-b border-slate-300">
-                <th class="p-1 border-r">DATE</th>
-                <th class="p-1 border-r">PATIENT NAME</th>
-                <th class="p-1 border-r">RN</th>
-                <th class="p-1 border-r">CODE</th>
+              <tr class="bg-slate-900 border-b border-slate-700">
+                <th class="p-1 border-r border-slate-700">DATE</th>
+                <th class="p-1 border-r border-slate-700">PATIENT NAME</th>
+                <th class="p-1 border-r border-slate-700">RN</th>
+                <th class="p-1 border-r border-slate-700">CODE</th>
                 <th class="p-1">DESCRIPTION</th>
               </tr>
             </thead>
@@ -594,38 +596,38 @@
           </table>
         </div>
 
-        <div class="mt-8 pt-4 border-t flex justify-between items-center text-slate-600">
+        <div class="mt-8 pt-4 border-t border-slate-700 flex justify-between items-center text-slate-400">
           <div>Pharmacist Signature & Stamp: ______________________</div>
-          <div>Logged By: <span id="pdf-logged-by">Sarah Jenkins, RPh</span></div>
+          <div>Logged By: <span id="pdf-logged-by" class="text-slate-200">Sarah Jenkins, RPh</span></div>
         </div>
       </div>
     </div>
 
     <!-- TAB 4: ADMIN / SETTINGS PANEL -->
     <div id="view-admin" class="hidden space-y-6">
-      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center space-x-3 text-amber-900 text-xs">
-        <i class="fa-solid fa-shield-cat text-2xl text-amber-600"></i>
+      <div class="bg-amber-950/60 border border-amber-800/80 rounded-xl p-4 flex items-center space-x-3 text-amber-200 text-xs">
+        <i class="fa-solid fa-shield-cat text-2xl text-amber-400"></i>
         <div>
           <p class="font-bold">Restricted Administration Environment</p>
-          <p class="text-amber-700 mt-0.5">You are authenticated as an Admin. Changes made here affect system privileges and registered users.</p>
+          <p class="text-amber-300/80 mt-0.5">You are authenticated as an Admin. Changes made here affect system privileges and registered users.</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center border-b pb-2">
-            <i class="fa-solid fa-user-plus text-sky-600 me-2"></i> Register New Pharmacist
+        <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
+          <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-2">
+            <i class="fa-solid fa-user-plus text-sky-400 me-2"></i> Register New Pharmacist
           </h2>
 
           <form onsubmit="handleRegisterUser(event)" class="space-y-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Full Name & Qualification</label>
-              <input type="text" id="reg-name" required placeholder="e.g. Dr. Emily Wong, RPh" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Full Name & Qualification</label>
+              <input type="text" id="reg-name" required placeholder="e.g. Dr. Emily Wong, RPh" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward / Location</label>
-              <select id="reg-ward" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Designated Ward / Location</label>
+              <select id="reg-ward" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
@@ -641,57 +643,57 @@
 
             <div class="grid grid-cols-3 gap-3">
               <div class="col-span-1">
-                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Username</label>
-                <input type="text" id="reg-key" required placeholder="emily" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Username</label>
+                <input type="text" id="reg-key" required placeholder="emily" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
               </div>
               <div class="col-span-1">
-                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">4-Digit PIN</label>
-                <input type="password" id="reg-pin" maxlength="4" required placeholder="••••" class="w-full text-center tracking-widest font-bold border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">4-Digit PIN</label>
+                <input type="password" id="reg-pin" maxlength="4" required placeholder="••••" class="w-full text-center tracking-widest font-bold bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
               </div>
               <div class="col-span-1">
-                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">User Role</label>
-                <select id="reg-role" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">User Role</label>
+                <select id="reg-role" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
                   <option value="user" selected>Pharmacist</option>
                   <option value="admin">Administrator</option>
                 </select>
               </div>
             </div>
 
-            <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-medium py-2 rounded-lg text-sm transition shadow flex items-center justify-center">
+            <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-2 rounded-lg text-sm transition shadow flex items-center justify-center">
               <i class="fa-solid fa-plus-circle me-2"></i> Register Pharmacist Profile
             </button>
           </form>
         </div>
 
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-4">
-          <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center border-b pb-2">
-            <i class="fa-solid fa-database text-sky-600 me-2"></i> Database & Connection Tools
+        <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
+          <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-2">
+            <i class="fa-solid fa-database text-sky-400 me-2"></i> Database & Connection Tools
           </h2>
 
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
-            <p class="text-xs font-bold text-slate-700">Google Sheets API Status</p>
-            <p class="text-xs text-slate-500">Test if your SheetDB endpoint is actively receiving data from this web client.</p>
-            <button onclick="testApiConnection()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded transition">
+          <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700 space-y-2">
+            <p class="text-xs font-bold text-slate-200">Google Sheets API Status</p>
+            <p class="text-xs text-slate-400">Test if your SheetDB endpoint is actively receiving data from this web client.</p>
+            <button onclick="testApiConnection()" class="bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs px-3 py-1.5 rounded transition border border-slate-600">
               <i class="fa-solid fa-network-wired me-1"></i> Test Endpoint Connection
             </button>
           </div>
 
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
-            <p class="text-xs font-bold text-slate-700">Data Backup & Export</p>
-            <p class="text-xs text-slate-500">Download active intervention data to a local JSON backup file.</p>
-            <button onclick="exportDataBackup()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded transition">
+          <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700 space-y-2">
+            <p class="text-xs font-bold text-slate-200">Data Backup & Export</p>
+            <p class="text-xs text-slate-400">Download active intervention data to a local JSON backup file.</p>
+            <button onclick="exportDataBackup()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded transition shadow">
               <i class="fa-solid fa-download me-1"></i> Export Local JSON Backup
             </button>
           </div>
         </div>
       </div>
 
-      <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 bg-slate-50 border-b border-slate-200">
-          <h3 class="font-bold text-slate-800 text-sm">Active Registered Pharmacists Directory</h3>
+      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
+        <div class="p-4 bg-slate-900/60 border-b border-slate-700">
+          <h3 class="font-bold text-slate-100 text-sm">Active Registered Pharmacists Directory</h3>
         </div>
         <table class="w-full text-left text-xs">
-          <thead class="bg-slate-100 border-b border-slate-200 text-slate-600 font-semibold uppercase">
+          <thead class="bg-slate-900 border-b border-slate-700 text-slate-400 font-semibold uppercase">
             <tr>
               <th class="p-3">Username</th>
               <th class="p-3">Pharmacist Name</th>
@@ -701,7 +703,7 @@
               <th class="p-3">Action</th>
             </tr>
           </thead>
-          <tbody id="user-directory-tbody" class="divide-y divide-slate-200"></tbody>
+          <tbody id="user-directory-tbody" class="divide-y divide-slate-700/80"></tbody>
         </table>
       </div>
     </div>
@@ -729,13 +731,12 @@
 
     let currentUser = null;
     
-    // OPTIONAL: PASTE YOUR SHEETDB API URL HERE SO ALL PHONES AUTO-CONNECT WITHOUT SETTING MANUALLY
-   // DEFAULT SHEETDB API ENDPOINT
-let defaultSheetDbUrl = "https://sheetdb.io/api/v1/ok0ovi4us96gp"; 
-
-let storedUrl = localStorage.getItem('sheetdb_url');
-let sheetDbApiUrl = (storedUrl && storedUrl.trim() !== "") ? storedUrl : defaultSheetDbUrl;
-let reportMode = 'daily';
+    // DEFAULT SHEETDB API ENDPOINT
+    let defaultSheetDbUrl = "https://sheetdb.io/api/v1/ok0ovi4us96gp"; 
+    
+    let storedUrl = localStorage.getItem('sheetdb_url');
+    let sheetDbApiUrl = (storedUrl && storedUrl.trim() !== "") ? storedUrl : defaultSheetDbUrl;
+    let reportMode = 'daily';
 
     let interventionsData = [
       {
@@ -972,16 +973,16 @@ let reportMode = 'daily';
       tbody.innerHTML = '';
       for (const [key, val] of Object.entries(PIN_DATABASE)) {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50';
+        tr.className = 'hover:bg-slate-700/40';
         tr.innerHTML = `
-          <td class="p-3 font-mono font-bold text-sky-700">${key}</td>
-          <td class="p-3 font-semibold text-slate-800">${val.name}</td>
-          <td class="p-3 text-slate-600 font-medium">${val.ward || '-'}</td>
-          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${val.role && val.role.toLowerCase() === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-700'}">${val.role || 'user'}</span></td>
+          <td class="p-3 font-mono font-bold text-sky-400">${key}</td>
+          <td class="p-3 font-semibold text-slate-200">${val.name}</td>
+          <td class="p-3 text-slate-400 font-medium">${val.ward || '-'}</td>
+          <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${val.role && val.role.toLowerCase() === 'admin' ? 'bg-amber-950 text-amber-300 border border-amber-800' : 'bg-slate-700 text-slate-300'}">${val.role || 'user'}</span></td>
           <td class="p-3 font-mono text-slate-500">••••</td>
           <td class="p-3">
-            <button onclick="openEditUserModal('${key}')" class="text-sky-600 hover:text-sky-800 font-semibold me-3"><i class="fa-solid fa-pen-to-square me-1"></i>Edit</button>
-            <button onclick="deleteUserKey('${key}')" class="text-rose-600 hover:text-rose-800 font-semibold"><i class="fa-solid fa-trash me-1"></i>Remove</button>
+            <button onclick="openEditUserModal('${key}')" class="text-sky-400 hover:text-sky-300 font-semibold me-3"><i class="fa-solid fa-pen-to-square me-1"></i>Edit</button>
+            <button onclick="deleteUserKey('${key}')" class="text-rose-400 hover:text-rose-300 font-semibold"><i class="fa-solid fa-trash me-1"></i>Remove</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1113,10 +1114,10 @@ let reportMode = 'daily';
       document.getElementById('view-reports').classList.add('hidden');
       document.getElementById('view-admin').classList.add('hidden');
 
-      document.getElementById('tab-checkin').className = "py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-interventions').className = "py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-reports').className = "py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-admin').className = "py-4 px-6 text-sm text-slate-500 hover:text-slate-700 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-checkin').className = "py-4 px-6 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-interventions').className = "py-4 px-6 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-reports').className = "py-4 px-6 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-admin').className = "py-4 px-6 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
 
       document.getElementById('view-' + tabName).classList.remove('hidden');
       document.getElementById('tab-' + tabName).className = "tab-active py-4 px-6 text-sm flex items-center space-x-2 whitespace-nowrap";
@@ -1162,13 +1163,13 @@ let reportMode = 'daily';
       const rangeInputs = document.getElementById('report-range-inputs');
 
       if (mode === 'daily') {
-        btnDaily.className = "px-3 py-1.5 rounded-md bg-white shadow text-sky-700 font-semibold";
-        btnRange.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900";
+        btnDaily.className = "px-3 py-1.5 rounded-md bg-slate-800 text-sky-400 shadow font-semibold";
+        btnRange.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200";
         dailyInputs.classList.remove('hidden');
         rangeInputs.classList.add('hidden');
       } else {
-        btnRange.className = "px-3 py-1.5 rounded-md bg-white shadow text-sky-700 font-semibold";
-        btnDaily.className = "px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900";
+        btnRange.className = "px-3 py-1.5 rounded-md bg-slate-800 text-sky-400 shadow font-semibold";
+        btnDaily.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-slate-200";
         rangeInputs.classList.remove('hidden');
         dailyInputs.classList.add('hidden');
       }
@@ -1188,10 +1189,10 @@ let reportMode = 'daily';
       const el = document.getElementById('api-status');
       if (sheetDbApiUrl) {
         el.innerText = 'Connected: ' + sheetDbApiUrl.substring(0, 30) + '...';
-        el.className = 'font-mono bg-emerald-200 text-emerald-900 px-1.5 py-0.5 rounded';
+        el.className = 'font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.5 rounded';
       } else {
         el.innerText = 'Local Demo Mode (Paste SheetDB API URL in config)';
-        el.className = 'font-mono bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded';
+        el.className = 'font-mono bg-amber-900/60 text-amber-200 border border-amber-700 px-1.5 py-0.5 rounded';
       }
     }
 
@@ -1287,19 +1288,19 @@ let reportMode = 'daily';
 
       filtered.forEach(item => {
         const div = document.createElement('div');
-        div.className = 'p-4 hover:bg-slate-50 flex items-start justify-between';
+        div.className = 'p-4 hover:bg-slate-700/50 flex items-start justify-between transition';
         div.innerHTML = `
           <div class="space-y-1">
             <div class="flex items-center space-x-2">
-              <span class="font-bold text-sm text-slate-900">${item.patient}</span>
-              <span class="text-xs bg-slate-200 px-2 py-0.5 rounded text-slate-700">${item.rn}</span>
-              <span class="text-xs bg-sky-100 text-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${item.code}</span>
-              <span class="text-xs bg-slate-100 text-slate-600 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
-              ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
+              <span class="font-bold text-sm text-slate-100">${item.patient}</span>
+              <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">${item.rn}</span>
+              <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${item.code}</span>
+              <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
+              ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
             </div>
-            <p class="text-xs text-slate-600">${item.desc}</p>
+            <p class="text-xs text-slate-300">${item.desc}</p>
           </div>
-          <button onclick="deleteEntry('${item.id}')" class="text-slate-400 hover:text-red-500 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+          <button onclick="deleteEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1 transition"><i class="fa-solid fa-trash"></i></button>
         `;
         listEl.appendChild(div);
       });
@@ -1388,13 +1389,13 @@ let reportMode = 'daily';
         } else {
           filtered.forEach(item => {
             const tr = document.createElement('tr');
-            tr.className = 'border-b hover:bg-slate-50';
+            tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
             tr.innerHTML = `
-              <td class="p-1 border-r font-semibold text-slate-700">${formatDateDDMMYYYY(item.date)}</td>
-              <td class="p-1 border-r font-bold text-slate-900">${item.patient}</td>
-              <td class="p-1 border-r font-mono text-slate-600">${item.rn}</td>
-              <td class="p-1 border-r font-bold text-sky-800">${item.code}</td>
-              <td class="p-1 text-slate-800">${item.desc} ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-emerald-700 font-bold">(Accepted)</span>' : ''}</td>
+              <td class="p-1 border-r border-slate-700 font-semibold text-slate-300">${formatDateDDMMYYYY(item.date)}</td>
+              <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${item.patient}</td>
+              <td class="p-1 border-r border-slate-700 font-mono text-slate-400">${item.rn}</td>
+              <td class="p-1 border-r border-slate-700 font-bold text-sky-400">${item.code}</td>
+              <td class="p-1 text-slate-200">${item.desc} ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''}</td>
             `;
             tbody.appendChild(tr);
           });
