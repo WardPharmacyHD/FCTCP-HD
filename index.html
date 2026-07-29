@@ -10,7 +10,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
     .tab-active { border-bottom: 3px solid #0284c7; color: #0284c7; font-weight: 600; }
-    input[type="date"] { cursor: pointer; }
+    input[type="date"] { cursor: pointer; color-scheme: dark; }
     @media print {
       body * { visibility: hidden; }
       #printable-cp3, #printable-cp3 * { visibility: visible; }
@@ -161,30 +161,32 @@
 
   <!-- TOP NAVBAR -->
   <header class="bg-slate-900 text-white shadow-md sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="bg-sky-600 p-2 rounded-lg text-white">
-          <i class="fa-solid fa-prescription-bottle-medical text-xl"></i>
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <div class="bg-sky-600 p-1.5 sm:p-2 rounded-lg text-white">
+          <i class="fa-solid fa-prescription-bottle-medical text-lg sm:text-xl"></i>
         </div>
         <div>
-          <h1 class="font-bold text-lg leading-none">Ward Pharmacy Portal</h1>
-          <p class="text-xs text-slate-400 mt-1">Clinical Activity & CP3 Report Generator</p>
+          <h1 class="font-bold text-sm sm:text-lg leading-none">Ward Portal</h1>
+          <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1">CP3 Report Generator</p>
         </div>
       </div>
       
       <!-- User Info, Active Shift Date & Account Settings -->
-      <div class="flex items-center space-x-6 text-sm">
-        <div class="hidden sm:flex items-center space-x-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
-          <i class="fa-regular fa-calendar-check text-sky-400"></i>
-          <span class="text-xs text-slate-400">Shift Date:</span>
-          <input type="date" id="global-shift-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-white font-medium focus:outline-none cursor-pointer">
+      <div class="flex items-center space-x-2 sm:space-x-6 text-sm">
+        
+        <!-- VISIBLE ON MOBILE & DESKTOP NOW -->
+        <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-700">
+          <i class="fa-regular fa-calendar-check text-sky-400 text-xs sm:text-sm"></i>
+          <span class="hidden md:inline text-[10px] sm:text-xs text-slate-400">Shift Date:</span>
+          <input type="date" id="global-shift-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer [color-scheme:dark]">
         </div>
         
-        <div class="flex items-center space-x-3 border-l border-slate-700 pl-4">
-          <div id="user-avatar" class="w-9 h-9 rounded-full bg-sky-500 flex items-center justify-center font-bold text-white text-sm shadow">
+        <div class="flex items-center space-x-2 sm:space-x-3 border-l border-slate-700 pl-2 sm:pl-4">
+          <div id="user-avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-500 flex items-center justify-center font-bold text-white text-xs sm:text-sm shadow">
             AP
           </div>
-          <div class="hidden md:block">
+          <div class="hidden lg:block">
             <div class="flex items-center space-x-1.5">
               <p id="user-display-name" class="font-semibold text-xs leading-none">Admin Pharmacist</p>
               <span id="user-role-badge" class="text-[9px] bg-amber-500 text-slate-900 font-bold px-1.5 py-0.2 rounded">ADMIN</span>
@@ -193,7 +195,7 @@
           </div>
           
           <!-- CHANGE PIN & LOGOUT BUTTONS -->
-          <div class="flex items-center space-x-1 ml-2">
+          <div class="flex items-center space-x-1 ml-1">
             <button onclick="openChangePinModal()" title="Change PIN" class="text-slate-400 hover:text-amber-400 text-xs p-1.5 bg-slate-800 hover:bg-slate-700 rounded border border-slate-700 transition">
               <i class="fa-solid fa-key"></i>
             </button>
@@ -487,19 +489,19 @@
             <div id="report-daily-inputs" class="flex items-center space-x-2">
               <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase">Shift Date</label>
-                <input type="date" id="report-single-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer">
+                <input type="date" id="report-single-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
             </div>
 
             <div id="report-range-inputs" class="hidden flex items-center space-x-2">
               <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase">From Date</label>
-                <input type="date" id="report-start-date" value="2026-07-01" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer">
+                <input type="date" id="report-start-date" value="2026-07-01" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
               <span class="text-slate-400 font-bold mt-4">to</span>
               <div>
                 <label class="block text-[10px] font-bold text-slate-500 uppercase">To Date</label>
-                <input type="date" id="report-end-date" value="2026-07-31" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer">
+                <input type="date" id="report-end-date" value="2026-07-31" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
             </div>
 
@@ -705,7 +707,7 @@
   <!-- JAVASCRIPT CONNECTIVITY & LOGIC -->
   <script>
     // INITIAL DATABASE STATE WITH WARD LOCATIONS
-   let defaultUsers = {
+    let defaultUsers = {
       admin: { pin: "9999", name: "Admin Pharmacist", ward: "ICU", role: "admin" },
       khalil: { pin: "1234", name: "Mohd Khalil Ismail", ward: "ICU", role: "user" },
       ain: { pin: "1234", name: "Nurul Ain Sarmo", ward: "WARD 2 - MEDICAL FEMALE", role: "user" },
@@ -722,7 +724,10 @@
     let PIN_DATABASE = { ...defaultUsers, ...storedUsers };
 
     let currentUser = null;
-    let sheetDbApiUrl = localStorage.getItem('sheetdb_url') || '';
+    
+    // OPTIONAL: PASTE YOUR SHEETDB API URL HERE SO ALL PHONES AUTO-CONNECT WITHOUT SETTING MANUALLY
+    let defaultSheetDbUrl = ""; 
+    let sheetDbApiUrl = localStorage.getItem('sheetdb_url') || defaultSheetDbUrl;
     let reportMode = 'daily';
 
     let interventionsData = [
@@ -734,8 +739,8 @@
         rn: "RN-884920",
         code: "2.2",
         desc: "Reduced Enoxaparin from 60mg BD to 80mg OD due to reduced renal clearance (GFR 25).",
-        accepted: true,
-        user_name: "Sarah Jenkins, RPh",
+        accepted: "YES",
+        user_name: "Norhanim Solehah Bt Che Abdullah",
         user_ward: "WARD 1 - MEDICAL MALE"
       }
     ];
@@ -1252,7 +1257,6 @@
     function renderInterventions() {
       const targetDate = document.getElementById('global-shift-date').value;
       
-      // Calculate 4 days prior (5 days total)
       const target = new Date(targetDate);
       const minDateObj = new Date(target);
       minDateObj.setDate(minDateObj.getDate() - 4);
@@ -1263,7 +1267,6 @@
         return itemDate >= minDateStr && itemDate <= targetDate;
       });
 
-      // Sort descending by date
       filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
       
       document.getElementById('entry-count').innerText = filtered.length;
