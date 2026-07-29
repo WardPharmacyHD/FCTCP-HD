@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ward Pharmacy Portal - Borang CP3 Pin 2/24</title>
+  <title>HDgn WARD PHARMACY PORTAL - Borang CP3 Pin 2/24</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -27,7 +27,7 @@
         <div class="bg-sky-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-sky-500/30">
           <i class="fa-solid fa-user-lock text-2xl"></i>
         </div>
-        <h2 class="text-xl font-bold text-slate-900">Ward Pharmacy Portal</h2>
+        <h2 class="text-xl font-bold text-slate-900">HDgn WARD PHARMACY PORTAL</h2>
         <p class="text-xs text-slate-500 mt-1">Select your profile and enter your 4-digit PIN</p>
       </div>
 
@@ -116,6 +116,7 @@
         <div>
           <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward</label>
           <select id="edit-user-ward" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
             <option value="ICU">ICU</option>
             <option value="WARD 1 - MEDICAL MALE">WARD 1 - MEDICAL MALE</option>
             <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
@@ -167,7 +168,7 @@
           <i class="fa-solid fa-prescription-bottle-medical text-lg sm:text-xl"></i>
         </div>
         <div>
-          <h1 class="font-bold text-sm sm:text-lg leading-none">Ward Portal</h1>
+          <h1 class="font-bold text-sm sm:text-base leading-none">HDgn WARD PHARMACY PORTAL</h1>
           <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1">CP3 Report Generator</p>
         </div>
       </div>
@@ -175,7 +176,7 @@
       <!-- User Info, Active Shift Date & Account Settings -->
       <div class="flex items-center space-x-2 sm:space-x-6 text-sm">
         
-        <!-- VISIBLE ON MOBILE & DESKTOP NOW -->
+        <!-- VISIBLE ON MOBILE & DESKTOP -->
         <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-800 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-700">
           <i class="fa-regular fa-calendar-check text-sky-400 text-xs sm:text-sm"></i>
           <span class="hidden md:inline text-[10px] sm:text-xs text-slate-400">Shift Date:</span>
@@ -247,6 +248,7 @@
             <div>
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward</label>
               <select id="ward-name" onchange="applyWardFilterPermissions(); updatePdfReport()" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
                 <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
@@ -509,6 +511,7 @@
               <label class="block text-[10px] font-bold text-slate-500 uppercase">Ward Filter</label>
               <select id="report-ward-filter" onchange="updatePdfReport()" class="bg-slate-50 border border-slate-300 rounded-lg p-2 text-xs focus:outline-none">
                 <option value="ALL" id="ward-opt-all">All Wards Combined</option>
+                <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
                 <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
@@ -623,6 +626,7 @@
             <div>
               <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Designated Ward / Location</label>
               <select id="reg-ward" class="w-full border border-slate-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
                 <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
