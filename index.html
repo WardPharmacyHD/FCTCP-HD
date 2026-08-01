@@ -320,8 +320,8 @@
                   <p class="text-2xl font-bold text-slate-100 mt-1"><span id="cp2-count">0</span> <span class="text-xs text-slate-400 font-normal">cases</span></p>
                 </div>
                 <div class="flex space-x-1">
-                  <button onclick="updateCounter('cp2-count', -1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">-</button>
-                  <button onclick="updateCounter('cp2-count', 1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">+</button>
+                  <button type="button" onclick="updateCounter('cp2-count', -1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">-</button>
+                  <button type="button" onclick="updateCounter('cp2-count', 1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">+</button>
                 </div>
               </div>
 
@@ -331,8 +331,8 @@
                   <p class="text-2xl font-bold text-slate-100 mt-1"><span id="cp1-count">0</span> <span class="text-xs text-slate-400 font-normal">patients</span></p>
                 </div>
                 <div class="flex space-x-1">
-                  <button onclick="updateCounter('cp1-count', -1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">-</button>
-                  <button onclick="updateCounter('cp1-count', 1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">+</button>
+                  <button type="button" onclick="updateCounter('cp1-count', -1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">-</button>
+                  <button type="button" onclick="updateCounter('cp1-count', 1)" class="w-9 h-9 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-base shadow-sm">+</button>
                 </div>
               </div>
             </div>
@@ -343,39 +343,66 @@
             <h3 class="text-sm font-bold text-slate-200 mb-3 uppercase tracking-wide">Patient Counselling Sessions</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               
+              <!-- BEDSIDE COUNSELLING -->
               <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 space-y-3">
                 <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-700/80 pb-1">Bedside Counselling</span>
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold text-slate-400">Sessions</span>
-                  <input type="number" id="counsel-bedside-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <div class="flex items-center space-x-1">
+                    <button type="button" onclick="updateCounter('counsel-bedside-sessions', -1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">-</button>
+                    <input type="number" id="counsel-bedside-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-12 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-sm text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <button type="button" onclick="updateCounter('counsel-bedside-sessions', 1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">+</button>
+                  </div>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold text-slate-400">Patients</span>
-                  <input type="number" id="counsel-bedside-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <div class="flex items-center space-x-1">
+                    <button type="button" onclick="updateCounter('counsel-bedside-pts', -1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">-</button>
+                    <input type="number" id="counsel-bedside-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-12 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-sm text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <button type="button" onclick="updateCounter('counsel-bedside-pts', 1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">+</button>
+                  </div>
                 </div>
               </div>
 
+              <!-- DISCHARGE COUNSELLING -->
               <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 space-y-3">
                 <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-700/80 pb-1">Discharge Counselling</span>
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold text-slate-400">Sessions</span>
-                  <input type="number" id="counsel-discharge-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <div class="flex items-center space-x-1">
+                    <button type="button" onclick="updateCounter('counsel-discharge-sessions', -1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">-</button>
+                    <input type="number" id="counsel-discharge-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-12 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-sm text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <button type="button" onclick="updateCounter('counsel-discharge-sessions', 1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">+</button>
+                  </div>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold text-slate-400">Patients</span>
-                  <input type="number" id="counsel-discharge-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <div class="flex items-center space-x-1">
+                    <button type="button" onclick="updateCounter('counsel-discharge-pts', -1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">-</button>
+                    <input type="number" id="counsel-discharge-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-12 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-sm text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <button type="button" onclick="updateCounter('counsel-discharge-pts', 1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">+</button>
+                  </div>
                 </div>
               </div>
 
+              <!-- GROUP COUNSELLING -->
               <div class="bg-slate-900/60 p-4 rounded-xl border border-slate-700 space-y-3">
                 <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block border-b border-slate-700/80 pb-1">Group Counselling</span>
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold text-slate-400">Sessions</span>
-                  <input type="number" id="counsel-group-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <div class="flex items-center space-x-1">
+                    <button type="button" onclick="updateCounter('counsel-group-sessions', -1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">-</button>
+                    <input type="number" id="counsel-group-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-12 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-sm text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <button type="button" onclick="updateCounter('counsel-group-sessions', 1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">+</button>
+                  </div>
                 </div>
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-semibold text-slate-400">Patients</span>
-                  <input type="number" id="counsel-group-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-16 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-base text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                  <div class="flex items-center space-x-1">
+                    <button type="button" onclick="updateCounter('counsel-group-pts', -1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">-</button>
+                    <input type="number" id="counsel-group-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="w-12 text-center bg-slate-800 border border-slate-600 rounded-lg p-1.5 font-bold text-sm text-slate-100 focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    <button type="button" onclick="updateCounter('counsel-group-pts', 1)" class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 hover:bg-slate-700 font-bold text-slate-200 text-sm shadow-sm flex items-center justify-center">+</button>
+                  </div>
                 </div>
               </div>
 
@@ -1369,12 +1396,19 @@
       renderPfSummaryReport();
     }
 
-    // TALLY COUNTER WITH 0 FLOOR
+    // TALLY COUNTER WITH 0 FLOOR (HANDLES BOTH TEXT & INPUT ELEMENTS)
     function updateCounter(id, delta) {
       const el = document.getElementById(id);
-      let val = parseInt(el.innerText) + delta;
-      if (val < 0) val = 0;
-      el.innerText = val;
+      if (!el) return;
+      if (el.tagName === 'INPUT') {
+        let val = (parseInt(el.value) || 0) + delta;
+        if (val < 0) val = 0;
+        el.value = val;
+      } else {
+        let val = (parseInt(el.innerText) || 0) + delta;
+        if (val < 0) val = 0;
+        el.innerText = val;
+      }
       updatePdfReport();
     }
 
