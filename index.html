@@ -14,9 +14,9 @@
     
     @media print {
       body * { visibility: hidden; }
-      #printable-cp3, #printable-cp3 *, #printable-pf63b, #printable-cp3 * { visibility: visible; color: #000 !important; background: #fff !important; }
+      #printable-cp3, #printable-cp3 *, #printable-pf63b, #printable-pf63b * { visibility: visible; color: #000 !important; background: #fff !important; }
       #printable-cp3, #printable-pf63b { position: absolute; left: 0; top: 0; width: 100%; border: none !important; }
-      #printable-cp3 .bg-slate-900, #printable-pf63b .bg-slate-900 { background: #f1f5f9 !important; color: #000 !important; }
+      #printable-cp3 .bg-slate-900, #printable-pf63b .bg-slate-900, #printable-cp3 .bg-slate-950, #printable-cp3 .bg-slate-800 { background: #f1f5f9 !important; color: #000 !important; }
       #printable-cp3 table, #printable-pf63b table { border-color: #000 !important; }
       #printable-cp3 th, #printable-cp3 td, #printable-pf63b th, #printable-pf63b td { border-color: #000 !important; color: #000 !important; }
     }
@@ -164,7 +164,7 @@
     <button onclick="configureApiUrl()" class="underline font-semibold hover:text-white">Set API URL</button>
   </div>
 
-  <!-- TOP NAVBAR -->
+  <!-- TOP NAVBAR WITH RED HIGH-VISIBILITY DATE BADGE & PROMINENT DD/MM/YYYY DISPLAY -->
   <header class="bg-slate-950 border-b border-slate-800 text-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-2 sm:space-x-3">
@@ -180,10 +180,16 @@
       <!-- User Info, Active Shift Date & Account Settings -->
       <div class="flex items-center space-x-2 sm:space-x-6 text-sm">
         
-        <div class="flex items-center space-x-1 sm:space-x-2 bg-slate-900 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg border border-slate-700">
-          <i class="fa-regular fa-calendar-check text-sky-400 text-xs sm:text-sm"></i>
-          <span class="hidden md:inline text-[10px] sm:text-xs text-slate-400">Shift Date:</span>
-          <input type="date" id="global-shift-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-white text-xs sm:text-sm font-bold focus:outline-none cursor-pointer [color-scheme:dark]">
+        <!-- RED HIGH-VISIBILITY SHIFT DATE BOX WITH PROMINENT DD/MM/YYYY FORMAT -->
+        <div class="flex items-center space-x-2 bg-rose-950/90 border-2 border-rose-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg shadow-rose-950/50">
+          <i class="fa-regular fa-calendar-check text-rose-400 text-xs sm:text-sm animate-pulse"></i>
+          <div class="flex flex-col">
+            <span class="text-[9px] font-bold text-rose-300 uppercase tracking-wider leading-none">Shift Date (DD/MM/YYYY):</span>
+            <div class="flex items-center space-x-1.5 mt-0.5">
+              <span id="global-shift-date-display" class="text-rose-100 font-mono font-black text-xs sm:text-sm">28/07/2026</span>
+              <input type="date" id="global-shift-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-rose-300 w-4 text-xs font-black focus:outline-none cursor-pointer [color-scheme:dark]">
+            </div>
+          </div>
         </div>
         
         <div class="flex items-center space-x-2 sm:space-x-3 border-l border-slate-800 pl-2 sm:pl-4">
@@ -195,7 +201,7 @@
               <p id="user-display-name" class="font-semibold text-xs leading-none">Admin Pharmacist</p>
               <span id="user-role-badge" class="text-[9px] bg-amber-500 text-slate-900 font-bold px-1.5 py-0.2 rounded">ADMIN</span>
             </div>
-            <p class="text-[10px] text-sky-400 font-medium mt-0.5" id="user-ward-display">ICU</p>
+            <p class="text-[10px] bg-rose-950/80 border border-rose-800 text-rose-300 font-bold px-1.5 py-0.5 rounded mt-0.5" id="user-ward-display">ICU</p>
           </div>
           
           <!-- CHANGE PIN & LOGOUT BUTTONS -->
@@ -226,17 +232,21 @@
           <i class="fa-solid fa-user-doctor"></i>
           <span>2. Log Interventions (Sections B-E)</span>
         </button>
+        <button onclick="switchTab('di')" id="tab-di" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-circle-info text-sky-400"></i>
+          <span>3. Drug Info Enquiries</span>
+        </button>
         <button onclick="switchTab('reports')" id="tab-reports" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-file-pdf"></i>
-          <span>3. CP3 Report Generator</span>
+          <span>4. CP3 Report Generator</span>
         </button>
         <button onclick="switchTab('admin')" id="tab-admin" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-shield-halved text-amber-400"></i>
-          <span>4. Admin / Settings</span>
+          <span>5. Admin / Settings</span>
         </button>
         <button onclick="switchTab('summary')" id="tab-summary" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-table-list text-emerald-400"></i>
-          <span>5. Laporan PF 6.3(b) <span class="text-[10px] bg-amber-950 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-800 ms-1">ADMIN</span></span>
+          <span>6. Laporan PF 6.3(b) <span class="text-[10px] bg-amber-950 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-800 ms-1">ADMIN</span></span>
         </button>
       </div>
     </div>
@@ -245,16 +255,20 @@
     <div id="view-checkin" class="space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        <!-- Ward Assignment Details -->
+        <!-- Ward Assignment Details (RED HIGHLIGHTED) -->
         <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 md:col-span-1">
           <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-2">
-            <i class="fa-solid fa-hospital-user text-sky-400 me-2"></i> Ward Assignment
+            <i class="fa-solid fa-hospital-user text-rose-400 me-2"></i> Ward Assignment
           </h2>
           
           <form id="checkin-form" onsubmit="handleCheckInSubmit(event)" class="space-y-4">
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Designated Ward</label>
-              <select id="ward-name" onchange="applyWardFilterPermissions(); updatePdfReport()" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <!-- RED BORDERED SELECT BOX -->
+            <div class="bg-rose-950/40 p-3 rounded-xl border-2 border-rose-600/80">
+              <label class="block text-xs font-bold text-rose-300 uppercase mb-1 flex items-center justify-between">
+                <span>Designated Ward</span>
+                <span class="text-[10px] bg-rose-900 text-rose-200 px-1.5 py-0.2 rounded uppercase">Location</span>
+              </label>
+              <select id="ward-name" onchange="applyWardFilterPermissions(); updatePdfReport()" class="w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
@@ -266,6 +280,9 @@
                 <option value="WARD 7 - SURGICAL / ORTHO MALE">WARD 7 - SURGICAL / ORTHO MALE</option>
                 <option value="WARD 8 - SURGICAL / ORTHO FEMALE">WARD 8 - SURGICAL / ORTHO FEMALE</option>
               </select>
+              <p class="text-[11px] text-rose-400 font-semibold mt-1.5 flex items-center">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Verify shift date & ward location before saving!
+              </p>
             </div>
 
             <div>
@@ -436,7 +453,6 @@
               <select id="cp3-code" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 <option value="" disabled selected>Select CP3 Code...</option>
                 
-                <!-- GROUP 2: INAPPROPRIATE REGIMEN (2.1 - 2.8) -->
                 <optgroup label="2. Inappropriate Regimen" class="bg-slate-900 text-sky-400">
                   <option value="2.1" class="text-slate-100">2.1 Drug</option>
                   <option value="2.2" class="text-slate-100">2.2 Dose</option>
@@ -448,7 +464,6 @@
                   <option value="2.8" class="text-slate-100">2.8 Incompatibility</option>
                 </optgroup>
 
-                <!-- GROUP 1: INCOMPLETE PRESCRIPTION (1.1 - 1.6) -->
                 <optgroup label="1. Incomplete Prescription" class="bg-slate-900 text-sky-400">
                   <option value="1.1" class="text-slate-100">1.1 Patient data</option>
                   <option value="1.2" class="text-slate-100">1.2 Drug</option>
@@ -458,7 +473,6 @@
                   <option value="1.6" class="text-slate-100">1.6 Dr's Stamp & Sign</option>
                 </optgroup>
 
-                <!-- GROUP 3: MISCELLANEOUS (3.1 - 3.8) -->
                 <optgroup label="3. Miscellaneous" class="bg-slate-900 text-sky-400">
                   <option value="3.1" class="text-slate-100">3.1 Wrong Patient</option>
                   <option value="3.2" class="text-slate-100">3.2 Drug Not in Formulary</option>
@@ -491,7 +505,7 @@
         </form>
       </div>
 
-      <!-- LOGGED INTERVENTIONS LIST (LAST 5 DAYS RANGE) -->
+      <!-- LOGGED INTERVENTIONS LIST -->
       <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
         <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex justify-between items-center">
           <div>
@@ -505,7 +519,75 @@
       </div>
     </div>
 
-    <!-- TAB 3: REPORT GENERATOR -->
+    <!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG (WITH DIRECT TEXT ENQUIRER ENTRY) -->
+    <div id="view-di" class="hidden space-y-6">
+      <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
+        <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
+          <i class="fa-solid fa-circle-info text-sky-400 me-2"></i> Drug Information Enquiry Form
+        </h2>
+
+        <form id="di-form" onsubmit="handleDiSubmit(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- DIRECT TEXT ENTRY FOR ENQUIRER -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Enquirer / Name & Title</label>
+              <input type="text" id="di-enquirer" required placeholder="e.g. Dr. Azlin (MO) / Staff Nurse Aini / Patient" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Enquiry Classification (CP3 Official Categories)</label>
+              <select id="di-category" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <option value="Adverse Drug Reaction">1. Adverse Drug Reaction</option>
+                <option value="Drug Toxicity">2. Drug Toxicity</option>
+                <option value="Drug Dose/Administration" selected>3. Drug Dose/Administration</option>
+                <option value="Side effects">4. Side effects</option>
+                <option value="Drug Indication">5. Drug Indication</option>
+                <option value="Drug Interaction">6. Drug Interaction</option>
+                <option value="Contraindication">7. Contraindication</option>
+                <option value="Pharmacokinetics">8. Pharmacokinetics</option>
+                <option value="TPN">9. TPN</option>
+                <option value="Pharmaceutical Availability">10. Pharmaceutical Availability</option>
+                <option value="Pharmaceutical Compatibility">11. Pharmaceutical Compatibility</option>
+                <option value="Pharmaceutical Identification">12. Pharmaceutical Identification</option>
+                <option value="General Product Information">13. General Product Information</option>
+                <option value="Others (please state)">14. Others (please state)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Questions Asked (Section D)</label>
+            <textarea id="di-question" required rows="2" placeholder="Describe the drug information question..." class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Answers with References (Section D)</label>
+            <textarea id="di-response" required rows="3" placeholder="Provide evidence-based answers with reference sources..." class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="flex items-center justify-end pt-2">
+            <button type="submit" id="di-submit-btn" class="bg-sky-600 hover:bg-sky-500 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition shadow flex items-center">
+              <i class="fa-solid fa-paper-plane me-2"></i> Save Drug Information Log
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- LOGGED DRUG INFO ENQUIRIES LIST -->
+      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
+        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-slate-100 text-sm">Logged DI Enquiries (Last 5 Days) (<span id="di-entry-count">0</span>)</h3>
+            <p class="text-[11px] text-slate-400">Showing DI requests from active shift date through 4 days prior</p>
+          </div>
+          <span class="text-xs text-sky-400 font-medium"><i class="fa-solid fa-clock-rotate-left me-1"></i> Ward Log History</span>
+        </div>
+
+        <div id="di-logs-list" class="divide-y divide-slate-700/80"></div>
+      </div>
+    </div>
+
+    <!-- TAB 4: REPORT GENERATOR -->
     <div id="view-reports" class="hidden space-y-6">
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700 pb-3 gap-2">
@@ -523,20 +605,23 @@
         <div class="flex flex-col md:flex-row items-end justify-between gap-4">
           <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
             <div id="report-daily-inputs" class="flex items-center space-x-2">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase">Shift Date</label>
-                <input type="date" id="report-single-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
+              <div class="bg-rose-950/40 p-2 rounded-lg border border-rose-600/80 flex flex-col">
+                <label class="block text-[10px] font-bold text-rose-300 uppercase">Shift Date (DD/MM/YYYY)</label>
+                <div class="flex items-center space-x-1">
+                  <span id="report-single-date-display" class="text-rose-100 font-mono font-bold text-xs">28/07/2026</span>
+                  <input type="date" id="report-single-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-rose-500 text-rose-100 font-bold rounded p-1 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
+                </div>
               </div>
             </div>
 
             <div id="report-range-inputs" class="hidden flex items-center space-x-2">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase">From Date</label>
+              <div class="flex flex-col">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase">From Date (DD/MM/YYYY)</label>
                 <input type="date" id="report-start-date" value="2026-07-01" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
               <span class="text-slate-400 font-bold mt-4">to</span>
-              <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase">To Date</label>
+              <div class="flex flex-col">
+                <label class="block text-[10px] font-bold text-slate-400 uppercase">To Date (DD/MM/YYYY)</label>
                 <input type="date" id="report-end-date" value="2026-07-31" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
             </div>
@@ -566,76 +651,215 @@
         </div>
       </div>
 
-      <!-- PRINTABLE CP3 FORM PREVIEW -->
-      <div id="printable-cp3" class="bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-700 max-w-4xl mx-auto text-xs font-mono text-slate-100">
-        <div class="border-b-2 border-slate-600 pb-3 text-center">
-          <h2 class="font-bold text-base uppercase tracking-wide text-slate-100">CLINICAL PHARMACY REPORT FORM (Pin. 2/24)</h2>
-          <p class="text-xs text-slate-400">Pharmacy Department, Hospital</p>
+      <!-- PRINTABLE CP3 FORM PREVIEW (STRICT PIN 2/24 FORMAT) -->
+      <div id="printable-cp3" class="bg-slate-800 p-8 rounded-xl shadow-lg border border-slate-700 max-w-4xl mx-auto text-xs font-mono text-slate-100 space-y-4">
+        
+        <!-- HEADER -->
+        <div class="border-b-2 border-slate-600 pb-3 text-center relative">
+          <span class="absolute top-0 right-0 font-bold text-xs text-slate-400">CP3</span>
+          <h2 class="font-bold text-base uppercase tracking-wide text-slate-100">CLINICAL PHARMACY REPORT FORM</h2>
+          <p class="text-xs text-slate-400">Pharmacy Department, Hospital ................................................</p>
         </div>
 
-        <div class="my-4 border-b border-slate-700 pb-4">
+        <!-- SECTION A -->
+        <div class="border-b border-slate-700 pb-3">
           <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">A: WARD PHARMACY ACTIVITY</div>
-          <div class="grid grid-cols-2 gap-2">
-            <div><strong>Report Period:</strong> <span id="pdf-date">28/07/2026</span></div>
-            <div><strong>Ward:</strong> <span id="pdf-ward">WARD 1 - MEDICAL MALE</span></div>
-            <div><strong>Task:</strong> <span id="pdf-task">Full Time</span></div>
-            <div><strong>Physician(s):</strong> <span id="pdf-physicians">Dr. Aris, Dr. Chen</span></div>
-            <div><strong>Rounds:</strong> <span id="pdf-rounds">Routine, Pharmacist</span></div>
-            <div><strong>Clerking:</strong> CP1: <span id="pdf-cp1">0</span> | CP2: <span id="pdf-cp2">0</span></div>
+          <table class="w-full text-left border-collapse border border-slate-700 text-[11px]">
+            <tbody>
+              <tr class="border-b border-slate-700">
+                <td class="p-1 font-bold w-24">Date (DD/MM/YYYY)</td>
+                <td class="p-1 border-r border-slate-700">: <span id="pdf-date">28/07/2026</span></td>
+                <td class="p-1 font-bold w-48">Routine Rounds</td>
+                <td class="p-1">: <span id="pdf-round-routine">YES</span></td>
+              </tr>
+              <tr class="border-b border-slate-700">
+                <td class="p-1 font-bold">Ward</td>
+                <td class="p-1 border-r border-slate-700">: <span id="pdf-ward">WARD 1 - MEDICAL MALE</span></td>
+                <td class="p-1 font-bold">Grand Rounds</td>
+                <td class="p-1">: <span id="pdf-round-grand">NO</span></td>
+              </tr>
+              <tr class="border-b border-slate-700">
+                <td class="p-1 font-bold">Task</td>
+                <td class="p-1 border-r border-slate-700">: <span id="pdf-task">Full Time</span></td>
+                <td class="p-1 font-bold">Pharmacist Rounds</td>
+                <td class="p-1">: <span id="pdf-round-pharmacist">YES</span></td>
+              </tr>
+              <tr class="border-b border-slate-700">
+                <td class="p-1 font-bold">Physician(s)</td>
+                <td class="p-1 border-r border-slate-700">: <span id="pdf-physicians">Dr. Aris, Dr. Chen</span></td>
+                <td class="p-1 font-bold">Number of Cases Clerked (CP2)</td>
+                <td class="p-1">: <span id="pdf-cp2">0</span></td>
+              </tr>
+              <tr>
+                <td class="p-1"></td><td class="p-1 border-r border-slate-700"></td>
+                <td class="p-1 font-bold">Number of Medication History (CP1) Taken</td>
+                <td class="p-1">: <span id="pdf-cp1">0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- SECTION B: INTERVENTIONS / REQUESTS ENCOUNTERED -->
+        <div class="border-b border-slate-700 pb-3">
+          <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">B: INTERVENTIONS / REQUESTS ENCOUNTERED</div>
+          
+          <div class="grid grid-cols-2 gap-2 text-[10px]">
+            <!-- LEFT HALF: INTERVENTIONS -->
+            <table class="w-full text-left border-collapse border border-slate-700">
+              <thead>
+                <tr class="bg-slate-900 border-b border-slate-700 text-[9px] font-bold">
+                  <th class="p-1 border-r border-slate-700">Interventions</th>
+                  <th class="p-1 border-r border-slate-700">No.</th>
+                  <th class="p-1 border-r border-slate-700">Description</th>
+                  <th class="p-1 border-r border-slate-700 text-center">Number of Interventions</th>
+                  <th class="p-1 text-center">Number of Interventions Accepted</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800">
+                <tr><td rowspan="6" class="p-1 font-bold border-r border-slate-700 bg-slate-950">(1)<br>Incomplete Prescription</td><td class="p-0.5 border-r border-slate-700">1.1</td><td class="p-0.5 border-r border-slate-700">Patient data</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-1.1">0</td><td class="p-0.5 text-center" id="acc-1.1">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">1.2</td><td class="p-0.5 border-r border-slate-700">Drug</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-1.2">0</td><td class="p-0.5 text-center" id="acc-1.2">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">1.3</td><td class="p-0.5 border-r border-slate-700">Dose</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-1.3">0</td><td class="p-0.5 text-center" id="acc-1.3">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">1.4</td><td class="p-0.5 border-r border-slate-700">Frequency</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-1.4">0</td><td class="p-0.5 text-center" id="acc-1.4">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">1.5</td><td class="p-0.5 border-r border-slate-700">Duration</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-1.5">0</td><td class="p-0.5 text-center" id="acc-1.5">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">1.6</td><td class="p-0.5 border-r border-slate-700">Dr's Stamp & Sign</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-1.6">0</td><td class="p-0.5 text-center" id="acc-1.6">0</td></tr>
+
+                <tr class="border-t border-slate-700"><td rowspan="8" class="p-1 font-bold border-r border-slate-700 bg-slate-950">(2)<br>Inappropriate Regimen</td><td class="p-0.5 border-r border-slate-700">2.1</td><td class="p-0.5 border-r border-slate-700">Drug</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-2.1">0</td><td class="p-0.5 text-center" id="acc-2.1">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">2.2</td><td class="p-0.5 border-r border-slate-700">Dose</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-2.2">0</td><td class="p-0.5 text-center" id="acc-2.2">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">2.3</td><td class="p-0.5 border-r border-slate-700">Frequency</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-2.3">0</td><td class="p-0.5 text-center" id="acc-2.3">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">2.4</td><td class="p-0.5 border-r border-slate-700">Duration</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-2.4">0</td><td class="p-0.5 text-center" id="acc-2.4">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">2.5</td><td class="p-0.5 border-r border-slate-700">Polypharmacy</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-2.5">0</td><td class="p-0.5 text-center" id="acc-2.5">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">2.6</td><td class="p-0.5 border-r border-slate-700">Contraindication</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-2.6">0</td><td class="p-0.5 text-center" id="acc-2.6">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">2.7</td><td class="p-0.5 border-r border-slate-700">Drug Interaction</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-2.7">0</td><td class="p-0.5 text-center" id="acc-2.7">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">2.8</td><td class="p-0.5 border-r border-slate-700">Incompatibility</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-2.8">0</td><td class="p-0.5 text-center" id="acc-2.8">0</td></tr>
+
+                <tr class="border-t border-slate-700"><td rowspan="8" class="p-1 font-bold border-r border-slate-700 bg-slate-950">(3)<br>Miscellaneous</td><td class="p-0.5 border-r border-slate-700">3.1</td><td class="p-0.5 border-r border-slate-700">Wrong Patient</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-3.1">0</td><td class="p-0.5 text-center" id="acc-3.1">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">3.2</td><td class="p-0.5 border-r border-slate-700">Drug Not in Formulary</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-3.2">0</td><td class="p-0.5 text-center" id="acc-3.2">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">3.3</td><td class="p-0.5 border-r border-slate-700">Drug Administration Error</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-3.3">0</td><td class="p-0.5 text-center" id="acc-3.3">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">3.4</td><td class="p-0.5 border-r border-slate-700">Unclear Handwriting</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-3.4">0</td><td class="p-0.5 text-center" id="acc-3.4">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">3.5</td><td class="p-0.5 border-r border-slate-700">Authenticity of Prescription/Prescriber</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-3.5">0</td><td class="p-0.5 text-center" id="acc-3.5">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">3.6</td><td class="p-0.5 border-r border-slate-700">Suggest for Vital Signs Monitoring/Lab</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-3.6">0</td><td class="p-0.5 text-center" id="acc-3.6">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">3.7</td><td class="p-0.5 border-r border-slate-700">TDM</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-3.7">0</td><td class="p-0.5 text-center" id="acc-3.7">0</td></tr>
+                <tr><td class="p-0.5 border-r border-slate-700">3.8</td><td class="p-0.5 border-r border-slate-700">TPN</td><td class="p-0.5 border-r border-slate-700 text-center" id="count-3.8">0</td><td class="p-0.5 text-center" id="acc-3.8">0</td></tr>
+                
+                <tr class="bg-slate-900 border-t-2 border-slate-600 font-bold"><td colspan="3" class="p-1 border-r border-slate-700">TOTAL INTERVENTIONS</td><td class="p-1 border-r border-slate-700 text-center text-sky-400" id="count-total">0</td><td class="p-1 text-center text-emerald-400" id="acc-total">0</td></tr>
+              </tbody>
+            </table>
+
+            <!-- RIGHT HALF: REQUEST / INFORMATION PROVIDED & COUNSELLING -->
+            <div class="space-y-2 flex flex-col justify-between">
+              <table class="w-full text-left border-collapse border border-slate-700">
+                <thead>
+                  <tr class="bg-slate-900 border-b border-slate-700 text-[9px] font-bold">
+                    <th class="p-1 border-r border-slate-700">Request / Information Provided</th>
+                    <th class="p-1 border-r border-slate-700 text-center w-12">Number</th>
+                    <th class="p-1 text-center w-12">Total</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-0.5 border-r border-slate-700">Adverse Drug Reaction</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-adr">0</td><td class="p-0.5 text-center" id="di-adr-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Drug Toxicity</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-tox">0</td><td class="p-0.5 text-center" id="di-tox-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Drug Dose/Administration</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-dose">0</td><td class="p-0.5 text-center" id="di-dose-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Side effects</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-side">0</td><td class="p-0.5 text-center" id="di-side-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Drug Indication</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-ind">0</td><td class="p-0.5 text-center" id="di-ind-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Drug Interaction</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-inter">0</td><td class="p-0.5 text-center" id="di-inter-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Contraindication</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-contra">0</td><td class="p-0.5 text-center" id="di-contra-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Pharmacokinetics</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-pk">0</td><td class="p-0.5 text-center" id="di-pk-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">TPN</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-tpn">0</td><td class="p-0.5 text-center" id="di-tpn-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Pharmaceutical Availability</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-avail">0</td><td class="p-0.5 text-center" id="di-avail-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Pharmaceutical Compatibility</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-compat">0</td><td class="p-0.5 text-center" id="di-compat-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Pharmaceutical Identification</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-ident">0</td><td class="p-0.5 text-center" id="di-ident-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">General Product Information</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-gen">0</td><td class="p-0.5 text-center" id="di-gen-t">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Others (please state)</td><td class="p-0.5 border-r border-slate-700 text-center" id="di-oth">0</td><td class="p-0.5 text-center" id="di-oth-t">0</td></tr>
+                  <tr class="bg-slate-900 font-bold"><td class="p-1 border-r border-slate-700">TOTAL INFORMATION PROVIDED</td><td colspan="2" class="p-1 text-center text-sky-400" id="di-total-provided">0</td></tr>
+                </tbody>
+              </table>
+
+              <!-- COUNSELLING & GRAND TOTAL -->
+              <table class="w-full text-left border-collapse border border-slate-700">
+                <thead>
+                  <tr class="bg-slate-900 border-b border-slate-700 text-[9px] font-bold">
+                    <th class="p-1 border-r border-slate-700">COUNSELLING</th>
+                    <th class="p-1 border-r border-slate-700 text-center w-20">Number of Sessions</th>
+                    <th class="p-1 text-center w-20">Total Number of Patients</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                  <tr><td class="p-0.5 border-r border-slate-700">Bedside Counselling</td><td class="p-0.5 border-r border-slate-700 text-center" id="pdf-counsel-bed-s">0</td><td class="p-0.5 text-center" id="pdf-counsel-bed-p">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Discharge Counselling</td><td class="p-0.5 border-r border-slate-700 text-center" id="pdf-counsel-dis-s">0</td><td class="p-0.5 text-center" id="pdf-counsel-dis-p">0</td></tr>
+                  <tr><td class="p-0.5 border-r border-slate-700">Group Counselling</td><td class="p-0.5 border-r border-slate-700 text-center" id="pdf-counsel-grp-s">0</td><td class="p-0.5 text-center" id="pdf-counsel-grp-p">0</td></tr>
+                  <tr class="bg-slate-900 font-bold"><td colspan="2" class="p-1 border-r border-slate-700">GRAND TOTAL</td><td class="p-1 text-center text-emerald-400" id="pdf-grand-total">0</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <div class="my-4 border-b border-slate-700 pb-4">
-          <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">B: INTERVENTIONS / REQUESTS SUMMARY (AUTO-TALLIED)</div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <p class="font-bold underline mb-1">(1) Incomplete Prescription</p>
-              <p>1.1 Patient data: <span id="count-1.1">0</span></p>
-              <p>1.2 Drug: <span id="count-1.2">0</span></p>
-              <p>1.3 Dose: <span id="count-1.3">0</span></p>
-              <p>1.4 Frequency: <span id="count-1.4">0</span></p>
-              <p>1.5 Duration: <span id="count-1.5">0</span></p>
-              <p>1.6 Dr Stamp & Sign: <span id="count-1.6">0</span></p>
-            </div>
-            <div>
-              <p class="font-bold underline mb-1">(2) Inappropriate Regimen</p>
-              <p>2.1 Drug: <span id="count-2.1">0</span></p>
-              <p>2.2 Dose: <span id="count-2.2">0</span></p>
-              <p>2.3 Frequency: <span id="count-2.3">0</span></p>
-              <p>2.4 Duration: <span id="count-2.4">0</span></p>
-              <p>2.5 Polypharmacy: <span id="count-2.5">0</span></p>
-              <p>2.6 Contraindication: <span id="count-2.6">0</span></p>
-              <p>2.7 Drug Interaction: <span id="count-2.7">0</span></p>
-              <p>2.8 Incompatibility: <span id="count-2.8">0</span></p>
-              <p class="font-bold mt-2 text-sky-400">TOTAL INTERVENTIONS: <span id="count-total">0</span></p>
-            </div>
-          </div>
-        </div>
-
+        <!-- SECTION C: INTERVENTIONS ENCOUNTERED -->
         <div class="my-4">
           <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">C: INTERVENTIONS ENCOUNTERED</div>
           <table class="w-full text-left border-collapse border border-slate-700">
             <thead>
-              <tr class="bg-slate-900 border-b border-slate-700">
-                <th class="p-1 border-r border-slate-700">DATE</th>
-                <th class="p-1 border-r border-slate-700">PATIENT NAME</th>
-                <th class="p-1 border-r border-slate-700">RN</th>
-                <th class="p-1 border-r border-slate-700">CODE</th>
-                <th class="p-1">DESCRIPTION</th>
+              <tr class="bg-slate-900 border-b border-slate-700 font-bold text-[10px]">
+                <th class="p-1 border-r border-slate-700 w-36">PATIENT NAME</th>
+                <th class="p-1 border-r border-slate-700 w-28">RN</th>
+                <th class="p-1 border-r border-slate-700 w-28">INTERVENTION NO.</th>
+                <th class="p-1">DESCRIPTIONS</th>
               </tr>
             </thead>
-            <tbody id="pdf-interventions-table"></tbody>
+            <tbody id="pdf-interventions-table" class="divide-y divide-slate-800 text-[10px]"></tbody>
           </table>
         </div>
 
-        <div class="mt-8 pt-4 border-t border-slate-700 flex justify-between items-center text-slate-400">
-          <div>Pharmacist Signature & Stamp: ______________________</div>
-          <div>Logged By: <span id="pdf-logged-by" class="text-slate-200">Sarah Jenkins, RPh</span></div>
+        <!-- SECTION D: REQUEST / INFORMATION PROVIDED -->
+        <div class="my-4">
+          <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">D: REQUEST/ INFORMATION PROVIDED</div>
+          <table class="w-full text-left border-collapse border border-slate-700">
+            <thead>
+              <tr class="bg-slate-900 border-b border-slate-700 font-bold text-[10px]">
+                <th class="p-1 border-r border-slate-700 w-1/2">QUESTIONS</th>
+                <th class="p-1 w-1/2">ANSWERS WITH REFERENCES</th>
+              </tr>
+            </thead>
+            <tbody id="pdf-di-table" class="divide-y divide-slate-800 text-[10px]"></tbody>
+          </table>
         </div>
+
+        <!-- SECTION E: FOLLOW-UP REQUIRED -->
+        <div class="my-4">
+          <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">E: FOLLOW-UP REQUIRED</div>
+          <table class="w-full text-left border-collapse border border-slate-700">
+            <thead>
+              <tr class="bg-slate-900 border-b border-slate-700 font-bold text-[10px]">
+                <th class="p-1 border-r border-slate-700 w-10 text-center">NO.</th>
+                <th class="p-1 border-r border-slate-700">FOLLOW-UP</th>
+                <th class="p-1 border-r border-slate-700 w-24 text-center">CHECKLIST</th>
+                <th class="p-1 w-24 text-center">SIGN</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-[10px]">
+              <tr><td class="p-2 border-r border-slate-700 text-center">1.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
+              <tr><td class="p-2 border-r border-slate-700 text-center">2.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
+              <tr><td class="p-2 border-r border-slate-700 text-center">3.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- FOOTER & SIGNATURE -->
+        <div class="mt-8 pt-4 border-t border-slate-700 flex justify-between items-end text-slate-400">
+          <div class="space-y-1">
+            <p>....................................................</p>
+            <p class="font-bold text-slate-200">Pharmacist's Sign & Stamp</p>
+            <p>Date (DD/MM/YYYY): <span class="font-mono text-slate-200" id="pdf-footer-date">28/07/2026</span></p>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-slate-400">Pin. 2/24</p>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- TAB 4: ADMIN / SETTINGS PANEL -->
+    <!-- TAB 5: ADMIN / SETTINGS PANEL -->
     <div id="view-admin" class="hidden space-y-6">
       <div class="bg-amber-950/60 border border-amber-800/80 rounded-xl p-4 flex items-center space-x-3 text-amber-200 text-xs">
         <i class="fa-solid fa-shield-cat text-2xl text-amber-400"></i>
@@ -740,7 +964,7 @@
       </div>
     </div>
 
-    <!-- TAB 5: ADMIN-ONLY EXECUTIVE SUMMARY MATRIX (LAPORAN PF 6.3b) -->
+    <!-- TAB 6: ADMIN-ONLY EXECUTIVE SUMMARY MATRIX (LAPORAN PF 6.3b) -->
     <div id="view-summary" class="hidden space-y-6">
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
         
@@ -812,7 +1036,6 @@
               </tr>
 
               <tr class="bg-slate-900 text-slate-300 border-b border-slate-700 font-semibold text-[9px]">
-                <!-- Preskripsi Tidak Lengkap Subheaders -->
                 <th class="p-1 border-r border-slate-700">1.1 Data Pesakit</th>
                 <th class="p-1 border-r border-slate-700">1.2 Ubat</th>
                 <th class="p-1 border-r border-slate-700">1.3 Dos</th>
@@ -820,7 +1043,6 @@
                 <th class="p-1 border-r border-slate-700">1.5 Durasi</th>
                 <th class="p-1 border-r border-slate-700">1.6 Cop/Sign</th>
 
-                <!-- Regimen Subheaders -->
                 <th colspan="3" class="p-1 border-r border-slate-700">2.1 Ubat</th>
                 <th colspan="3" class="p-1 border-r border-slate-700">2.2 Dos</th>
                 <th colspan="3" class="p-1 border-r border-slate-700">2.3 Frekuensi</th>
@@ -830,7 +1052,6 @@
                 <th colspan="3" class="p-1 border-r border-slate-700">2.7 Interaksi</th>
                 <th colspan="3" class="p-1 border-r border-slate-700">2.8 Incompatibility</th>
 
-                <!-- Lain-lain Subheaders -->
                 <th class="p-1 border-r border-slate-700">3.1 Salah Pesakit</th>
                 <th class="p-1 border-r border-slate-700">3.2 Tiada Formulari</th>
                 <th class="p-1 border-r border-slate-700">3.3 Ralat Pentadbiran</th>
@@ -842,15 +1063,8 @@
               </tr>
 
               <tr class="bg-slate-950 text-[8px] text-slate-400 border-b border-slate-700">
-                <!-- Empty for 1.x -->
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
+                <th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th>
 
-                <!-- 2.x Subtypes (PO, NM, Total x 8) -->
                 <th class="p-0.5 border-r border-slate-800">PO</th><th class="p-0.5 border-r border-slate-800">NM</th><th class="p-0.5 border-r border-slate-700 bg-slate-800 font-bold text-slate-200">T</th>
                 <th class="p-0.5 border-r border-slate-800">PO</th><th class="p-0.5 border-r border-slate-800">NM</th><th class="p-0.5 border-r border-slate-700 bg-slate-800 font-bold text-slate-200">T</th>
                 <th class="p-0.5 border-r border-slate-800">PO</th><th class="p-0.5 border-r border-slate-800">NM</th><th class="p-0.5 border-r border-slate-700 bg-slate-800 font-bold text-slate-200">T</th>
@@ -860,20 +1074,10 @@
                 <th class="p-0.5 border-r border-slate-800">PO</th><th class="p-0.5 border-r border-slate-800">NM</th><th class="p-0.5 border-r border-slate-700 bg-slate-800 font-bold text-slate-200">T</th>
                 <th class="p-0.5 border-r border-slate-800">PO</th><th class="p-0.5 border-r border-slate-800">NM</th><th class="p-0.5 border-r border-slate-700 bg-slate-800 font-bold text-slate-200">T</th>
 
-                <!-- Empty for 3.x -->
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
-                <th class="p-0.5 border-r border-slate-700">-</th>
+                <th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th><th class="p-0.5 border-r border-slate-700">-</th>
               </tr>
             </thead>
-            <tbody id="summary-matrix-tbody" class="divide-y divide-slate-800 font-mono">
-              <!-- Dynamically Populated -->
-            </tbody>
+            <tbody id="summary-matrix-tbody" class="divide-y divide-slate-800 font-mono"></tbody>
           </table>
         </div>
 
@@ -884,7 +1088,6 @@
 
   <!-- JAVASCRIPT CONNECTIVITY & LOGIC -->
   <script>
-    // INITIAL DATABASE STATE WITH WARD LOCATIONS
     let defaultUsers = {
       admin: { pin: "9999", name: "Admin Pharmacist", ward: "ICU", role: "admin" },
       khalil: { pin: "1234", name: "Mohd Khalil Ismail", ward: "ICU", role: "user" },
@@ -902,10 +1105,7 @@
     let PIN_DATABASE = { ...defaultUsers, ...storedUsers };
 
     let currentUser = null;
-    
-    // DEFAULT SHEETDB API ENDPOINT
     let defaultSheetDbUrl = "https://sheetdb.io/api/v1/ok0ovi4us96gp"; 
-    
     let storedUrl = localStorage.getItem('sheetdb_url');
     let sheetDbApiUrl = (storedUrl && storedUrl.trim() !== "") ? storedUrl : defaultSheetDbUrl;
     let reportMode = 'daily';
@@ -922,18 +1122,20 @@
         accepted: "YES",
         user_name: "Norhanim Solehah Bt Che Abdullah",
         user_ward: "WARD 1 - MEDICAL MALE"
-      },
+      }
+    ];
+
+    let diLogsData = [
       {
-        id: "102",
-        date: "2026-06-18",
-        ward: "ICU",
-        patient: "Ahmad Bin Hassan",
-        rn: "RN-992011",
-        code: "2.1",
-        desc: "Suggested optimization for IV Vancomycin trough level.",
-        accepted: "YES",
-        user_name: "Mohd Khalil Ismail",
-        user_ward: "ICU"
+        id: "di-101",
+        date: "2026-07-28",
+        ward: "WARD 1 - MEDICAL MALE",
+        enquirer: "Dr. Azlin (MO)",
+        category: "Drug Dose/Administration",
+        question: "Is renal dose adjustment required for Meropenem IV in GFR 20 mL/min?",
+        response: "Recommended Meropenem 500mg IV q12h based on Sanford Guide 2026.",
+        user_name: "Norhanim Solehah Bt Che Abdullah",
+        user_ward: "WARD 1 - MEDICAL MALE"
       }
     ];
 
@@ -944,12 +1146,14 @@
       updateApiStatusDisplay();
       loadSavedCheckIn();
       loadLastPatientData();
+      syncShiftDate();
       renderInterventions();
+      renderDiLogs();
       updatePdfReport();
       renderPfSummaryReport();
     });
 
-    // DATE FORMAT HELPER (YYYY-MM-DD -> DD/MM/YYYY)
+    // STRICT DD/MM/YYYY FORMAT HELPER
     function formatDateDDMMYYYY(dateStr) {
       if (!dateStr || dateStr === "N/A") return "N/A";
       const parts = dateStr.trim().split('-');
@@ -959,14 +1163,12 @@
       return dateStr;
     }
 
-    // PREVENT NUMBERS BELOW 0
     function validateNonNegative(inputEl) {
       if (inputEl.value < 0 || inputEl.value === "") {
         inputEl.value = 0;
       }
     }
 
-    // LOAD LAST PATIENT NAME AND RN FROM LOCAL STORAGE
     function loadLastPatientData() {
       const lastPt = localStorage.getItem('last_patient_name');
       const lastRn = localStorage.getItem('last_rn_number');
@@ -976,7 +1178,6 @@
       if (rnInput && lastRn) rnInput.value = lastRn;
     }
 
-    // CHANGE PIN MODAL HANDLERS
     function openChangePinModal() {
       if (!currentUser) return;
       document.getElementById('change-pin-current').value = '';
@@ -1026,7 +1227,6 @@
       }
     }
 
-    // EDIT USER MODAL HANDLERS (ADMIN ONLY)
     function openEditUserModal(key) {
       const user = PIN_DATABASE[key];
       if (!user) return;
@@ -1072,7 +1272,6 @@
       alert(`User profile '${key}' updated successfully!`);
     }
 
-    // APPLY REPORT WARD FILTER PERMISSIONS (ADMIN vs USER)
     function applyWardFilterPermissions() {
       const wardFilterSelect = document.getElementById('report-ward-filter');
       if (!wardFilterSelect) return;
@@ -1293,19 +1492,21 @@
     function switchTab(tabName) {
       if (tabName === 'admin' || tabName === 'summary') {
         if (!currentUser || !currentUser.role || currentUser.role.toLowerCase() !== 'admin') {
-          alert('Access Denied: Tab 4 (Admin Settings) and Tab 5 (PF 6.3b Summary) are restricted to system administrators.');
+          alert('Access Denied: Admin Settings and PF 6.3b Summary are restricted to system administrators.');
           return;
         }
       }
 
       document.getElementById('view-checkin').classList.add('hidden');
       document.getElementById('view-interventions').classList.add('hidden');
+      document.getElementById('view-di').classList.add('hidden');
       document.getElementById('view-reports').classList.add('hidden');
       document.getElementById('view-admin').classList.add('hidden');
       document.getElementById('view-summary').classList.add('hidden');
 
       document.getElementById('tab-checkin').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-interventions').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-di').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-reports').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-admin').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-summary').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
@@ -1318,6 +1519,8 @@
         updatePdfReport();
       } else if (tabName === 'summary') {
         renderPfSummaryReport();
+      } else if (tabName === 'di') {
+        renderDiLogs();
       }
     }
 
@@ -1339,7 +1542,7 @@
     }
 
     function exportDataBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(interventionsData, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ interventions: interventionsData, drugInfo: diLogsData }, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `cp3_backup_${Date.now()}.json`);
@@ -1390,13 +1593,22 @@
     }
 
     function syncShiftDate() {
-      document.getElementById('report-single-date').value = document.getElementById('global-shift-date').value;
+      const rawDate = document.getElementById('global-shift-date').value;
+      const formatted = formatDateDDMMYYYY(rawDate);
+      
+      const mainDisplay = document.getElementById('global-shift-date-display');
+      const reportDisplay = document.getElementById('report-single-date-display');
+      
+      if (mainDisplay) mainDisplay.innerText = formatted;
+      if (reportDisplay) reportDisplay.innerText = formatted;
+
+      document.getElementById('report-single-date').value = rawDate;
       renderInterventions();
+      renderDiLogs();
       updatePdfReport();
       renderPfSummaryReport();
     }
 
-    // TALLY COUNTER WITH 0 FLOOR (HANDLES BOTH TEXT & INPUT ELEMENTS)
     function updateCounter(id, delta) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -1463,10 +1675,8 @@
       renderPfSummaryReport();
     }
 
-    // RENDER INTERVENTIONS LOG (SHOWING LAST 5 DAYS)
     function renderInterventions() {
       const targetDate = document.getElementById('global-shift-date').value;
-      
       const target = new Date(targetDate);
       const minDateObj = new Date(target);
       minDateObj.setDate(minDateObj.getDate() - 4);
@@ -1515,19 +1725,128 @@
       renderPfSummaryReport();
     }
 
+    // DRUG INFORMATION FORM HANDLER & RENDER LOGS (TAB-SPECIFIC SHEETDB INTEGRATION)
+    async function handleDiSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('di-submit-btn');
+      btn.innerText = 'Saving...';
+      btn.disabled = true;
+
+      const payload = {
+        id: "di-" + Date.now().toString(),
+        date: document.getElementById('global-shift-date').value,
+        ward: document.getElementById('ward-name').value,
+        enquirer: document.getElementById('di-enquirer').value.trim(),
+        category: document.getElementById('di-category').value,
+        question: document.getElementById('di-question').value.trim(),
+        response: document.getElementById('di-response').value.trim(),
+        user_name: currentUser ? currentUser.name : "Anonymous",
+        user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
+      };
+
+      diLogsData.push(payload);
+
+      if (sheetDbApiUrl) {
+        try {
+          const targetUrl = sheetDbApiUrl.includes('?') 
+            ? `${sheetDbApiUrl}&sheet=DrugInfo` 
+            : `${sheetDbApiUrl}?sheet=DrugInfo`;
+
+          await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ data: [payload] })
+          });
+        } catch (err) {
+          console.warn('Saved DI locally, but failed to reach SheetDB API.');
+        }
+      }
+
+      document.getElementById('di-form').reset();
+      btn.innerText = 'Save Drug Information Log';
+      btn.disabled = false;
+
+      renderDiLogs();
+      updatePdfReport();
+    }
+
+    function renderDiLogs() {
+      const targetDate = document.getElementById('global-shift-date').value;
+      const target = new Date(targetDate);
+      const minDateObj = new Date(target);
+      minDateObj.setDate(minDateObj.getDate() - 4);
+      const minDateStr = minDateObj.toISOString().split('T')[0];
+
+      const filtered = diLogsData.filter(item => {
+        const itemDate = String(item.date).trim();
+        return itemDate >= minDateStr && itemDate <= targetDate;
+      });
+
+      filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      const countEl = document.getElementById('di-entry-count');
+      if (countEl) countEl.innerText = filtered.length;
+
+      const listEl = document.getElementById('di-logs-list');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No Drug Information enquiries logged in the last 5 days.</div>';
+        return;
+      }
+
+      filtered.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'p-4 hover:bg-slate-700/50 flex items-start justify-between transition space-x-3';
+        div.innerHTML = `
+          <div class="space-y-1.5 flex-grow">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">${item.enquirer}</span>
+              <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-medium">${item.category}</span>
+              <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
+            </div>
+            <p class="text-xs font-semibold text-slate-200">Q: ${item.question}</p>
+            <p class="text-xs text-emerald-400 bg-slate-900/60 p-2 rounded border border-slate-700/80"><strong>A:</strong> ${item.response}</p>
+          </div>
+          <button onclick="deleteDiEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1 transition"><i class="fa-solid fa-trash"></i></button>
+        `;
+        listEl.appendChild(div);
+      });
+    }
+
+    function deleteDiEntry(id) {
+      diLogsData = diLogsData.filter(item => item.id !== id);
+      renderDiLogs();
+      updatePdfReport();
+    }
+
+    // UPDATE PRINTABLE CP3 FORM PREVIEW (PIN 2/24 STRICT FORMAT WITH DD/MM/YYYY FORMATTING)
     function updatePdfReport() {
       const selectedWard = document.getElementById('report-ward-filter').value;
-      let filtered = [];
+      let filteredInterventions = [];
+      let filteredDi = [];
 
       if (reportMode === 'daily') {
         const singleDate = document.getElementById('report-single-date').value;
-        document.getElementById('pdf-date').innerText = formatDateDDMMYYYY(singleDate);
-        filtered = interventionsData.filter(item => String(item.date).trim() === String(singleDate).trim());
+        const formattedSingleDate = formatDateDDMMYYYY(singleDate);
+        document.getElementById('pdf-date').innerText = formattedSingleDate;
+        document.getElementById('pdf-footer-date').innerText = formattedSingleDate;
+
+        filteredInterventions = interventionsData.filter(item => String(item.date).trim() === String(singleDate).trim());
+        filteredDi = diLogsData.filter(item => String(item.date).trim() === String(singleDate).trim());
       } else {
         const startDate = document.getElementById('report-start-date').value;
         const endDate = document.getElementById('report-end-date').value;
-        document.getElementById('pdf-date').innerText = `${formatDateDDMMYYYY(startDate)} to ${formatDateDDMMYYYY(endDate)}`;
-        filtered = interventionsData.filter(item => {
+        const formattedRange = `${formatDateDDMMYYYY(startDate)} to ${formatDateDDMMYYYY(endDate)}`;
+        document.getElementById('pdf-date').innerText = formattedRange;
+        document.getElementById('pdf-footer-date').innerText = formatDateDDMMYYYY(endDate);
+
+        filteredInterventions = interventionsData.filter(item => {
+          const itemDate = String(item.date).trim();
+          return itemDate >= startDate && itemDate <= endDate;
+        });
+        filteredDi = diLogsData.filter(item => {
           const itemDate = String(item.date).trim();
           return itemDate >= startDate && itemDate <= endDate;
         });
@@ -1536,12 +1855,14 @@
       const activeWard = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
 
       if (selectedWard !== 'ALL') {
-        filtered = filtered.filter(item => item.ward === selectedWard);
+        filteredInterventions = filteredInterventions.filter(item => item.ward === selectedWard);
+        filteredDi = filteredDi.filter(item => item.ward === selectedWard);
         document.getElementById('pdf-ward').innerText = selectedWard;
       } else {
         document.getElementById('pdf-ward').innerText = activeWard + " (Combined)";
       }
 
+      // SECTION A DETAILS
       const physiciansInput = document.getElementById('physicians');
       const cp1Input = document.getElementById('cp1-count');
       const cp2Input = document.getElementById('cp2-count');
@@ -1552,14 +1873,13 @@
       if (cp2Input) document.getElementById('pdf-cp2').innerText = cp2Input.innerText || "0";
       if (taskInput) document.getElementById('pdf-task').innerText = taskInput.value;
 
-      const rounds = [];
-      if (document.getElementById('round-routine')?.checked) rounds.push("Routine");
-      if (document.getElementById('round-grand')?.checked) rounds.push("Grand");
-      if (document.getElementById('round-pharmacist')?.checked) rounds.push("Pharmacist");
-      document.getElementById('pdf-rounds').innerText = rounds.length > 0 ? rounds.join(", ") : "None";
+      document.getElementById('pdf-round-routine').innerText = document.getElementById('round-routine')?.checked ? "YES" : "NO";
+      document.getElementById('pdf-round-grand').innerText = document.getElementById('round-grand')?.checked ? "YES" : "NO";
+      document.getElementById('pdf-round-pharmacist').innerText = document.getElementById('round-pharmacist')?.checked ? "YES" : "NO";
 
       document.getElementById('pdf-logged-by').innerText = currentUser ? currentUser.name : "Sarah Jenkins, RPh";
 
+      // RESET INTERVENTION TALLIES
       const allCp3Codes = [
         '1.1', '1.2', '1.3', '1.4', '1.5', '1.6',
         '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7', '2.8',
@@ -1567,40 +1887,126 @@
       ];
 
       allCp3Codes.forEach(code => {
-        const counterEl = document.getElementById(`count-${code}`);
-        if (counterEl) counterEl.innerText = '0';
+        const cEl = document.getElementById(`count-${code}`);
+        const aEl = document.getElementById(`acc-${code}`);
+        if (cEl) cEl.innerText = '0';
+        if (aEl) aEl.innerText = '0';
       });
 
       let totalInterventions = 0;
-      filtered.forEach(item => {
+      let totalAccepted = 0;
+
+      filteredInterventions.forEach(item => {
         totalInterventions++;
-        const targetCounter = document.getElementById(`count-${item.code}`);
-        if (targetCounter) {
-          let currentVal = parseInt(targetCounter.innerText) || 0;
-          targetCounter.innerText = (currentVal + 1).toString();
-        }
+        const isAcc = item.accepted === true || item.accepted === "YES";
+        if (isAcc) totalAccepted++;
+
+        const targetCount = document.getElementById(`count-${item.code}`);
+        const targetAcc = document.getElementById(`acc-${item.code}`);
+
+        if (targetCount) targetCount.innerText = (parseInt(targetCount.innerText) || 0) + 1;
+        if (targetAcc && isAcc) targetAcc.innerText = (parseInt(targetAcc.innerText) || 0) + 1;
       });
 
-      const totalCounterEl = document.getElementById('count-total');
-      if (totalCounterEl) totalCounterEl.innerText = totalInterventions.toString();
+      document.getElementById('count-total').innerText = totalInterventions.toString();
+      document.getElementById('acc-total').innerText = totalAccepted.toString();
 
-      const tbody = document.getElementById('pdf-interventions-table');
-      if (tbody) {
-        tbody.innerHTML = '';
-        if (filtered.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400 italic">No interventions logged for this selected date and ward.</td></tr>';
+      // RESET DI TALLIES (SECTION B RIGHT)
+      const diCategoryMap = {
+        "Adverse Drug Reaction": "di-adr",
+        "Drug Toxicity": "di-tox",
+        "Drug Dose/Administration": "di-dose",
+        "Side effects": "di-side",
+        "Drug Indication": "di-ind",
+        "Drug Interaction": "di-inter",
+        "Contraindication": "di-contra",
+        "Pharmacokinetics": "di-pk",
+        "TPN": "di-tpn",
+        "Pharmaceutical Availability": "di-avail",
+        "Pharmaceutical Compatibility": "di-compat",
+        "Pharmaceutical Identification": "di-ident",
+        "General Product Information": "di-gen",
+        "Others (please state)": "di-oth"
+      };
+
+      Object.values(diCategoryMap).forEach(key => {
+        const el = document.getElementById(key);
+        const elT = document.getElementById(`${key}-t`);
+        if (el) el.innerText = '0';
+        if (elT) elT.innerText = '0';
+      });
+
+      let totalDiCount = 0;
+      filteredDi.forEach(item => {
+        totalDiCount++;
+        const elementId = diCategoryMap[item.category];
+        if (elementId) {
+          const el = document.getElementById(elementId);
+          const elT = document.getElementById(`${elementId}-t`);
+          if (el) {
+            const updated = (parseInt(el.innerText) || 0) + 1;
+            el.innerText = updated.toString();
+            if (elT) elT.innerText = updated.toString();
+          }
+        }
+      });
+      document.getElementById('di-total-provided').innerText = totalDiCount.toString();
+
+      // COUNSELLING TALLIES
+      const bSessions = parseInt(document.getElementById('counsel-bedside-sessions')?.value) || 0;
+      const bPts = parseInt(document.getElementById('counsel-bedside-pts')?.value) || 0;
+      const dSessions = parseInt(document.getElementById('counsel-discharge-sessions')?.value) || 0;
+      const dPts = parseInt(document.getElementById('counsel-discharge-pts')?.value) || 0;
+      const gSessions = parseInt(document.getElementById('counsel-group-sessions')?.value) || 0;
+      const gPts = parseInt(document.getElementById('counsel-group-pts')?.value) || 0;
+
+      document.getElementById('pdf-counsel-bed-s').innerText = bSessions;
+      document.getElementById('pdf-counsel-bed-p').innerText = bPts;
+      document.getElementById('pdf-counsel-dis-s').innerText = dSessions;
+      document.getElementById('pdf-counsel-dis-p').innerText = dPts;
+      document.getElementById('pdf-counsel-grp-s').innerText = gSessions;
+      document.getElementById('pdf-counsel-grp-p').innerText = gPts;
+      document.getElementById('pdf-grand-total').innerText = (totalInterventions + totalDiCount + bSessions + dSessions + gSessions).toString();
+
+      // POPULATE SECTION C TABLE (INTERVENTIONS ENCOUNTERED)
+      const tbodyC = document.getElementById('pdf-interventions-table');
+      if (tbodyC) {
+        tbodyC.innerHTML = '';
+        if (filteredInterventions.length === 0) {
+          tbodyC.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400 italic">No interventions logged for this selected date and ward.</td></tr>';
         } else {
-          filtered.forEach(item => {
+          filteredInterventions.forEach((item, index) => {
             const tr = document.createElement('tr');
             tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
             tr.innerHTML = `
-              <td class="p-1 border-r border-slate-700 font-semibold text-slate-300">${formatDateDDMMYYYY(item.date)}</td>
               <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${item.patient}</td>
               <td class="p-1 border-r border-slate-700 font-mono text-slate-400">${item.rn}</td>
-              <td class="p-1 border-r border-slate-700 font-bold text-sky-400">${item.code}</td>
+              <td class="p-1 border-r border-slate-700 font-bold text-sky-400 text-center">#${index + 1} (${item.code})</td>
               <td class="p-1 text-slate-200">${item.desc} ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''}</td>
             `;
-            tbody.appendChild(tr);
+            tbodyC.appendChild(tr);
+          });
+        }
+      }
+
+      // POPULATE SECTION D TABLE (REQUEST / INFORMATION PROVIDED)
+      const tbodyD = document.getElementById('pdf-di-table');
+      if (tbodyD) {
+        tbodyD.innerHTML = '';
+        if (filteredDi.length === 0) {
+          tbodyD.innerHTML = '<tr><td colspan="2" class="p-3 text-center text-slate-400 italic">No drug information enquiries logged for this selected date and ward.</td></tr>';
+        } else {
+          filteredDi.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
+            tr.innerHTML = `
+              <td class="p-1 border-r border-slate-700 font-semibold text-slate-200">
+                <p class="font-bold text-sky-400">[${item.enquirer} - ${item.category}]</p>
+                <p>${item.question}</p>
+              </td>
+              <td class="p-1 text-slate-200">${item.response}</td>
+            `;
+            tbodyD.appendChild(tr);
           });
         }
       }
@@ -1613,7 +2019,6 @@
 
       const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
 
-      // Filter interventions by Month if selected
       const filtered = interventionsData.filter(item => {
         if (!item.date) return false;
         if (monthFilter === "ALL") return true;
@@ -1624,7 +2029,6 @@
       const staffKeys = Object.keys(PIN_DATABASE);
       tbody.innerHTML = '';
 
-      // Tally structure per staff
       const grandTotals = {
         rxReceived: 0, rxIntervened: 0,
         c11:0, c12:0, c13:0, c14:0, c15:0, c16:0,
@@ -1640,7 +2044,6 @@
         const user = PIN_DATABASE[key];
         const staffNameUpper = user.name.toUpperCase();
         
-        // Find staff interventions
         const staffLogs = filtered.filter(item => {
           const itemUser = (item.user_name || '').toUpperCase();
           return itemUser.includes(staffNameUpper) || itemUser.includes(key.toUpperCase());
@@ -1685,7 +2088,6 @@
           else if (code === "3.8") tallies.c38++;
         });
 
-        // Add to grand totals
         Object.keys(tallies).forEach(k => {
           grandTotals[k] += tallies[k];
         });
@@ -1698,7 +2100,6 @@
           <td class="p-1 border-r border-slate-700 text-slate-400">-</td>
           <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${tallies.rxIntervened}</td>
 
-          <!-- 1.x -->
           <td class="p-1 border-r border-slate-800">${tallies.c11}</td>
           <td class="p-1 border-r border-slate-800">${tallies.c12}</td>
           <td class="p-1 border-r border-slate-800">${tallies.c13}</td>
@@ -1706,7 +2107,6 @@
           <td class="p-1 border-r border-slate-800">${tallies.c15}</td>
           <td class="p-1 border-r border-slate-700">${tallies.c16}</td>
 
-          <!-- 2.x -->
           <td class="p-1 border-r border-slate-800">${tallies.c21_po}</td><td class="p-1 border-r border-slate-800">${tallies.c21_nm}</td><td class="p-1 border-r border-slate-700 bg-slate-950 font-bold text-sky-400">${tallies.c21_po + tallies.c21_nm}</td>
           <td class="p-1 border-r border-slate-800">${tallies.c22_po}</td><td class="p-1 border-r border-slate-800">${tallies.c22_nm}</td><td class="p-1 border-r border-slate-700 bg-slate-950 font-bold text-sky-400">${tallies.c22_po + tallies.c22_nm}</td>
           <td class="p-1 border-r border-slate-800">${tallies.c23_po}</td><td class="p-1 border-r border-slate-800">${tallies.c23_nm}</td><td class="p-1 border-r border-slate-700 bg-slate-950 font-bold text-sky-400">${tallies.c23_po + tallies.c23_nm}</td>
@@ -1716,7 +2116,6 @@
           <td class="p-1 border-r border-slate-800">${tallies.c27_po}</td><td class="p-1 border-r border-slate-800">${tallies.c27_nm}</td><td class="p-1 border-r border-slate-700 bg-slate-950 font-bold text-sky-400">${tallies.c27_po + tallies.c27_nm}</td>
           <td class="p-1 border-r border-slate-800">${tallies.c28_po}</td><td class="p-1 border-r border-slate-800">${tallies.c28_nm}</td><td class="p-1 border-r border-slate-700 bg-slate-950 font-bold text-sky-400">${tallies.c28_po + tallies.c28_nm}</td>
 
-          <!-- 3.x -->
           <td class="p-1 border-r border-slate-800">${tallies.c31}</td>
           <td class="p-1 border-r border-slate-800">${tallies.c32}</td>
           <td class="p-1 border-r border-slate-800">${tallies.c33}</td>
@@ -1731,7 +2130,6 @@
         tbody.appendChild(tr);
       });
 
-      // Append Total Row at the bottom
       const totalTr = document.createElement('tr');
       totalTr.className = "bg-slate-950 font-bold text-amber-300 border-t-2 border-slate-600";
       totalTr.innerHTML = `
@@ -1778,7 +2176,6 @@
       return names[numStr] || "JUN";
     }
 
-    // EXPORT MATRIX TO EXCEL CSV
     function exportSummaryCSV() {
       const table = document.querySelector("#printable-pf63b table");
       if (!table) return;
