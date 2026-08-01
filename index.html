@@ -19,6 +19,7 @@
       #printable-cp3 .bg-slate-900, #printable-pf63b .bg-slate-900, #printable-cp3 .bg-slate-950, #printable-cp3 .bg-slate-800 { background: #f1f5f9 !important; color: #000 !important; }
       #printable-cp3 table, #printable-pf63b table { border-color: #000 !important; }
       #printable-cp3 th, #printable-cp3 td, #printable-pf63b th, #printable-pf63b td { border-color: #000 !important; color: #000 !important; }
+      footer { display: none !important; }
     }
   </style>
 </head>
@@ -164,7 +165,7 @@
     <button onclick="configureApiUrl()" class="underline font-semibold hover:text-white">Set API URL</button>
   </div>
 
-  <!-- TOP NAVBAR WITH RED HIGH-VISIBILITY DATE BADGE & PROMINENT DD/MM/YYYY DISPLAY -->
+  <!-- TOP NAVBAR -->
   <header class="bg-slate-950 border-b border-slate-800 text-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-2 sm:space-x-3">
@@ -180,12 +181,12 @@
       <!-- User Info, Active Shift Date & Account Settings -->
       <div class="flex items-center space-x-2 sm:space-x-6 text-sm">
         
-        <!-- RED HIGH-VISIBILITY SHIFT DATE BOX WITH PROMINENT DD/MM/YYYY FORMAT -->
+        <!-- RED HIGH-VISIBILITY SHIFT DATE BOX WITH DD/MM/YYYY FORMAT -->
         <div class="flex items-center space-x-2 bg-rose-950/90 border-2 border-rose-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg shadow-rose-950/50">
           <i class="fa-regular fa-calendar-check text-rose-400 text-xs sm:text-sm animate-pulse"></i>
           <div class="flex flex-col">
             <span class="text-[9px] font-bold text-rose-300 uppercase tracking-wider leading-none">Shift Date (DD/MM/YYYY):</span>
-            <div class="flex items-center space-x-1.5 mt-0.5">
+            <div class="flex items-center space-x-1 mt-0.5">
               <span id="global-shift-date-display" class="text-rose-100 font-mono font-black text-xs sm:text-sm">28/07/2026</span>
               <input type="date" id="global-shift-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-rose-300 w-4 text-xs font-black focus:outline-none cursor-pointer [color-scheme:dark]">
             </div>
@@ -1085,6 +1086,11 @@
     </div>
 
   </main>
+
+  <!-- COPYRIGHT FOOTER -->
+  <footer class="text-center py-4 text-xs text-slate-500 border-t border-slate-800 mt-auto bg-slate-950">
+    Copyright &copy; 2026, Unit Farmakoterapi Hospital Dungun
+  </footer>
 
   <!-- JAVASCRIPT CONNECTIVITY & LOGIC -->
   <script>
