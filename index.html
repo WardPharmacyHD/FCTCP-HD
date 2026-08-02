@@ -438,7 +438,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: INTERVENTIONS LOGGING -->
+    <!-- TAB 2: INTERVENTIONS LOGGING (WITH MULTI-SELECT CP3 CATEGORIES) -->
     <div id="view-interventions" class="hidden space-y-6">
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
         <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
@@ -446,7 +446,7 @@
         </h2>
 
         <form id="intervention-form" onsubmit="handleInterventionSubmit(event)" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Patient Name</label>
               <input type="text" id="patient-name" required placeholder="e.g. Tan Ah Kow" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
@@ -456,43 +456,54 @@
               <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">RN / MRN / Bed No.</label>
               <input type="text" id="rn-number" required placeholder="e.g. RN-884920" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
+          </div>
 
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">CP3 Code Category</label>
-              <select id="cp3-code" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
-                <option value="" disabled selected>Select CP3 Code...</option>
-                
-                <optgroup label="2. Inappropriate Regimen" class="bg-slate-900 text-sky-400">
-                  <option value="2.1" class="text-slate-100">2.1 Drug</option>
-                  <option value="2.2" class="text-slate-100">2.2 Dose</option>
-                  <option value="2.3" class="text-slate-100">2.3 Frequency</option>
-                  <option value="2.4" class="text-slate-100">2.4 Duration</option>
-                  <option value="2.5" class="text-slate-100">2.5 Polypharmacy</option>
-                  <option value="2.6" class="text-slate-100">2.6 Contraindication</option>
-                  <option value="2.7" class="text-slate-100">2.7 Drug Interaction</option>
-                  <option value="2.8" class="text-slate-100">2.8 Incompatibility</option>
-                </optgroup>
-
-                <optgroup label="1. Incomplete Prescription" class="bg-slate-900 text-sky-400">
-                  <option value="1.1" class="text-slate-100">1.1 Patient data</option>
-                  <option value="1.2" class="text-slate-100">1.2 Drug</option>
-                  <option value="1.3" class="text-slate-100">1.3 Dose</option>
-                  <option value="1.4" class="text-slate-100">1.4 Frequency</option>
-                  <option value="1.5" class="text-slate-100">1.5 Duration</option>
-                  <option value="1.6" class="text-slate-100">1.6 Dr's Stamp & Sign</option>
-                </optgroup>
-
-                <optgroup label="3. Miscellaneous" class="bg-slate-900 text-sky-400">
-                  <option value="3.1" class="text-slate-100">3.1 Wrong Patient</option>
-                  <option value="3.2" class="text-slate-100">3.2 Drug Not in Formulary</option>
-                  <option value="3.3" class="text-slate-100">3.3 Drug Administration Error</option>
-                  <option value="3.4" class="text-slate-100">3.4 Unclear Handwriting</option>
-                  <option value="3.5" class="text-slate-100">3.5 Authenticity of Prescription/Prescriber</option>
-                  <option value="3.6" class="text-slate-100">3.6 Suggest for Vital Signs Monitoring/Laboratory Investigation</option>
-                  <option value="3.7" class="text-slate-100">3.7 TDM</option>
-                  <option value="3.8" class="text-slate-100">3.8 TPN</option>
-                </optgroup>
-              </select>
+          <!-- CATEGORIZED MULTI-SELECT CP3 CODE CHECKBOX CONTAINER -->
+          <div>
+            <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">
+              Select CP3 Code Category(ies) <span id="cp3-selected-badge" class="text-sky-400 font-bold ms-1">(0 selected)</span>
+            </label>
+            <div class="bg-slate-900 border border-slate-700 rounded-xl p-3 max-h-56 overflow-y-auto space-y-3 text-xs shadow-inner">
+              <!-- Group 1 -->
+              <div>
+                <p class="font-bold text-sky-400 border-b border-slate-800 pb-1 mb-1.5 uppercase text-[10px] tracking-wider">1. Incomplete Prescription</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="1.1" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>1.1 Patient data</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="1.2" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>1.2 Drug</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="1.3" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>1.3 Dose</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="1.4" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>1.4 Frequency</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="1.5" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>1.5 Duration</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="1.6" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>1.6 Dr's Stamp & Sign</span></label>
+                </div>
+              </div>
+              <!-- Group 2 -->
+              <div>
+                <p class="font-bold text-sky-400 border-b border-slate-800 pb-1 mb-1.5 uppercase text-[10px] tracking-wider">2. Inappropriate Regimen</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="2.1" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>2.1 Drug</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="2.2" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>2.2 Dose</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="2.3" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>2.3 Frequency</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="2.4" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>2.4 Duration</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="2.5" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>2.5 Polypharmacy</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="2.6" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>2.6 Contraindication</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="2.7" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>2.7 Drug Interaction</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="2.8" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>2.8 Incompatibility</span></label>
+                </div>
+              </div>
+              <!-- Group 3 -->
+              <div>
+                <p class="font-bold text-sky-400 border-b border-slate-800 pb-1 mb-1.5 uppercase text-[10px] tracking-wider">3. Miscellaneous</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="3.1" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>3.1 Wrong Patient</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="3.2" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>3.2 Drug Not in Formulary</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="3.3" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>3.3 Drug Admin Error</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="3.4" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>3.4 Unclear Handwriting</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="3.5" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>3.5 Authenticity</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="3.6" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>3.6 Vital/Lab</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="3.7" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>3.7 TDM</span></label>
+                  <label class="flex items-center space-x-1.5 text-slate-200 cursor-pointer hover:text-white"><input type="checkbox" name="cp3_codes" value="3.8" onchange="updateCp3SelectedBadge()" class="rounded text-sky-500 bg-slate-800 border-slate-600 focus:ring-sky-500"> <span>3.8 TPN</span></label>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1171,7 +1182,7 @@
     let sheetDbApiUrl = (storedUrl && storedUrl.trim() !== "") ? storedUrl : defaultSheetDbUrl;
     let reportMode = 'daily';
 
-    // LOCAL STORAGE PERSISTENT DATASETS (DEFAULTS TO TODAY'S SHIFT DATE: 2026-08-02)
+    // LOCAL STORAGE PERSISTENT DATASETS (DEFAULTING TO TODAY'S SHIFT DATE: 2026-08-02)
     let interventionsData = JSON.parse(localStorage.getItem('cp3_interventions_db')) || [
       {
         id: "101",
@@ -1179,7 +1190,7 @@
         ward: "WARD 1 - MEDICAL MALE",
         patient: "Tan Ah Kow",
         rn: "RN-884920",
-        code: "2.2",
+        code: "2.1, 2.2",
         desc: "Reduced Enoxaparin from 60mg BD to 80mg OD due to reduced renal clearance (GFR 25).",
         accepted: "YES",
         user_name: "Norhanim Solehah Bt Che Abdullah",
@@ -1235,9 +1246,61 @@
       renderInterventions();
       renderDiLogs();
       renderFollowUpLogs();
-      updatePdfReport();
-      renderPfSummaryReport();
+      fetchCloudData(); // Automatic background sync for cross-device visibility
     });
+
+    // HELPER TO CONVERT MULTI-SELECT CODE STRING OR ARRAY TO ARRAY
+    function getCodesArray(codeVal) {
+      if (!codeVal) return [];
+      if (Array.isArray(codeVal)) return codeVal;
+      return String(codeVal).split(',').map(s => s.trim()).filter(Boolean);
+    }
+
+    // UPDATE SELECTED CP3 CODE COUNTER BADGE ON TAB 2
+    function updateCp3SelectedBadge() {
+      const checkedBoxes = document.querySelectorAll('input[name="cp3_codes"]:checked');
+      const badge = document.getElementById('cp3-selected-badge');
+      if (badge) {
+        badge.innerText = `(${checkedBoxes.length} selected)`;
+      }
+    }
+
+    // FETCH LATEST CLOUD DATA FROM GOOGLE SHEETS (CROSS-DEVICE SYNC)
+    async function fetchCloudData() {
+      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+      if (!activeUrl) return;
+
+      try {
+        // Fetch Main Interventions
+        const resInt = await fetch(activeUrl);
+        if (resInt.ok) {
+          const cloudInt = await resInt.json();
+          if (Array.isArray(cloudInt) && cloudInt.length > 0) {
+            interventionsData = cloudInt;
+            localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
+          }
+        }
+
+        // Fetch Drug Info Logs
+        const diUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=DrugInfo` : `${activeUrl}?sheet=DrugInfo`;
+        const resDi = await fetch(diUrl);
+        if (resDi.ok) {
+          const cloudDi = await resDi.json();
+          if (Array.isArray(cloudDi) && cloudDi.length > 0) {
+            diLogsData = cloudDi;
+            localStorage.setItem('cp3_dilogs_db', JSON.stringify(diLogsData));
+          }
+        }
+
+        // Re-render UI after syncing
+        renderInterventions();
+        renderDiLogs();
+        updatePdfReport();
+        renderPfSummaryReport();
+      } catch (err) {
+        console.warn("Using local cached records (offline or background fetch skipped).");
+      }
+    }
 
     // HIGH-VISIBILITY FLOATING TOAST BANNER NOTIFICATION SYSTEM
     function showToast(message, type = 'success') {
@@ -1421,14 +1484,14 @@
       if (!wardFilterSelect) return;
 
       const allOption = document.getElementById('ward-opt-all');
-      const activeWard = document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE");
 
       if (currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin') {
         if (allOption) allOption.disabled = false;
         wardFilterSelect.disabled = false;
       } else {
         if (allOption) allOption.disabled = true;
-        wardFilterSelect.value = activeWard;
+        const selectedWard = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
+        wardFilterSelect.value = selectedWard;
         wardFilterSelect.disabled = true;
       }
     }
@@ -1630,6 +1693,7 @@
         errBox.classList.add('hidden');
         document.getElementById('login-pin').value = '';
         applyUserSessionUI();
+        fetchCloudData(); // Sync cloud data on login
       } else {
         errBox.classList.remove('hidden');
       }
@@ -1766,6 +1830,7 @@
         sheetDbApiUrl = url.trim();
         localStorage.setItem('sheetdb_url', sheetDbApiUrl);
         updateApiStatusDisplay();
+        fetchCloudData();
       }
     }
 
@@ -1828,13 +1893,23 @@
       const ptName = document.getElementById('patient-name').value.trim();
       const rnNum = document.getElementById('rn-number').value.trim();
 
+      const checkedBoxes = document.querySelectorAll('input[name="cp3_codes"]:checked');
+      const selectedCodes = Array.from(checkedBoxes).map(cb => cb.value);
+
+      if (selectedCodes.length === 0) {
+        alert('Please select at least one CP3 Code Category.');
+        btn.innerText = '+ Add Entry to Daily Log';
+        btn.disabled = false;
+        return;
+      }
+
       const payload = {
         id: Date.now().toString(),
         date: document.getElementById('global-shift-date').value,
         ward: document.getElementById('ward-name').value,
         patient: ptName,
         rn: rnNum,
-        code: document.getElementById('cp3-code').value,
+        code: selectedCodes.join(', '),
         desc: document.getElementById('intervention-desc').value,
         accepted: document.getElementById('is-accepted').checked ? "YES" : "NO",
         user_name: currentUser ? currentUser.name : "Anonymous",
@@ -1862,6 +1937,9 @@
       }
 
       document.getElementById('intervention-form').reset();
+      document.querySelectorAll('input[name="cp3_codes"]:checked').forEach(cb => cb.checked = false);
+      updateCp3SelectedBadge();
+
       document.getElementById('patient-name').value = ptName;
       document.getElementById('rn-number').value = rnNum;
 
@@ -1898,14 +1976,18 @@
       }
 
       filtered.forEach(item => {
+        const codesArr = getCodesArray(item.code);
+        const codeDisplay = codesArr.join(', ');
+        const countBadge = codesArr.length > 1 ? ` (${codesArr.length} Categories)` : '';
+
         const div = document.createElement('div');
         div.className = 'p-4 hover:bg-slate-700/50 flex items-start justify-between transition';
         div.innerHTML = `
           <div class="space-y-1">
-            <div class="flex items-center space-x-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="font-bold text-sm text-slate-100">${item.patient}</span>
               <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">${item.rn}</span>
-              <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${item.code}</span>
+              <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${codeDisplay}${countBadge}</span>
               <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
               ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
             </div>
@@ -2126,7 +2208,7 @@
       updatePdfReport();
     }
 
-    // UPDATE PRINTABLE CP3 FORM PREVIEW (PIN 2/24 STRICT FORMAT WITH CARRY-FORWARD FOR UNRESOLVED FOLLOW-UPS)
+    // UPDATE PRINTABLE CP3 FORM PREVIEW (PIN 2/24 STRICT FORMAT WITH MULTI-CATEGORY SCORE MULTIPLICATION)
     function updatePdfReport() {
       let singleDate = document.getElementById('report-single-date')?.value || document.getElementById('global-shift-date')?.value || "2026-08-02";
       let startDate = document.getElementById('report-start-date')?.value || "2026-07-01";
@@ -2217,16 +2299,21 @@
       let totalInterventions = 0;
       let totalAccepted = 0;
 
+      // MULTI-CATEGORY SCORE MULTIPLICATION LOGIC
       filteredInterventions.forEach(item => {
-        totalInterventions++;
+        const codes = getCodesArray(item.code);
         const isAcc = item.accepted === true || item.accepted === "YES";
-        if (isAcc) totalAccepted++;
 
-        const targetCount = document.getElementById(`count-${item.code}`);
-        const targetAcc = document.getElementById(`acc-${item.code}`);
+        codes.forEach(code => {
+          totalInterventions++;
+          if (isAcc) totalAccepted++;
 
-        if (targetCount) targetCount.innerText = (parseInt(targetCount.innerText) || 0) + 1;
-        if (targetAcc && isAcc) targetAcc.innerText = (parseInt(targetAcc.innerText) || 0) + 1;
+          const targetCount = document.getElementById(`count-${code}`);
+          const targetAcc = document.getElementById(`acc-${code}`);
+
+          if (targetCount) targetCount.innerText = (parseInt(targetCount.innerText) || 0) + 1;
+          if (targetAcc && isAcc) targetAcc.innerText = (parseInt(targetAcc.innerText) || 0) + 1;
+        });
       });
 
       if (document.getElementById('count-total')) document.getElementById('count-total').innerText = totalInterventions.toString();
@@ -2273,13 +2360,14 @@
       });
       if (document.getElementById('di-total-provided')) document.getElementById('di-total-provided').innerText = totalDiCount.toString();
 
-      // COUNSELLING TALLIES
-      const bSessions = parseInt(document.getElementById('counsel-bedside-sessions')?.value) || 0;
-      const bPts = parseInt(document.getElementById('counsel-bedside-pts')?.value) || 0;
-      const dSessions = parseInt(document.getElementById('counsel-discharge-sessions')?.value) || 0;
-      const dPts = parseInt(document.getElementById('counsel-discharge-pts')?.value) || 0;
-      const gSessions = parseInt(document.getElementById('counsel-group-sessions')?.value) || 0;
-      const gPts = parseInt(document.getElementById('counsel-group-pts')?.value) || 0;
+      // COUNSELLING TALLIES (STRICTLY FROM COUNSELLING INPUTS & SHIFT DATA)
+      const savedCheckIn = JSON.parse(localStorage.getItem('saved_shift_checkin')) || {};
+      const bSessions = parseInt(savedCheckIn.counselBedsideSessions ?? document.getElementById('counsel-bedside-sessions')?.value ?? 0) || 0;
+      const bPts = parseInt(savedCheckIn.counselBedsidePts ?? document.getElementById('counsel-bedside-pts')?.value ?? 0) || 0;
+      const dSessions = parseInt(savedCheckIn.counselDischargeSessions ?? document.getElementById('counsel-discharge-sessions')?.value ?? 0) || 0;
+      const dPts = parseInt(savedCheckIn.counselDischargePts ?? document.getElementById('counsel-discharge-pts')?.value ?? 0) || 0;
+      const gSessions = parseInt(savedCheckIn.counselGroupSessions ?? document.getElementById('counsel-group-sessions')?.value ?? 0) || 0;
+      const gPts = parseInt(savedCheckIn.counselGroupPts ?? document.getElementById('counsel-group-pts')?.value ?? 0) || 0;
 
       if (document.getElementById('pdf-counsel-bed-s')) document.getElementById('pdf-counsel-bed-s').innerText = bSessions;
       if (document.getElementById('pdf-counsel-bed-p')) document.getElementById('pdf-counsel-bed-p').innerText = bPts;
@@ -2287,7 +2375,10 @@
       if (document.getElementById('pdf-counsel-dis-p')) document.getElementById('pdf-counsel-dis-p').innerText = dPts;
       if (document.getElementById('pdf-counsel-grp-s')) document.getElementById('pdf-counsel-grp-s').innerText = gSessions;
       if (document.getElementById('pdf-counsel-grp-p')) document.getElementById('pdf-counsel-grp-p').innerText = gPts;
-      if (document.getElementById('pdf-grand-total')) document.getElementById('pdf-grand-total').innerText = (totalInterventions + totalDiCount + bSessions + dSessions + gSessions).toString();
+
+      // FIX BUG 1: COUNSELLING GRAND TOTAL = ONLY SUM OF COUNSELLING PATIENTS
+      const totalCounselPatients = bPts + dPts + gPts;
+      if (document.getElementById('pdf-grand-total')) document.getElementById('pdf-grand-total').innerText = totalCounselPatients.toString();
 
       // POPULATE SECTION C TABLE (INTERVENTIONS ENCOUNTERED)
       const tbodyC = document.getElementById('pdf-interventions-table');
@@ -2297,12 +2388,13 @@
           tbodyC.innerHTML = '<tr><td colspan="4" class="p-3 text-center text-slate-400 italic">No interventions logged for this selected date and ward.</td></tr>';
         } else {
           filteredInterventions.forEach((item, index) => {
+            const codes = getCodesArray(item.code).join(', ');
             const tr = document.createElement('tr');
             tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
             tr.innerHTML = `
               <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${item.patient}</td>
               <td class="p-1 border-r border-slate-700 font-mono text-slate-400">${item.rn}</td>
-              <td class="p-1 border-r border-slate-700 font-bold text-sky-400 text-center">#${index + 1} (${item.code})</td>
+              <td class="p-1 border-r border-slate-700 font-bold text-sky-400 text-center">#${index + 1} (${codes})</td>
               <td class="p-1 text-slate-200">${item.desc} ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''}</td>
             `;
             tbodyC.appendChild(tr);
@@ -2402,37 +2494,40 @@
           c21_po:0, c21_nm:0, c22_po:0, c22_nm:0, c23_po:0, c23_nm:0, c24_po:0, c24_nm:0,
           c25_po:0, c25_nm:0, c26_po:0, c26_nm:0, c27_po:0, c27_nm:0, c28_po:0, c28_nm:0,
           c31:0, c32:0, c33:0, c34:0, c35:0, c36:0, c37:0, c38:0,
-          total: staffLogs.length
+          total: 0
         };
 
         staffLogs.forEach(log => {
-          const code = String(log.code).trim();
+          const codes = getCodesArray(log.code);
           const isAccepted = log.accepted === true || log.accepted === "YES";
 
-          if (code === "1.1") tallies.c11++;
-          else if (code === "1.2") tallies.c12++;
-          else if (code === "1.3") tallies.c13++;
-          else if (code === "1.4") tallies.c14++;
-          else if (code === "1.5") tallies.c15++;
-          else if (code === "1.6") tallies.c16++;
+          codes.forEach(code => {
+            tallies.total++;
+            if (code === "1.1") tallies.c11++;
+            else if (code === "1.2") tallies.c12++;
+            else if (code === "1.3") tallies.c13++;
+            else if (code === "1.4") tallies.c14++;
+            else if (code === "1.5") tallies.c15++;
+            else if (code === "1.6") tallies.c16++;
 
-          else if (code === "2.1") { if(isAccepted) tallies.c21_po++; else tallies.c21_nm++; }
-          else if (code === "2.2") { if(isAccepted) tallies.c22_po++; else tallies.c22_nm++; }
-          else if (code === "2.3") { if(isAccepted) tallies.c23_po++; else tallies.c23_nm++; }
-          else if (code === "2.4") { if(isAccepted) tallies.c24_po++; else tallies.c24_nm++; }
-          else if (code === "2.5") { if(isAccepted) tallies.c25_po++; else tallies.c25_nm++; }
-          else if (code === "2.6") { if(isAccepted) tallies.c26_po++; else tallies.c26_nm++; }
-          else if (code === "2.7") { if(isAccepted) tallies.c27_po++; else tallies.c27_nm++; }
-          else if (code === "2.8") { if(isAccepted) tallies.c28_po++; else tallies.c28_nm++; }
+            else if (code === "2.1") { if(isAccepted) tallies.c21_po++; else tallies.c21_nm++; }
+            else if (code === "2.2") { if(isAccepted) tallies.c22_po++; else tallies.c22_nm++; }
+            else if (code === "2.3") { if(isAccepted) tallies.c23_po++; else tallies.c23_nm++; }
+            else if (code === "2.4") { if(isAccepted) tallies.c24_po++; else tallies.c24_nm++; }
+            else if (code === "2.5") { if(isAccepted) tallies.c25_po++; else tallies.c25_nm++; }
+            else if (code === "2.6") { if(isAccepted) tallies.c26_po++; else tallies.c26_nm++; }
+            else if (code === "2.7") { if(isAccepted) tallies.c27_po++; else tallies.c27_nm++; }
+            else if (code === "2.8") { if(isAccepted) tallies.c28_po++; else tallies.c28_nm++; }
 
-          else if (code === "3.1") tallies.c31++;
-          else if (code === "3.2") tallies.c32++;
-          else if (code === "3.3") tallies.c33++;
-          else if (code === "3.4") tallies.c34++;
-          else if (code === "3.5") tallies.c35++;
-          else if (code === "3.6") tallies.c36++;
-          else if (code === "3.7") tallies.c37++;
-          else if (code === "3.8") tallies.c38++;
+            else if (code === "3.1") tallies.c31++;
+            else if (code === "3.2") tallies.c32++;
+            else if (code === "3.3") tallies.c33++;
+            else if (code === "3.4") tallies.c34++;
+            else if (code === "3.5") tallies.c35++;
+            else if (code === "3.6") tallies.c36++;
+            else if (code === "3.7") tallies.c37++;
+            else if (code === "3.8") tallies.c38++;
+          });
         });
 
         Object.keys(tallies).forEach(k => {
