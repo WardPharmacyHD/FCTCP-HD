@@ -25,6 +25,9 @@
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col relative">
 
+  <!-- GLOBAL FLOATING TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[200] space-y-2 pointer-events-none max-w-md w-full px-4"></div>
+
   <!-- CLEAN LOGIN / PIN OVERLAY MODAL -->
   <div id="login-overlay" class="fixed inset-0 bg-slate-950/90 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
     <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-md w-full p-8 border border-slate-700">
@@ -187,8 +190,8 @@
           <div class="flex flex-col">
             <span class="text-[9px] font-bold text-rose-300 uppercase tracking-wider leading-none">Shift Date (DD/MM/YYYY):</span>
             <div class="flex items-center space-x-1 mt-0.5">
-              <span id="global-shift-date-display" class="text-rose-100 font-mono font-black text-xs sm:text-sm">28/07/2026</span>
-              <input type="date" id="global-shift-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-rose-300 w-4 text-xs font-black focus:outline-none cursor-pointer [color-scheme:dark]">
+              <span id="global-shift-date-display" class="text-rose-100 font-mono font-black text-xs sm:text-sm">02/08/2026</span>
+              <input type="date" id="global-shift-date" value="2026-08-02" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-rose-300 w-4 text-xs font-black focus:outline-none cursor-pointer [color-scheme:dark]">
             </div>
           </div>
         </div>
@@ -202,7 +205,7 @@
               <p id="user-display-name" class="font-semibold text-xs leading-none">Admin Pharmacist</p>
               <span id="user-role-badge" class="text-[9px] bg-amber-500 text-slate-900 font-bold px-1.5 py-0.2 rounded">ADMIN</span>
             </div>
-            <p class="text-[10px] bg-rose-950/80 border border-rose-800 text-rose-300 font-bold px-1.5 py-0.5 rounded mt-0.5" id="user-ward-display">ICU</p>
+            <p class="text-[10px] bg-rose-950/80 border border-rose-800 text-rose-300 font-bold px-1.5 py-0.5 rounded mt-0.5" id="user-ward-display">WARD 1 - MEDICAL MALE</p>
           </div>
           
           <!-- CHANGE PIN & LOGOUT BUTTONS -->
@@ -237,23 +240,28 @@
           <i class="fa-solid fa-circle-info text-sky-400"></i>
           <span>3. Drug Info Enquiries</span>
         </button>
+        <button onclick="switchTab('followup')" id="tab-followup" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-list-check text-amber-400"></i>
+          <span>4. Follow-Up Required</span>
+        </button>
         <button onclick="switchTab('reports')" id="tab-reports" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-file-pdf"></i>
-          <span>4. CP3 Report Generator</span>
+          <span>5. CP3 Report Generator</span>
         </button>
         <button onclick="switchTab('admin')" id="tab-admin" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-shield-halved text-amber-400"></i>
-          <span>5. Admin / Settings</span>
+          <span>6. Admin / Settings</span>
         </button>
         <button onclick="switchTab('summary')" id="tab-summary" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-table-list text-emerald-400"></i>
-          <span>6. Laporan PF 6.3(b) <span class="text-[10px] bg-amber-950 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-800 ms-1">ADMIN</span></span>
+          <span>7. Laporan PF 6.3(b) <span class="text-[10px] bg-amber-950 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-800 ms-1">ADMIN</span></span>
         </button>
       </div>
     </div>
 
     <!-- TAB 1: DAILY CHECK-IN -->
     <div id="view-checkin" class="space-y-6">
+      
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Ward Assignment Details (RED HIGHLIGHTED) -->
@@ -269,7 +277,7 @@
                 <span>Designated Ward</span>
                 <span class="text-[10px] bg-rose-900 text-rose-200 px-1.5 py-0.2 rounded uppercase">Location</span>
               </label>
-              <select id="ward-name" onchange="applyWardFilterPermissions(); updatePdfReport()" class="w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <select id="ward-name" onchange="syncWardSelection(); applyWardFilterPermissions();" class="w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
@@ -303,7 +311,7 @@
               <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
 
-            <button type="submit" id="checkin-btn" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center">
+            <button type="submit" id="checkin-btn" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center">
               <i class="fa-solid fa-cloud-arrow-up me-2"></i> Save Shift Check-In
             </button>
           </form>
@@ -520,7 +528,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG (WITH DIRECT TEXT ENQUIRER ENTRY) -->
+    <!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG -->
     <div id="view-di" class="hidden space-y-6">
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
         <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
@@ -529,7 +537,6 @@
 
         <form id="di-form" onsubmit="handleDiSubmit(event)" class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- DIRECT TEXT ENTRY FOR ENQUIRER -->
             <div>
               <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Enquirer / Name & Title</label>
               <input type="text" id="di-enquirer" required placeholder="e.g. Dr. Azlin (MO) / Staff Nurse Aini / Patient" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
@@ -588,7 +595,59 @@
       </div>
     </div>
 
-    <!-- TAB 4: REPORT GENERATOR -->
+    <!-- TAB 4: FOLLOW-UP REQUIRED SPREADSHEET CHECKLIST (EDITABLE) -->
+    <div id="view-followup" class="hidden space-y-6">
+      <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-100 flex items-center">
+              <i class="fa-solid fa-list-check text-amber-400 me-2"></i> Section E: Follow-Up Required Checklist
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Click status to toggle completion. Unresolved items carry forward automatically onto future shift reports.</p>
+          </div>
+          <span class="text-xs bg-slate-900 text-slate-300 font-mono px-3 py-1 rounded-lg border border-slate-700">
+            Total Items: <span id="followup-entry-count" class="font-bold text-amber-400">0</span>
+          </span>
+        </div>
+
+        <!-- QUICK ADD NEW ITEM ROW -->
+        <form id="followup-form" onsubmit="handleFollowUpSubmit(event)" class="bg-slate-900/80 p-3 rounded-xl border border-slate-700 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+          <div class="md:col-span-3">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Date</label>
+            <input type="text" id="followup-date-display" disabled class="w-full bg-slate-950 border border-slate-800 text-slate-400 font-mono text-xs rounded-lg p-2 font-bold">
+          </div>
+          <div class="md:col-span-7">
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Follow up issues / Patient details</label>
+            <input type="text" id="followup-action" required placeholder="e.g. Tan Ah Kow (Bed 12) - Review Renal Profile at 14:00" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          </div>
+          <div class="md:col-span-2">
+            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-lg text-xs shadow transition flex items-center justify-center">
+              <i class="fa-solid fa-plus me-1.5"></i> Add Issue
+            </button>
+          </div>
+        </form>
+
+        <!-- SPREADSHEET TABLE CHECKLIST -->
+        <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-950 border-b border-slate-700 font-bold uppercase tracking-wider text-slate-300">
+                <th class="p-3 border-r border-slate-700 w-28 text-center">Date</th>
+                <th class="p-3 border-r border-slate-700">Follow up issues (Click or double click to edit)</th>
+                <th class="p-3 border-r border-slate-700 w-36 text-center">Status</th>
+                <th class="p-3 w-24 text-center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="followup-logs-tbody" class="divide-y divide-slate-800 font-sans">
+              <!-- Dynamically Populated Rows -->
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 5: REPORT GENERATOR -->
     <div id="view-reports" class="hidden space-y-6">
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700 pb-3 gap-2">
@@ -609,8 +668,8 @@
               <div class="bg-rose-950/40 p-2 rounded-lg border border-rose-600/80 flex flex-col">
                 <label class="block text-[10px] font-bold text-rose-300 uppercase">Shift Date (DD/MM/YYYY)</label>
                 <div class="flex items-center space-x-1">
-                  <span id="report-single-date-display" class="text-rose-100 font-mono font-bold text-xs">28/07/2026</span>
-                  <input type="date" id="report-single-date" value="2026-07-28" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-rose-500 text-rose-100 font-bold rounded p-1 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
+                  <span id="report-single-date-display" class="text-rose-100 font-mono font-bold text-xs">02/08/2026</span>
+                  <input type="date" id="report-single-date" value="2026-08-02" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-rose-500 text-rose-100 font-bold rounded p-1 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
                 </div>
               </div>
             </div>
@@ -623,7 +682,7 @@
               <span class="text-slate-400 font-bold mt-4">to</span>
               <div class="flex flex-col">
                 <label class="block text-[10px] font-bold text-slate-400 uppercase">To Date (DD/MM/YYYY)</label>
-                <input type="date" id="report-end-date" value="2026-07-31" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
+                <input type="date" id="report-end-date" value="2026-08-02" onclick="try{this.showPicker()}catch(e){}" onchange="updatePdfReport()" class="bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:outline-none cursor-pointer [color-scheme:dark]">
               </div>
             </div>
 
@@ -669,7 +728,7 @@
             <tbody>
               <tr class="border-b border-slate-700">
                 <td class="p-1 font-bold w-24">Date (DD/MM/YYYY)</td>
-                <td class="p-1 border-r border-slate-700">: <span id="pdf-date">28/07/2026</span></td>
+                <td class="p-1 border-r border-slate-700">: <span id="pdf-date">02/08/2026</span></td>
                 <td class="p-1 font-bold w-48">Routine Rounds</td>
                 <td class="p-1">: <span id="pdf-round-routine">YES</span></td>
               </tr>
@@ -834,14 +893,10 @@
                 <th class="p-1 border-r border-slate-700 w-10 text-center">NO.</th>
                 <th class="p-1 border-r border-slate-700">FOLLOW-UP</th>
                 <th class="p-1 border-r border-slate-700 w-24 text-center">CHECKLIST</th>
-                <th class="p-1 w-24 text-center">SIGN</th>
+                <th class="p-1 w-28 text-center">SIGN</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-800 text-[10px]">
-              <tr><td class="p-2 border-r border-slate-700 text-center">1.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
-              <tr><td class="p-2 border-r border-slate-700 text-center">2.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
-              <tr><td class="p-2 border-r border-slate-700 text-center">3.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
-            </tbody>
+            <tbody id="pdf-followup-table" class="divide-y divide-slate-800 text-[10px]"></tbody>
           </table>
         </div>
 
@@ -850,7 +905,7 @@
           <div class="space-y-1">
             <p>....................................................</p>
             <p class="font-bold text-slate-200">Pharmacist's Sign & Stamp</p>
-            <p>Date (DD/MM/YYYY): <span class="font-mono text-slate-200" id="pdf-footer-date">28/07/2026</span></p>
+            <p>Date (DD/MM/YYYY): <span class="font-mono text-slate-200" id="pdf-footer-date">02/08/2026</span></p>
           </div>
           <div class="text-right">
             <p class="font-bold text-slate-400">Pin. 2/24</p>
@@ -860,7 +915,7 @@
       </div>
     </div>
 
-    <!-- TAB 5: ADMIN / SETTINGS PANEL -->
+    <!-- TAB 6: ADMIN / SETTINGS PANEL -->
     <div id="view-admin" class="hidden space-y-6">
       <div class="bg-amber-950/60 border border-amber-800/80 rounded-xl p-4 flex items-center space-x-3 text-amber-200 text-xs">
         <i class="fa-solid fa-shield-cat text-2xl text-amber-400"></i>
@@ -965,7 +1020,7 @@
       </div>
     </div>
 
-    <!-- TAB 6: ADMIN-ONLY EXECUTIVE SUMMARY MATRIX (LAPORAN PF 6.3b) -->
+    <!-- TAB 7: ADMIN-ONLY EXECUTIVE SUMMARY MATRIX (LAPORAN PF 6.3b) -->
     <div id="view-summary" class="hidden space-y-6">
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
         
@@ -1116,10 +1171,11 @@
     let sheetDbApiUrl = (storedUrl && storedUrl.trim() !== "") ? storedUrl : defaultSheetDbUrl;
     let reportMode = 'daily';
 
-    let interventionsData = [
+    // LOCAL STORAGE PERSISTENT DATASETS (DEFAULTS TO TODAY'S SHIFT DATE: 2026-08-02)
+    let interventionsData = JSON.parse(localStorage.getItem('cp3_interventions_db')) || [
       {
         id: "101",
-        date: "2026-06-15",
+        date: "2026-08-02",
         ward: "WARD 1 - MEDICAL MALE",
         patient: "Tan Ah Kow",
         rn: "RN-884920",
@@ -1131,15 +1187,38 @@
       }
     ];
 
-    let diLogsData = [
+    let diLogsData = JSON.parse(localStorage.getItem('cp3_dilogs_db')) || [
       {
         id: "di-101",
-        date: "2026-07-28",
+        date: "2026-08-02",
         ward: "WARD 1 - MEDICAL MALE",
         enquirer: "Dr. Azlin (MO)",
         category: "Drug Dose/Administration",
         question: "Is renal dose adjustment required for Meropenem IV in GFR 20 mL/min?",
         response: "Recommended Meropenem 500mg IV q12h based on Sanford Guide 2026.",
+        user_name: "Norhanim Solehah Bt Che Abdullah",
+        user_ward: "WARD 1 - MEDICAL MALE"
+      }
+    ];
+
+    let followUpData = JSON.parse(localStorage.getItem('cp3_followup_db')) || [
+      {
+        id: "fu-101",
+        date: "2026-08-02",
+        displayDate: "2-Aug",
+        ward: "WARD 1 - MEDICAL MALE",
+        action: "Review Renal Profile at 14:00 after Meropenem dose adjustment.",
+        status: "",
+        user_name: "Norhanim Solehah Bt Che Abdullah",
+        user_ward: "WARD 1 - MEDICAL MALE"
+      },
+      {
+        id: "fu-102",
+        date: "2026-07-31",
+        displayDate: "31-Jul",
+        ward: "WARD 1 - MEDICAL MALE",
+        action: "Re-check IV Vancomycin trough level.",
+        status: "Complete",
         user_name: "Norhanim Solehah Bt Che Abdullah",
         user_ward: "WARD 1 - MEDICAL MALE"
       }
@@ -1155,9 +1234,42 @@
       syncShiftDate();
       renderInterventions();
       renderDiLogs();
+      renderFollowUpLogs();
       updatePdfReport();
       renderPfSummaryReport();
     });
+
+    // HIGH-VISIBILITY FLOATING TOAST BANNER NOTIFICATION SYSTEM
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      const toast = document.createElement('div');
+      toast.className = `pointer-events-auto p-4 rounded-xl shadow-2xl font-bold text-xs flex items-center justify-between transition-all duration-300 transform translate-y-[-20px] opacity-0 border-2 ${
+        type === 'success' 
+          ? 'bg-emerald-950/95 border-emerald-500 text-emerald-100 shadow-emerald-950/50' 
+          : 'bg-rose-950/95 border-rose-500 text-rose-100 shadow-rose-950/50'
+      }`;
+
+      toast.innerHTML = `
+        <div class="flex items-center space-x-3">
+          <i class="fa-solid ${type === 'success' ? 'fa-circle-check text-emerald-400 text-base' : 'fa-circle-exclamation text-rose-400 text-base'}"></i>
+          <span>${message}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-white ms-3"><i class="fa-solid fa-xmark"></i></button>
+      `;
+
+      container.appendChild(toast);
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-[-20px]', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-[-10px]');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
 
     // STRICT DD/MM/YYYY FORMAT HELPER
     function formatDateDDMMYYYY(dateStr) {
@@ -1165,6 +1277,19 @@
       const parts = dateStr.trim().split('-');
       if (parts.length === 3 && parts[0].length === 4) {
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      return dateStr;
+    }
+
+    // SHORT SPREADSHEET DATE FORMAT HELPER (e.g. 2-Aug)
+    function formatDateShortMonth(dateStr) {
+      if (!dateStr) return "";
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const day = parseInt(parts[2], 10);
+        const monthIdx = parseInt(parts[1], 10) - 1;
+        return `${day}-${months[monthIdx] || ''}`;
       }
       return dateStr;
     }
@@ -1229,7 +1354,7 @@
         localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
         renderUserDirectoryTable();
         closeChangePinModal();
-        alert('Security PIN updated successfully!');
+        showToast('Security PIN updated successfully!', 'success');
       }
     }
 
@@ -1275,7 +1400,20 @@
       renderUserDirectoryTable();
       renderPfSummaryReport();
       closeEditUserModal();
-      alert(`User profile '${key}' updated successfully!`);
+      showToast(`User profile '${key}' updated successfully!`, 'success');
+    }
+
+    function syncWardSelection() {
+      const selectedWard = document.getElementById('ward-name').value;
+      const userWardDisplay = document.getElementById('user-ward-display');
+      if (userWardDisplay) userWardDisplay.innerText = selectedWard;
+
+      const reportWardFilter = document.getElementById('report-ward-filter');
+      if (reportWardFilter) {
+        reportWardFilter.value = selectedWard;
+      }
+
+      updatePdfReport();
     }
 
     function applyWardFilterPermissions() {
@@ -1295,17 +1433,10 @@
       }
     }
 
-    // FAIL-SAFE SHIFT CHECK-IN SUBMIT WITH ALWAYS-RESET SPINNER BUTTON
-    async function handleCheckInSubmit(e) {
+    // RELIABLE SHIFT CHECK-IN SUBMIT WITH FLOATING TOAST & NATIVE ALERT FALLBACK
+    function handleCheckInSubmit(e) {
       e.preventDefault();
       
-      const btn = document.getElementById('checkin-btn');
-      const originalHtml = btn ? btn.innerHTML : '<i class="fa-solid fa-cloud-arrow-up me-2"></i> Save Shift Check-In';
-      if (btn) {
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Saving Check-In...';
-        btn.disabled = true;
-      }
-
       const wardName = document.getElementById('ward-name').value;
       const taskType = document.querySelector('input[name="task_type"]:checked')?.value || "Full Time";
       const shiftDate = document.getElementById('global-shift-date').value;
@@ -1332,34 +1463,34 @@
         user_ward: currentUser ? currentUser.ward : wardName
       };
 
+      // 1. Immediately Save to Local Browser Storage
+      localStorage.setItem('saved_shift_checkin', JSON.stringify(checkinData));
+
+      // 2. Synchronize Ward & Update Report Preview
+      syncWardSelection();
+
+      // 3. Show On-Screen Floating Toast Notification
+      showToast(`Shift Check-In Saved! (${wardName} - ${formatDateDDMMYYYY(shiftDate)})`, 'success');
+
+      // 4. Trigger Browser Native Alert (Safe Fallback)
       try {
-        localStorage.setItem('saved_shift_checkin', JSON.stringify(checkinData));
-
-        const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-        if (activeUrl) {
-          const targetUrl = activeUrl.includes('?') 
-            ? `${activeUrl}&sheet=CheckIn` 
-            : `${activeUrl}?sheet=CheckIn`;
-
-          await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: [checkinData] })
-          }).catch(err => console.warn('Saved Check-In locally, but remote endpoint skipped.'));
-        }
-
-        applyWardFilterPermissions();
-        updatePdfReport();
+        alert(`✅ Shift Check-In Saved Successfully!\n\n• Ward: ${wardName}\n• Task: ${taskType}\n• Date: ${formatDateDDMMYYYY(shiftDate)}`);
       } catch (err) {
-        console.error("Error during Check-In save:", err);
-      } finally {
-        if (btn) {
-          btn.innerHTML = originalHtml;
-          btn.disabled = false;
-        }
-        setTimeout(() => {
-          alert(`✅ Shift Check-In Saved!\n\n• Ward: ${wardName}\n• Task: ${taskType}\n• Date: ${formatDateDDMMYYYY(shiftDate)}`);
-        }, 50);
+        // Suppressed alert handled safely by Toast
+      }
+
+      // 5. Fire Non-blocking Async Network Fetch
+      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+      if (activeUrl) {
+        const targetUrl = activeUrl.includes('?') 
+          ? `${activeUrl}&sheet=CheckIn` 
+          : `${activeUrl}?sheet=CheckIn`;
+
+        fetch(targetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: [checkinData] })
+        }).catch(err => console.warn('Background sync skipped or offline.'));
       }
     }
 
@@ -1447,7 +1578,7 @@
       populateUserLoginDropdown();
       renderUserDirectoryTable();
       renderPfSummaryReport();
-      alert(`Successfully registered ${name} for ${ward}!`);
+      showToast(`Registered ${name} for ${ward}!`, 'success');
       e.target.reset();
     }
 
@@ -1527,6 +1658,7 @@
         wardSelect.value = currentUser.ward;
       }
 
+      syncWardSelection();
       applyWardFilterPermissions();
       updatePdfReport();
       renderPfSummaryReport();
@@ -1549,6 +1681,7 @@
       document.getElementById('view-checkin').classList.add('hidden');
       document.getElementById('view-interventions').classList.add('hidden');
       document.getElementById('view-di').classList.add('hidden');
+      document.getElementById('view-followup').classList.add('hidden');
       document.getElementById('view-reports').classList.add('hidden');
       document.getElementById('view-admin').classList.add('hidden');
       document.getElementById('view-summary').classList.add('hidden');
@@ -1556,6 +1689,7 @@
       document.getElementById('tab-checkin').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-interventions').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-di').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+      document.getElementById('tab-followup').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-reports').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-admin').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-summary').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
@@ -1564,12 +1698,16 @@
       document.getElementById('tab-' + tabName).className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
 
       if (tabName === 'reports') {
+        const activeWard = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
+        document.getElementById('report-ward-filter').value = activeWard;
         applyWardFilterPermissions();
         updatePdfReport();
       } else if (tabName === 'summary') {
         renderPfSummaryReport();
       } else if (tabName === 'di') {
         renderDiLogs();
+      } else if (tabName === 'followup') {
+        renderFollowUpLogs();
       }
     }
 
@@ -1592,7 +1730,7 @@
     }
 
     function exportDataBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ interventions: interventionsData, drugInfo: diLogsData }, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ interventions: interventionsData, drugInfo: diLogsData, followUp: followUpData }, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `cp3_backup_${Date.now()}.json`);
@@ -1652,13 +1790,16 @@
       
       const mainDisplay = document.getElementById('global-shift-date-display');
       const reportDisplay = document.getElementById('report-single-date-display');
+      const fuDateInput = document.getElementById('followup-date-display');
       
       if (mainDisplay) mainDisplay.innerText = formatted;
       if (reportDisplay) reportDisplay.innerText = formatted;
+      if (fuDateInput) fuDateInput.value = formatDateShortMonth(rawDate);
 
       document.getElementById('report-single-date').value = rawDate;
       renderInterventions();
       renderDiLogs();
+      renderFollowUpLogs();
       updatePdfReport();
       renderPfSummaryReport();
     }
@@ -1701,6 +1842,7 @@
       };
 
       interventionsData.push(payload);
+      localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
 
       localStorage.setItem('last_patient_name', ptName);
       localStorage.setItem('last_rn_number', rnNum);
@@ -1729,6 +1871,7 @@
       renderInterventions();
       updatePdfReport();
       renderPfSummaryReport();
+      showToast('Intervention Logged Successfully!', 'success');
     }
 
     function renderInterventions() {
@@ -1776,12 +1919,13 @@
 
     function deleteEntry(id) {
       interventionsData = interventionsData.filter(item => item.id !== id);
+      localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
       renderInterventions();
       updatePdfReport();
       renderPfSummaryReport();
     }
 
-    // DRUG INFORMATION FORM HANDLER & RENDER LOGS (TAB-SPECIFIC SHEETDB INTEGRATION)
+    // DRUG INFORMATION FORM HANDLER & RENDER LOGS
     async function handleDiSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('di-submit-btn');
@@ -1801,6 +1945,7 @@
       };
 
       diLogsData.push(payload);
+      localStorage.setItem('cp3_dilogs_db', JSON.stringify(diLogsData));
 
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
 
@@ -1826,6 +1971,7 @@
 
       renderDiLogs();
       updatePdfReport();
+      showToast('Drug Information Enquiry Saved!', 'success');
     }
 
     function renderDiLogs() {
@@ -1875,30 +2021,140 @@
 
     function deleteDiEntry(id) {
       diLogsData = diLogsData.filter(item => item.id !== id);
+      localStorage.setItem('cp3_dilogs_db', JSON.stringify(diLogsData));
       renderDiLogs();
       updatePdfReport();
     }
 
-    // UPDATE PRINTABLE CP3 FORM PREVIEW (PIN 2/24 STRICT FORMAT WITH DD/MM/YYYY FORMATTING)
+    // FOLLOW-UP LOG SPREADSHEET CHECKLIST HANDLERS (STRICT LOCAL STORAGE ONLY)
+    function handleFollowUpSubmit(e) {
+      e.preventDefault();
+      const rawDate = document.getElementById('global-shift-date').value;
+      const actionInput = document.getElementById('followup-action').value.trim();
+
+      const payload = {
+        id: "fu-" + Date.now().toString(),
+        date: rawDate,
+        displayDate: formatDateShortMonth(rawDate),
+        ward: document.getElementById('ward-name').value,
+        action: actionInput,
+        status: "",
+        user_name: currentUser ? currentUser.name : "Anonymous",
+        user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
+      };
+
+      followUpData.push(payload);
+      localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+
+      document.getElementById('followup-action').value = '';
+      renderFollowUpLogs();
+      updatePdfReport();
+      showToast('Follow-Up Action Item Saved!', 'success');
+    }
+
+    function editFollowUpAction(id) {
+      const item = followUpData.find(i => i.id === id);
+      if (!item) return;
+
+      const newAction = prompt("Edit Follow-up Issue / Details:", item.action);
+      if (newAction !== null && newAction.trim() !== "") {
+        item.action = newAction.trim();
+        localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+        renderFollowUpLogs();
+        updatePdfReport();
+        showToast('Follow-Up Item Updated!', 'success');
+      }
+    }
+
+    function toggleFollowUpStatus(id) {
+      const item = followUpData.find(i => i.id === id);
+      if (!item) return;
+      item.status = (item.status === "Complete") ? "" : "Complete";
+      localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+      renderFollowUpLogs();
+      updatePdfReport();
+    }
+
+    function renderFollowUpLogs() {
+      const countEl = document.getElementById('followup-entry-count');
+      if (countEl) countEl.innerText = followUpData.length;
+
+      const tbody = document.getElementById('followup-logs-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (followUpData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">No follow-up issues logged. Use the bar above to add an item.</td></tr>';
+        return;
+      }
+
+      // Sort with newest on top
+      const sorted = [...followUpData].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      sorted.forEach(item => {
+        const isComplete = item.status === "Complete";
+        const tr = document.createElement('tr');
+        
+        // Apply greyed-out row styling if Complete matching screenshot
+        tr.className = isComplete 
+          ? 'bg-zinc-700/80 text-zinc-400 line-through border-b border-zinc-600 font-mono transition-colors' 
+          : 'bg-slate-900/60 hover:bg-slate-800 text-slate-100 border-b border-slate-800 font-mono transition-colors';
+
+        tr.innerHTML = `
+          <td class="p-2.5 border-r ${isComplete ? 'border-zinc-600' : 'border-slate-800'} text-center font-bold">${item.displayDate || formatDateShortMonth(item.date)}</td>
+          <td class="p-2.5 border-r ${isComplete ? 'border-zinc-600' : 'border-slate-800'} cursor-pointer" onclick="editFollowUpAction('${item.id}')" title="Click to edit issue text">
+            ${item.action}
+          </td>
+          <td class="p-2.5 border-r ${isComplete ? 'border-zinc-600' : 'border-slate-800'} text-center no-underline">
+            <button onclick="toggleFollowUpStatus('${item.id}')" class="w-full py-1 px-2 rounded font-bold text-xs transition flex items-center justify-center space-x-1 ${isComplete ? 'bg-zinc-900/80 text-zinc-300 border border-zinc-500' : 'bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800'}">
+              ${isComplete ? '<i class="fa-solid fa-check text-emerald-400 me-1"></i> Complete' : '<i class="fa-regular fa-square me-1"></i> Pending'}
+            </button>
+          </td>
+          <td class="p-2.5 text-center no-underline">
+            <button onclick="editFollowUpAction('${item.id}')" class="text-sky-400 hover:text-sky-300 p-1 me-2" title="Edit text"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button onclick="deleteFollowUpEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 p-1" title="Delete entry"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function deleteFollowUpEntry(id) {
+      followUpData = followUpData.filter(item => item.id !== id);
+      localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+      renderFollowUpLogs();
+      updatePdfReport();
+    }
+
+    // UPDATE PRINTABLE CP3 FORM PREVIEW (PIN 2/24 STRICT FORMAT WITH CARRY-FORWARD FOR UNRESOLVED FOLLOW-UPS)
     function updatePdfReport() {
-      const selectedWard = document.getElementById('report-ward-filter').value;
+      let singleDate = document.getElementById('report-single-date')?.value || document.getElementById('global-shift-date')?.value || "2026-08-02";
+      let startDate = document.getElementById('report-start-date')?.value || "2026-07-01";
+      let endDate = document.getElementById('report-end-date')?.value || "2026-08-02";
+
       let filteredInterventions = [];
       let filteredDi = [];
+      let filteredFu = [];
 
       if (reportMode === 'daily') {
-        const singleDate = document.getElementById('report-single-date').value;
         const formattedSingleDate = formatDateDDMMYYYY(singleDate);
-        document.getElementById('pdf-date').innerText = formattedSingleDate;
-        document.getElementById('pdf-footer-date').innerText = formattedSingleDate;
+        if (document.getElementById('pdf-date')) document.getElementById('pdf-date').innerText = formattedSingleDate;
+        if (document.getElementById('pdf-footer-date')) document.getElementById('pdf-footer-date').innerText = formattedSingleDate;
 
         filteredInterventions = interventionsData.filter(item => String(item.date).trim() === String(singleDate).trim());
         filteredDi = diLogsData.filter(item => String(item.date).trim() === String(singleDate).trim());
+
+        // CARRY-FORWARD LOGIC: Include items logged ON singleDate OR logged BEFORE singleDate that are still unresolved (Pending)
+        filteredFu = followUpData.filter(item => {
+          const itemDate = String(item.date).trim();
+          const isPending = item.status !== "Complete";
+          return (itemDate === singleDate) || (itemDate < singleDate && isPending);
+        });
+
       } else {
-        const startDate = document.getElementById('report-start-date').value;
-        const endDate = document.getElementById('report-end-date').value;
         const formattedRange = `${formatDateDDMMYYYY(startDate)} to ${formatDateDDMMYYYY(endDate)}`;
-        document.getElementById('pdf-date').innerText = formattedRange;
-        document.getElementById('pdf-footer-date').innerText = formatDateDDMMYYYY(endDate);
+        if (document.getElementById('pdf-date')) document.getElementById('pdf-date').innerText = formattedRange;
+        if (document.getElementById('pdf-footer-date')) document.getElementById('pdf-footer-date').innerText = formatDateDDMMYYYY(endDate);
 
         filteredInterventions = interventionsData.filter(item => {
           const itemDate = String(item.date).trim();
@@ -1908,16 +2164,23 @@
           const itemDate = String(item.date).trim();
           return itemDate >= startDate && itemDate <= endDate;
         });
+        filteredFu = followUpData.filter(item => {
+          const itemDate = String(item.date).trim();
+          const isPending = item.status !== "Complete";
+          return (itemDate >= startDate && itemDate <= endDate) || (itemDate < startDate && isPending);
+        });
       }
 
+      const selectedWard = document.getElementById('report-ward-filter')?.value || "ALL";
       const activeWard = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
 
       if (selectedWard !== 'ALL') {
-        filteredInterventions = filteredInterventions.filter(item => item.ward === selectedWard);
-        filteredDi = filteredDi.filter(item => item.ward === selectedWard);
-        document.getElementById('pdf-ward').innerText = selectedWard;
+        filteredInterventions = filteredInterventions.filter(item => item.ward && String(item.ward).trim().toUpperCase() === selectedWard.trim().toUpperCase());
+        filteredDi = filteredDi.filter(item => item.ward && String(item.ward).trim().toUpperCase() === selectedWard.trim().toUpperCase());
+        filteredFu = filteredFu.filter(item => item.ward && String(item.ward).trim().toUpperCase() === selectedWard.trim().toUpperCase());
+        if (document.getElementById('pdf-ward')) document.getElementById('pdf-ward').innerText = selectedWard;
       } else {
-        document.getElementById('pdf-ward').innerText = activeWard + " (Combined)";
+        if (document.getElementById('pdf-ward')) document.getElementById('pdf-ward').innerText = activeWard + " (Combined)";
       }
 
       // SECTION A DETAILS
@@ -1926,16 +2189,16 @@
       const cp2Input = document.getElementById('cp2-count');
       const taskInput = document.querySelector('input[name="task_type"]:checked');
 
-      if (physiciansInput) document.getElementById('pdf-physicians').innerText = physiciansInput.value.trim() !== "" ? physiciansInput.value : "-";
-      if (cp1Input) document.getElementById('pdf-cp1').innerText = cp1Input.innerText || "0";
-      if (cp2Input) document.getElementById('pdf-cp2').innerText = cp2Input.innerText || "0";
-      if (taskInput) document.getElementById('pdf-task').innerText = taskInput.value;
+      if (document.getElementById('pdf-physicians')) document.getElementById('pdf-physicians').innerText = (physiciansInput && physiciansInput.value.trim() !== "") ? physiciansInput.value : "-";
+      if (document.getElementById('pdf-cp1')) document.getElementById('pdf-cp1').innerText = cp1Input ? (cp1Input.innerText || "0") : "0";
+      if (document.getElementById('pdf-cp2')) document.getElementById('pdf-cp2').innerText = cp2Input ? (cp2Input.innerText || "0") : "0";
+      if (document.getElementById('pdf-task')) document.getElementById('pdf-task').innerText = taskInput ? taskInput.value : "Full Time";
 
-      document.getElementById('pdf-round-routine').innerText = document.getElementById('round-routine')?.checked ? "YES" : "NO";
-      document.getElementById('pdf-round-grand').innerText = document.getElementById('round-grand')?.checked ? "YES" : "NO";
-      document.getElementById('pdf-round-pharmacist').innerText = document.getElementById('round-pharmacist')?.checked ? "YES" : "NO";
+      if (document.getElementById('pdf-round-routine')) document.getElementById('pdf-round-routine').innerText = document.getElementById('round-routine')?.checked ? "YES" : "NO";
+      if (document.getElementById('pdf-round-grand')) document.getElementById('pdf-round-grand').innerText = document.getElementById('round-grand')?.checked ? "YES" : "NO";
+      if (document.getElementById('pdf-round-pharmacist')) document.getElementById('pdf-round-pharmacist').innerText = document.getElementById('round-pharmacist')?.checked ? "YES" : "NO";
 
-      document.getElementById('pdf-logged-by').innerText = currentUser ? currentUser.name : "Sarah Jenkins, RPh";
+      if (document.getElementById('pdf-logged-by')) document.getElementById('pdf-logged-by').innerText = currentUser ? currentUser.name : "Sarah Jenkins, RPh";
 
       // RESET INTERVENTION TALLIES
       const allCp3Codes = [
@@ -1966,8 +2229,8 @@
         if (targetAcc && isAcc) targetAcc.innerText = (parseInt(targetAcc.innerText) || 0) + 1;
       });
 
-      document.getElementById('count-total').innerText = totalInterventions.toString();
-      document.getElementById('acc-total').innerText = totalAccepted.toString();
+      if (document.getElementById('count-total')) document.getElementById('count-total').innerText = totalInterventions.toString();
+      if (document.getElementById('acc-total')) document.getElementById('acc-total').innerText = totalAccepted.toString();
 
       // RESET DI TALLIES (SECTION B RIGHT)
       const diCategoryMap = {
@@ -2008,7 +2271,7 @@
           }
         }
       });
-      document.getElementById('di-total-provided').innerText = totalDiCount.toString();
+      if (document.getElementById('di-total-provided')) document.getElementById('di-total-provided').innerText = totalDiCount.toString();
 
       // COUNSELLING TALLIES
       const bSessions = parseInt(document.getElementById('counsel-bedside-sessions')?.value) || 0;
@@ -2018,13 +2281,13 @@
       const gSessions = parseInt(document.getElementById('counsel-group-sessions')?.value) || 0;
       const gPts = parseInt(document.getElementById('counsel-group-pts')?.value) || 0;
 
-      document.getElementById('pdf-counsel-bed-s').innerText = bSessions;
-      document.getElementById('pdf-counsel-bed-p').innerText = bPts;
-      document.getElementById('pdf-counsel-dis-s').innerText = dSessions;
-      document.getElementById('pdf-counsel-dis-p').innerText = dPts;
-      document.getElementById('pdf-counsel-grp-s').innerText = gSessions;
-      document.getElementById('pdf-counsel-grp-p').innerText = gPts;
-      document.getElementById('pdf-grand-total').innerText = (totalInterventions + totalDiCount + bSessions + dSessions + gSessions).toString();
+      if (document.getElementById('pdf-counsel-bed-s')) document.getElementById('pdf-counsel-bed-s').innerText = bSessions;
+      if (document.getElementById('pdf-counsel-bed-p')) document.getElementById('pdf-counsel-bed-p').innerText = bPts;
+      if (document.getElementById('pdf-counsel-dis-s')) document.getElementById('pdf-counsel-dis-s').innerText = dSessions;
+      if (document.getElementById('pdf-counsel-dis-p')) document.getElementById('pdf-counsel-dis-p').innerText = dPts;
+      if (document.getElementById('pdf-counsel-grp-s')) document.getElementById('pdf-counsel-grp-s').innerText = gSessions;
+      if (document.getElementById('pdf-counsel-grp-p')) document.getElementById('pdf-counsel-grp-p').innerText = gPts;
+      if (document.getElementById('pdf-grand-total')) document.getElementById('pdf-grand-total').innerText = (totalInterventions + totalDiCount + bSessions + dSessions + gSessions).toString();
 
       // POPULATE SECTION C TABLE (INTERVENTIONS ENCOUNTERED)
       const tbodyC = document.getElementById('pdf-interventions-table');
@@ -2065,6 +2328,32 @@
               <td class="p-1 text-slate-200">${item.response}</td>
             `;
             tbodyD.appendChild(tr);
+          });
+        }
+      }
+
+      // POPULATE SECTION E TABLE (FOLLOW-UP REQUIRED WITH CARRY-FORWARD)
+      const tbodyE = document.getElementById('pdf-followup-table');
+      if (tbodyE) {
+        tbodyE.innerHTML = '';
+        if (filteredFu.length === 0) {
+          tbodyE.innerHTML = `
+            <tr><td class="p-2 border-r border-slate-700 text-center">1.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
+            <tr><td class="p-2 border-r border-slate-700 text-center">2.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
+            <tr><td class="p-2 border-r border-slate-700 text-center">3.</td><td class="p-2 border-r border-slate-700"></td><td class="p-2 border-r border-slate-700"></td><td class="p-2"></td></tr>
+          `;
+        } else {
+          filteredFu.forEach((item, index) => {
+            const isDone = item.status === "Complete";
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
+            tr.innerHTML = `
+              <td class="p-1.5 border-r border-slate-700 text-center font-bold text-slate-300">${index + 1}.</td>
+              <td class="p-1.5 border-r border-slate-700 text-slate-200">${item.action}</td>
+              <td class="p-1.5 border-r border-slate-700 text-center font-bold ${isDone ? 'text-emerald-400' : 'text-amber-400'}">${isDone ? '[X] Complete' : '[ ] Pending'}</td>
+              <td class="p-1.5 text-slate-300 text-center font-semibold">${item.user_name || 'RPh'}</td>
+            `;
+            tbodyE.appendChild(tr);
           });
         }
       }
