@@ -303,7 +303,7 @@
               <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
 
-            <button type="submit" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center">
+            <button type="submit" id="checkin-btn" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow flex items-center justify-center">
               <i class="fa-solid fa-cloud-arrow-up me-2"></i> Save Shift Check-In
             </button>
           </form>
@@ -1295,11 +1295,12 @@
       }
     }
 
-async function handleCheckInSubmit(e) {
+    // FAIL-SAFE SHIFT CHECK-IN SUBMIT WITH ALWAYS-RESET SPINNER BUTTON
+    async function handleCheckInSubmit(e) {
       e.preventDefault();
       
-      const btn = e.target.querySelector('button[type="submit"]');
-      const originalText = btn ? btn.innerHTML : '';
+      const btn = document.getElementById('checkin-btn');
+      const originalHtml = btn ? btn.innerHTML : '<i class="fa-solid fa-cloud-arrow-up me-2"></i> Save Shift Check-In';
       if (btn) {
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> Saving Check-In...';
         btn.disabled = true;
@@ -1331,13 +1332,11 @@ async function handleCheckInSubmit(e) {
         user_ward: currentUser ? currentUser.ward : wardName
       };
 
-      // 1. Save to Local Memory
-      localStorage.setItem('saved_shift_checkin', JSON.stringify(checkinData));
+      try {
+        localStorage.setItem('saved_shift_checkin', JSON.stringify(checkinData));
 
-      // 2. Sync to Google Sheets / SheetDB if connected
-      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-      if (activeUrl) {
-        try {
+        const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+        if (activeUrl) {
           const targetUrl = activeUrl.includes('?') 
             ? `${activeUrl}&sheet=CheckIn` 
             : `${activeUrl}?sheet=CheckIn`;
@@ -1346,26 +1345,22 @@ async function handleCheckInSubmit(e) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data: [checkinData] })
-          });
-        } catch (err) {
-          console.warn('Saved Check-In locally, but cloud endpoint was unreachable.');
+          }).catch(err => console.warn('Saved Check-In locally, but remote endpoint skipped.'));
         }
+
+        applyWardFilterPermissions();
+        updatePdfReport();
+      } catch (err) {
+        console.error("Error during Check-In save:", err);
+      } finally {
+        if (btn) {
+          btn.innerHTML = originalHtml;
+          btn.disabled = false;
+        }
+        setTimeout(() => {
+          alert(`✅ Shift Check-In Saved!\n\n• Ward: ${wardName}\n• Task: ${taskType}\n• Date: ${formatDateDDMMYYYY(shiftDate)}`);
+        }, 50);
       }
-
-      // 3. UI Updates
-      applyWardFilterPermissions();
-      updatePdfReport();
-
-      // 4. Restore Button State
-      if (btn) {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-      }
-
-      // 5. Explicit Alert Notification
-      setTimeout(() => {
-        alert(`✅ Shift Check-In Saved Successfully!\n\n• Ward: ${wardName}\n• Task: ${taskType}\n• Date: ${formatDateDDMMYYYY(shiftDate)}`);
-      }, 100);
     }
 
     function loadSavedCheckIn() {
