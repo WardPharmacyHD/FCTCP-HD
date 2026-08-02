@@ -157,15 +157,15 @@
   </div>
 
   <!-- CONFIGURATION BANNER FOR SHEETDB API -->
-  <div class="bg-amber-950/80 border-b border-amber-800/80 text-amber-200 px-4 py-2 text-xs flex justify-between items-center">
+  <div class="bg-slate-950 border-b border-slate-800 text-emerald-300 px-4 py-2 text-xs flex justify-between items-center">
     <div>
       <i class="fa-solid fa-plug me-1"></i> <strong>Google Sheets Connection:</strong> 
-      <span id="api-status" class="font-mono bg-amber-900/60 border border-amber-700 px-1.5 py-0.5 rounded text-amber-200">Local Demo Mode (Paste SheetDB API URL in config)</span>
+      <span id="api-status" class="font-mono bg-emerald-950/80 border border-emerald-800 px-1.5 py-0.5 rounded text-emerald-300">Connected: https://sheetdb.io/api/v1/ok0ovi...</span>
     </div>
     <button onclick="configureApiUrl()" class="underline font-semibold hover:text-white">Set API URL</button>
   </div>
 
-  <!-- TOP NAVBAR -->
+  <!-- TOP NAVBAR WITH RED HIGH-VISIBILITY DATE BADGE -->
   <header class="bg-slate-950 border-b border-slate-800 text-white shadow-md sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-2 sm:space-x-3">
@@ -181,7 +181,7 @@
       <!-- User Info, Active Shift Date & Account Settings -->
       <div class="flex items-center space-x-2 sm:space-x-6 text-sm">
         
-        <!-- RED HIGH-VISIBILITY SHIFT DATE BOX WITH DD/MM/YYYY FORMAT -->
+        <!-- RED HIGH-VISIBILITY SHIFT DATE BOX WITH PROMINENT DD/MM/YYYY FORMAT -->
         <div class="flex items-center space-x-2 bg-rose-950/90 border-2 border-rose-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg shadow-rose-950/50">
           <i class="fa-regular fa-calendar-check text-rose-400 text-xs sm:text-sm animate-pulse"></i>
           <div class="flex flex-col">
@@ -1531,12 +1531,13 @@
     }
 
     async function testApiConnection() {
-      if (!sheetDbApiUrl) {
+      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+      if (!activeUrl) {
         alert('No SheetDB API URL configured yet. Click "Set API URL" in the banner above.');
         return;
       }
       try {
-        const res = await fetch(sheetDbApiUrl);
+        const res = await fetch(activeUrl);
         if (res.ok) {
           alert('API Connection Successful! Google Sheets endpoint is reachable.');
         } else {
@@ -1579,7 +1580,7 @@
     }
 
     function configureApiUrl() {
-      const url = prompt("Enter your SheetDB API Endpoint URL (e.g. https://sheetdb.io/api/v1/your_id):", sheetDbApiUrl);
+      const url = prompt("Enter your SheetDB API Endpoint URL (e.g. https://sheetdb.io/api/v1/your_id):", sheetDbApiUrl || defaultSheetDbUrl);
       if (url !== null) {
         sheetDbApiUrl = url.trim();
         localStorage.setItem('sheetdb_url', sheetDbApiUrl);
@@ -1589,8 +1590,12 @@
 
     function updateApiStatusDisplay() {
       const el = document.getElementById('api-status');
-      if (sheetDbApiUrl) {
-        el.innerText = 'Connected: ' + sheetDbApiUrl.substring(0, 30) + '...';
+      if (!el) return;
+
+      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+
+      if (activeUrl) {
+        el.innerText = 'Connected: ' + activeUrl.substring(0, 32) + '...';
         el.className = 'font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.5 rounded';
       } else {
         el.innerText = 'Local Demo Mode (Paste SheetDB API URL in config)';
@@ -1657,9 +1662,11 @@
       localStorage.setItem('last_patient_name', ptName);
       localStorage.setItem('last_rn_number', rnNum);
 
-      if (sheetDbApiUrl) {
+      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+
+      if (activeUrl) {
         try {
-          await fetch(sheetDbApiUrl, {
+          await fetch(activeUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data: [payload] })
@@ -1752,11 +1759,13 @@
 
       diLogsData.push(payload);
 
-      if (sheetDbApiUrl) {
+      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+
+      if (activeUrl) {
         try {
-          const targetUrl = sheetDbApiUrl.includes('?') 
-            ? `${sheetDbApiUrl}&sheet=DrugInfo` 
-            : `${sheetDbApiUrl}?sheet=DrugInfo`;
+          const targetUrl = activeUrl.includes('?') 
+            ? `${activeUrl}&sheet=DrugInfo` 
+            : `${activeUrl}?sheet=DrugInfo`;
 
           await fetch(targetUrl, {
             method: 'POST',
