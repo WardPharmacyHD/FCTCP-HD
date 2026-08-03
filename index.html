@@ -32,7 +32,7 @@
   <div id="edit-intervention-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
     <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-700 max-h-[90vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
-        <h3 class="font-bold text-slate-100 text-base flex items-center">
+        <h3 class="font-bold text-slate-100 text-sm flex items-center">
           <i class="fa-solid fa-pen-to-square text-sky-400 me-2"></i>Edit Intervention Entry
         </h3>
         <button onclick="closeEditInterventionModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
@@ -154,7 +154,7 @@
   <div id="change-pin-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
     <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-700">
       <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
-        <h3 class="font-bold text-slate-100 text-base flex items-center">
+        <h3 class="font-bold text-slate-100 text-sm flex items-center">
           <i class="fa-solid fa-key text-amber-400 me-2"></i>Change Security PIN
         </h3>
         <button onclick="closeChangePinModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
@@ -188,7 +188,7 @@
   <div id="edit-user-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
     <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-700">
       <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
-        <h3 class="font-bold text-slate-100 text-base flex items-center">
+        <h3 class="font-bold text-slate-100 text-sm flex items-center">
           <i class="fa-solid fa-user-pen text-sky-400 me-2"></i>Edit Pharmacist Profile
         </h3>
         <button onclick="closeEditUserModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
@@ -368,15 +368,17 @@
 
       <!-- SECTION A INPUT CONTROLS CARD -->
       <div class="bg-slate-800 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-700 space-y-4 no-print">
-        <h2 class="text-base font-bold text-slate-100 flex items-center border-b border-slate-700 pb-2">
+        <h2 class="text-sm font-bold text-slate-100 flex items-center border-b border-slate-700 pb-2">
           <i class="fa-solid fa-sliders text-sky-400 me-2"></i> Section A: Daily Shift Controls
         </h2>
         
         <form id="checkin-form" onsubmit="event.preventDefault();" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          <!-- ROW 1: DESIGNATED WARD & TASK COMMITMENT -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
             
-            <!-- DESIGNATED WARD SELECTOR -->
-            <div class="bg-rose-950/40 p-3 rounded-xl border-2 border-rose-600/80">
+            <!-- DESIGNATED WARD SELECTOR & PART/FULL TIME BUTTONS INLINE BELOW IT -->
+            <div class="bg-rose-950/40 p-3 rounded-xl border-2 border-rose-600/80 md:col-span-1">
               <label class="block text-xs font-bold text-rose-300 uppercase mb-1 flex items-center justify-between">
                 <span>Designated Ward</span>
                 <span class="text-[10px] bg-rose-900 text-rose-200 px-1.5 py-0.2 rounded uppercase">Location</span>
@@ -393,104 +395,150 @@
                 <option value="WARD 7 - SURGICAL / ORTHO MALE">WARD 7 - SURGICAL / ORTHO MALE</option>
                 <option value="WARD 8 - SURGICAL / ORTHO FEMALE">WARD 8 - SURGICAL / ORTHO FEMALE</option>
               </select>
+
+              <!-- PART / FULL TIME TASK COMMITMENT SELECTOR DIRECTLY BELOW LOCATION -->
+              <div class="flex items-center space-x-3 mt-2.5 pt-2 border-t border-rose-800/60 text-xs">
+                <span class="text-[10px] font-bold text-rose-300 uppercase">Task:</span>
+                <label class="flex items-center text-xs text-rose-100 cursor-pointer">
+                  <input type="radio" name="task_type" value="Full Time" checked onchange="updatePdfReport()" class="shift-input text-sky-500 focus:ring-sky-500 me-1.5 bg-slate-900 border-slate-700"> Full Time
+                </label>
+                <label class="flex items-center text-xs text-rose-100 cursor-pointer">
+                  <input type="radio" name="task_type" value="Part Time" onchange="updatePdfReport()" class="shift-input text-sky-500 focus:ring-sky-500 me-1.5 bg-slate-900 border-slate-700"> Part Time
+                </label>
+              </div>
             </div>
 
-            <!-- TASK COMMITMENT & PHYSICIANS -->
-            <div class="space-y-2 md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+            <!-- ROW 1 RIGHT: ATTENDING PHYSICIANS & WARD ROUNDS CONDUCTED INLINE -->
+            <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+              
+              <!-- ATTENDING PHYSICIAN(S) -->
               <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Task Commitment</label>
-                <div class="flex space-x-4 mt-2">
-                  <label class="flex items-center text-sm text-slate-300 cursor-pointer">
-                    <input type="radio" name="task_type" value="Full Time" checked onchange="updatePdfReport()" class="shift-input text-sky-500 focus:ring-sky-500 me-2 bg-slate-900 border-slate-700"> Full Time
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Attending Physician(s)</label>
+                <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              </div>
+
+              <!-- WARD ROUNDS CONDUCTED (INLINE WITH DOCTORS FIELD) -->
+              <div>
+                <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Ward Rounds Conducted</label>
+                <div class="flex items-center space-x-1.5 text-xs">
+                  <label class="flex items-center p-1.5 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer hover:bg-slate-900/80 flex-1">
+                    <input type="checkbox" id="round-routine" checked onchange="updatePdfReport()" class="shift-input w-3.5 h-3.5 text-sky-500 rounded me-1 bg-slate-900 border-slate-700">
+                    <span class="text-[11px] font-medium text-slate-200">Routine</span>
                   </label>
-                  <label class="flex items-center text-sm text-slate-300 cursor-pointer">
-                    <input type="radio" name="task_type" value="Part Time" onchange="updatePdfReport()" class="shift-input text-sky-500 focus:ring-sky-500 me-2 bg-slate-900 border-slate-700"> Part Time
+                  <label class="flex items-center p-1.5 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer hover:bg-slate-900/80 flex-1">
+                    <input type="checkbox" id="round-grand" onchange="updatePdfReport()" class="shift-input w-3.5 h-3.5 text-sky-500 rounded me-1 bg-slate-900 border-slate-700">
+                    <span class="text-[11px] font-medium text-slate-200">Grand</span>
+                  </label>
+                  <label class="flex items-center p-1.5 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer hover:bg-slate-900/80 flex-1">
+                    <input type="checkbox" id="round-pharmacist" checked onchange="updatePdfReport()" class="shift-input w-3.5 h-3.5 text-sky-500 rounded me-1 bg-slate-900 border-slate-700">
+                    <span class="text-[11px] font-medium text-slate-200">Pharmacist</span>
                   </label>
                 </div>
               </div>
 
-              <div>
-                <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Attending Physician(s)</label>
-                <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
-              </div>
             </div>
 
           </div>
 
-          <!-- ROUNDS & CLINICAL COUNTERS -->
+          <!-- ROW 2: CLINICAL COUNTERS & COUNSELLING SESSIONS (WITH RESTORED + / - BUTTONS) -->
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 pt-2 border-t border-slate-700/60">
             
-            <!-- ROUNDS ATTENDED -->
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Ward Rounds Conducted</label>
-              <div class="flex flex-col space-y-2">
-                <label class="flex items-center p-2 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer">
-                  <input type="checkbox" id="round-routine" checked onchange="updatePdfReport()" class="shift-input w-4 h-4 text-sky-500 rounded me-2.5 bg-slate-900 border-slate-700">
-                  <span class="text-xs font-medium text-slate-200">Routine Rounds</span>
-                </label>
-                <label class="flex items-center p-2 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer">
-                  <input type="checkbox" id="round-grand" onchange="updatePdfReport()" class="shift-input w-4 h-4 text-sky-500 rounded me-2.5 bg-slate-900 border-slate-700">
-                  <span class="text-xs font-medium text-slate-200">Grand Rounds</span>
-                </label>
-                <label class="flex items-center p-2 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer">
-                  <input type="checkbox" id="round-pharmacist" checked onchange="updatePdfReport()" class="shift-input w-4 h-4 text-sky-500 rounded me-2.5 bg-slate-900 border-slate-700">
-                  <span class="text-xs font-medium text-slate-200">Pharmacist Rounds</span>
-                </label>
-              </div>
-            </div>
-
             <!-- CASES & MED HISTORY COUNTERS -->
-            <div class="space-y-3">
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Clinical Clerking</label>
-              <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
+            <div class="space-y-2 lg:col-span-1">
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Clinical Clerking</label>
+              
+              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-between">
                 <div>
-                  <p class="text-[11px] font-semibold text-slate-400 uppercase">Cases Clerked (CP2)</p>
-                  <p class="text-xl font-bold text-slate-100"><span id="cp2-count">0</span> <span class="text-xs text-slate-400 font-normal">cases</span></p>
+                  <p class="text-[10px] font-semibold text-slate-400 uppercase">Cases Clerked (CP2)</p>
+                  <p class="text-lg font-bold text-slate-100"><span id="cp2-count">0</span> <span class="text-xs text-slate-400 font-normal">cases</span></p>
                 </div>
                 <div class="flex space-x-1">
-                  <button type="button" onclick="updateCounter('cp2-count', -1)" class="shift-input w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 font-bold text-slate-200 text-sm shadow-sm">-</button>
-                  <button type="button" onclick="updateCounter('cp2-count', 1)" class="shift-input w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 font-bold text-slate-200 text-sm shadow-sm">+</button>
+                  <button type="button" onclick="updateCounter('cp2-count', -1)" class="shift-input w-7 h-7 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs shadow-sm">-</button>
+                  <button type="button" onclick="updateCounter('cp2-count', 1)" class="shift-input w-7 h-7 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs shadow-sm">+</button>
                 </div>
               </div>
 
-              <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
+              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-between">
                 <div>
-                  <p class="text-[11px] font-semibold text-slate-400 uppercase">Med History Taken (CP1)</p>
-                  <p class="text-xl font-bold text-slate-100"><span id="cp1-count">0</span> <span class="text-xs text-slate-400 font-normal">patients</span></p>
+                  <p class="text-[10px] font-semibold text-slate-400 uppercase">Med History Taken (CP1)</p>
+                  <p class="text-lg font-bold text-slate-100"><span id="cp1-count">0</span> <span class="text-xs text-slate-400 font-normal">pts</span></p>
                 </div>
                 <div class="flex space-x-1">
-                  <button type="button" onclick="updateCounter('cp1-count', -1)" class="shift-input w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 font-bold text-slate-200 text-sm shadow-sm">-</button>
-                  <button type="button" onclick="updateCounter('cp1-count', 1)" class="shift-input w-8 h-8 rounded-lg bg-slate-800 border border-slate-600 font-bold text-slate-200 text-sm shadow-sm">+</button>
+                  <button type="button" onclick="updateCounter('cp1-count', -1)" class="shift-input w-7 h-7 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs shadow-sm">-</button>
+                  <button type="button" onclick="updateCounter('cp1-count', 1)" class="shift-input w-7 h-7 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs shadow-sm">+</button>
                 </div>
               </div>
             </div>
 
-            <!-- COUNSELLING COUNTERS -->
-            <div class="space-y-2">
-              <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Counselling Sessions</label>
+            <!-- COUNSELLING COUNTERS (RESTORED + / - BUTTONS FOR SESSIONS AND PATIENTS) -->
+            <div class="space-y-2 lg:col-span-2">
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Patient Counselling Sessions</label>
               
-              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-between text-xs">
-                <span class="font-semibold text-slate-300">Bedside Sessions / Pts</span>
-                <div class="flex space-x-1">
-                  <input type="number" id="counsel-bedside-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-10 text-center bg-slate-800 border border-slate-600 rounded p-1 font-bold text-slate-100">
-                  <input type="number" id="counsel-bedside-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-10 text-center bg-slate-800 border border-slate-600 rounded p-1 font-bold text-slate-100">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                
+                <!-- BEDSIDE COUNSELLING CARD -->
+                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 space-y-2">
+                  <span class="text-[11px] font-bold text-slate-300 uppercase block border-b border-slate-700/80 pb-1">Bedside</span>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-semibold text-slate-400">Sessions</span>
+                    <div class="flex items-center space-x-1">
+                      <button type="button" onclick="updateCounter('counsel-bedside-sessions', -1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">-</button>
+                      <input type="number" id="counsel-bedside-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-8 text-center bg-slate-800 border border-slate-600 rounded p-0.5 font-bold text-xs text-slate-100">
+                      <button type="button" onclick="updateCounter('counsel-bedside-sessions', 1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-semibold text-slate-400">Patients</span>
+                    <div class="flex items-center space-x-1">
+                      <button type="button" onclick="updateCounter('counsel-bedside-pts', -1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">-</button>
+                      <input type="number" id="counsel-bedside-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-8 text-center bg-slate-800 border border-slate-600 rounded p-0.5 font-bold text-xs text-slate-100">
+                      <button type="button" onclick="updateCounter('counsel-bedside-pts', 1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">+</button>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-between text-xs">
-                <span class="font-semibold text-slate-300">Discharge Sessions / Pts</span>
-                <div class="flex space-x-1">
-                  <input type="number" id="counsel-discharge-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-10 text-center bg-slate-800 border border-slate-600 rounded p-1 font-bold text-slate-100">
-                  <input type="number" id="counsel-discharge-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-10 text-center bg-slate-800 border border-slate-600 rounded p-1 font-bold text-slate-100">
+                <!-- DISCHARGE COUNSELLING CARD -->
+                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 space-y-2">
+                  <span class="text-[11px] font-bold text-slate-300 uppercase block border-b border-slate-700/80 pb-1">Discharge</span>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-semibold text-slate-400">Sessions</span>
+                    <div class="flex items-center space-x-1">
+                      <button type="button" onclick="updateCounter('counsel-discharge-sessions', -1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">-</button>
+                      <input type="number" id="counsel-discharge-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-8 text-center bg-slate-800 border border-slate-600 rounded p-0.5 font-bold text-xs text-slate-100">
+                      <button type="button" onclick="updateCounter('counsel-discharge-sessions', 1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-semibold text-slate-400">Patients</span>
+                    <div class="flex items-center space-x-1">
+                      <button type="button" onclick="updateCounter('counsel-discharge-pts', -1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">-</button>
+                      <input type="number" id="counsel-discharge-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-8 text-center bg-slate-800 border border-slate-600 rounded p-0.5 font-bold text-xs text-slate-100">
+                      <button type="button" onclick="updateCounter('counsel-discharge-pts', 1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">+</button>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-between text-xs">
-                <span class="font-semibold text-slate-300">Group Sessions / Pts</span>
-                <div class="flex space-x-1">
-                  <input type="number" id="counsel-group-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-10 text-center bg-slate-800 border border-slate-600 rounded p-1 font-bold text-slate-100">
-                  <input type="number" id="counsel-group-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-10 text-center bg-slate-800 border border-slate-600 rounded p-1 font-bold text-slate-100">
+                <!-- GROUP COUNSELLING CARD -->
+                <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 space-y-2">
+                  <span class="text-[11px] font-bold text-slate-300 uppercase block border-b border-slate-700/80 pb-1">Group</span>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-semibold text-slate-400">Sessions</span>
+                    <div class="flex items-center space-x-1">
+                      <button type="button" onclick="updateCounter('counsel-group-sessions', -1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">-</button>
+                      <input type="number" id="counsel-group-sessions" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-8 text-center bg-slate-800 border border-slate-600 rounded p-0.5 font-bold text-xs text-slate-100">
+                      <button type="button" onclick="updateCounter('counsel-group-sessions', 1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-semibold text-slate-400">Patients</span>
+                    <div class="flex items-center space-x-1">
+                      <button type="button" onclick="updateCounter('counsel-group-pts', -1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">-</button>
+                      <input type="number" id="counsel-group-pts" value="0" min="0" oninput="validateNonNegative(this); updatePdfReport()" class="shift-input w-8 text-center bg-slate-800 border border-slate-600 rounded p-0.5 font-bold text-xs text-slate-100">
+                      <button type="button" onclick="updateCounter('counsel-group-pts', 1)" class="shift-input w-6 h-6 rounded bg-slate-800 border border-slate-600 font-bold text-slate-200 text-xs flex items-center justify-center">+</button>
+                    </div>
+                  </div>
                 </div>
+
               </div>
             </div>
 
@@ -736,7 +784,7 @@
     <!-- TAB 2: INTERVENTIONS LOGGING (WITH MULTI-SELECT CP3 CATEGORIES) -->
     <div id="view-interventions" class="hidden space-y-6">
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
-        <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
+        <h2 class="text-sm font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
           <i class="fa-solid fa-plus-circle text-sky-400 me-2"></i> Intervention Entry
         </h2>
 
@@ -837,7 +885,7 @@
     <!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG -->
     <div id="view-di" class="hidden space-y-6">
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
-        <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
+        <h2 class="text-sm font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
           <i class="fa-solid fa-circle-info text-sky-400 me-2"></i> Drug Information Enquiry Form
         </h2>
 
@@ -906,7 +954,7 @@
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
         <div class="flex justify-between items-center border-b border-slate-700 pb-3">
           <div>
-            <h2 class="text-base font-bold text-slate-100 flex items-center">
+            <h2 class="text-sm font-bold text-slate-100 flex items-center">
               <i class="fa-solid fa-list-check text-amber-400 me-2"></i> Section E: Follow-Up Required Checklist
             </h2>
             <p class="text-xs text-slate-400 mt-0.5">Click status to toggle completion. Unresolved items carry forward automatically onto future shift reports.</p>
@@ -965,7 +1013,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
-          <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-2">
+          <h2 class="text-sm font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-2">
             <i class="fa-solid fa-user-plus text-sky-400 me-2"></i> Register New Pharmacist
           </h2>
 
@@ -1016,7 +1064,7 @@
         </div>
 
         <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
-          <h2 class="text-base font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-2">
+          <h2 class="text-sm font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-2">
             <i class="fa-solid fa-database text-sky-400 me-2"></i> Database & Connection Tools
           </h2>
 
@@ -1065,7 +1113,7 @@
         <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-700 pb-3 gap-3">
           <div>
             <div class="flex items-center space-x-2">
-              <h2 class="text-base font-bold text-slate-100">PF 6.3(b): LAPORAN AKTIVITI INTERVENSI PRESKRIPSI PESAKIT DALAM</h2>
+              <h2 class="text-sm font-bold text-slate-100">PF 6.3(b): LAPORAN AKTIVITI INTERVENSI PRESKRIPSI PESAKIT DALAM</h2>
               <span class="text-[10px] bg-amber-950 text-amber-300 font-bold px-2 py-0.5 rounded border border-amber-800">ADMIN ONLY</span>
             </div>
             <p class="text-xs text-slate-400 mt-0.5">Official KKM Performance Matrix — Dynamic Breakdown by Pharmacist Profile</p>
