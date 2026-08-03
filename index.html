@@ -330,7 +330,7 @@
           <i class="fa-solid fa-list-check text-amber-400"></i>
           <span>4. Follow-Up Required</span>
         </button>
-        <!-- ADMIN ONLY TABS (HIDDEN BY DEFAULT FOR REGULAR PHARMACISTS) -->
+        <!-- ADMIN ONLY TABS (STRICTLY HIDDEN BY DEFAULT FOR REGULAR PHARMACISTS) -->
         <button onclick="switchTab('admin')" id="tab-admin" class="hidden py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-shield-halved text-amber-400"></i>
           <span>5. Admin / Settings</span>
@@ -417,21 +417,21 @@
                 <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
               </div>
 
-              <!-- WARD ROUNDS CONDUCTED (INLINE WITH DOCTORS FIELD) -->
+              <!-- WARD ROUNDS CONDUCTED (INLINE WITH DOCTORS FIELD & ONLY ROUTINE TICKED BY DEFAULT) -->
               <div>
                 <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Ward Rounds Conducted</label>
                 <div class="flex items-center space-x-1.5 text-xs">
                   <label class="flex items-center p-1.5 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer hover:bg-slate-900/80 flex-1">
                     <input type="checkbox" id="round-routine" checked onchange="updatePdfReport()" class="shift-input w-3.5 h-3.5 text-sky-500 rounded me-1 bg-slate-900 border-slate-700">
-                    <span class="text-[11px] font-medium text-slate-200">Routine</span>
+                    <span class="text-[11px] font-medium text-slate-200">Routine Round</span>
                   </label>
                   <label class="flex items-center p-1.5 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer hover:bg-slate-900/80 flex-1">
                     <input type="checkbox" id="round-grand" onchange="updatePdfReport()" class="shift-input w-3.5 h-3.5 text-sky-500 rounded me-1 bg-slate-900 border-slate-700">
-                    <span class="text-[11px] font-medium text-slate-200">Grand</span>
+                    <span class="text-[11px] font-medium text-slate-200">Grand Round</span>
                   </label>
                   <label class="flex items-center p-1.5 border border-slate-700/80 bg-slate-900/40 rounded-lg cursor-pointer hover:bg-slate-900/80 flex-1">
-                    <input type="checkbox" id="round-pharmacist" checked onchange="updatePdfReport()" class="shift-input w-3.5 h-3.5 text-sky-500 rounded me-1 bg-slate-900 border-slate-700">
-                    <span class="text-[11px] font-medium text-slate-200">Pharmacist</span>
+                    <input type="checkbox" id="round-pharmacist" onchange="updatePdfReport()" class="shift-input w-3.5 h-3.5 text-sky-500 rounded me-1 bg-slate-900 border-slate-700">
+                    <span class="text-[11px] font-medium text-slate-200">Pharmacist Round</span>
                   </label>
                 </div>
               </div>
@@ -470,7 +470,7 @@
               </div>
             </div>
 
-            <!-- COUNSELLING COUNTERS (RESTORED + / - BUTTONS FOR SESSIONS AND PATIENTS) -->
+            <!-- COUNSELLING COUNTERS (WITH + / - BUTTONS FOR SESSIONS AND PATIENTS) -->
             <div class="space-y-2 lg:col-span-2">
               <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Patient Counselling Sessions</label>
               
@@ -595,7 +595,7 @@
                 <td class="p-1 font-bold">Task</td>
                 <td class="p-1 border-r border-slate-700">: <span id="pdf-task">Full Time</span></td>
                 <td class="p-1 font-bold">Pharmacist Rounds</td>
-                <td class="p-1">: <span id="pdf-round-pharmacist">YES</span></td>
+                <td class="p-1">: <span id="pdf-round-pharmacist">NO</span></td>
               </tr>
               <tr class="border-b border-slate-700">
                 <td class="p-1 font-bold">Physician(s)</td>
@@ -940,9 +940,9 @@
         <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex justify-between items-center">
           <div>
             <h3 class="font-bold text-slate-100 text-sm">Logged DI Enquiries (Last 5 Days) (<span id="di-entry-count">0</span>)</h3>
-            <p class="text-[11px] text-slate-400">Showing DI requests from active shift date through 4 days prior</p>
+            <p class="text-[11px] text-slate-400">Showing DI requests logged for your profile</p>
           </div>
-          <span class="text-xs text-sky-400 font-medium"><i class="fa-solid fa-clock-rotate-left me-1"></i> Ward Log History</span>
+          <span class="text-xs text-sky-400 font-medium"><i class="fa-solid fa-clock-rotate-left me-1"></i> User Log History</span>
         </div>
 
         <div id="di-logs-list" class="divide-y divide-slate-700/80"></div>
@@ -1934,7 +1934,7 @@
       }
     }
 
-    // APPLY USER SESSION UI (TOGGLES ADMIN TAB VISIBILITY STRICTLY)
+    // APPLY USER SESSION UI (TOGGLES ADMIN TAB VISIBILITY STRICTLY FOR NON-ADMINS)
     function applyUserSessionUI() {
       if (!currentUser) return;
       hideLoginOverlay();
@@ -1955,7 +1955,7 @@
         roleBadge.classList.add('hidden');
       }
 
-      // STRICT ADMIN TABS VISIBILITY
+      // STRICT ADMIN TABS VISIBILITY ENFORCEMENT
       const tabAdmin = document.getElementById('tab-admin');
       const tabSummary = document.getElementById('tab-summary');
       if (isAdmin) {
@@ -1982,15 +1982,16 @@
       currentUser = null;
       document.getElementById('tab-admin')?.classList.add('hidden');
       document.getElementById('tab-summary')?.classList.add('hidden');
+      switchTab('checkin');
       showLoginOverlay();
     }
 
     function switchTab(tabName) {
-      if (tabName === 'admin' || tabName === 'summary') {
-        if (!currentUser || !currentUser.role || currentUser.role.toLowerCase() !== 'admin') {
-          alert('Access Denied: Admin Settings and PF 6.3b Summary are restricted to system administrators.');
-          return;
-        }
+      const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+      
+      if ((tabName === 'admin' || tabName === 'summary') && !isAdmin) {
+        alert('Access Denied: Admin Settings and PF 6.3b Summary are restricted to system administrators.');
+        return;
       }
 
       document.getElementById('view-checkin').classList.add('hidden');
@@ -2252,7 +2253,7 @@
       renderPfSummaryReport();
     }
 
-    // DRUG INFORMATION FORM HANDLER & RENDER LOGS
+    // DRUG INFORMATION FORM HANDLER & USER-RESTRICTED RENDER LOGS
     async function handleDiSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('di-submit-btn');
@@ -2301,6 +2302,7 @@
       showToast('Drug Information Enquiry Saved!', 'success');
     }
 
+    // USER-RESTRICTED DRUG INFO HISTORY (NON-ADMINS ONLY SEE LOGS MATCHING THEIR USER PROFILE)
     function renderDiLogs() {
       const targetDate = document.getElementById('global-shift-date').value;
       const cleanTargetDate = normalizeToISO(targetDate);
@@ -2309,9 +2311,22 @@
       minDateObj.setDate(minDateObj.getDate() - 4);
       const minDateStr = minDateObj.toISOString().split('T')[0];
 
+      const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+
       const filtered = diLogsData.filter(item => {
         const itemDate = normalizeToISO(item.date);
-        return itemDate >= minDateStr && itemDate <= cleanTargetDate;
+        const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
+
+        // User restrictions: Non-admin users strictly see only DI logs created under their profile
+        let userMatch = true;
+        if (!isAdmin) {
+          const itemUser = (item.user_name || '').toUpperCase();
+          const currUser = (currentUser ? currentUser.name : '').toUpperCase();
+          const currKey = (localStorage.getItem('active_user_key') || '').toUpperCase();
+          userMatch = itemUser.includes(currUser) || itemUser.includes(currKey);
+        }
+
+        return dateMatch && userMatch;
       });
 
       filtered.sort((a, b) => new Date(normalizeToISO(b.date)) - new Date(normalizeToISO(a.date)));
@@ -2324,7 +2339,7 @@
       listEl.innerHTML = '';
 
       if (filtered.length === 0) {
-        listEl.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No Drug Information enquiries logged in the last 5 days.</div>';
+        listEl.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No Drug Information enquiries logged for your profile in the last 5 days.</div>';
         return;
       }
 
