@@ -4,6 +4,14 @@ All notable changes, bug fixes, and feature enhancements for the Clinical Pharma
 
 ---
 
+## [1.5.0] - 2026-08-03
+### 🛠️ Fixed
+- **SheetDB Date Parsing Bug**: Resolved an issue where intervention counts displayed `0` on both the CP3 Generator and PF 6.3(b) reports due to Google Sheets auto-formatting `YYYY-MM-DD` strings into serials or `DD/MM/YYYY`.
+- **Date String Normalization**: Implemented a flexible date parser to handle incoming Google Sheets string formats seamlessly across all report generator filters.
+- **Shift Check-In Feedback**: Standardized shift check-in submission feedback using non-blocking floating toast alerts with a browser alert fallback for reliable save confirmations.
+
+---
+
 ## [1.4.0] - 2026-08-03
 ### 🚀 Added
 - **Multi-Select CP3 Categories**: Replaced single category dropdown in Tab 2 with a multi-select checkbox selector (1.x, 2.x, 3.x).
@@ -27,7 +35,7 @@ All notable changes, bug fixes, and feature enhancements for the Clinical Pharma
 
 ---
 
-## [1.2.0] - 2026-07-31
+## [1.2.0] - 2026-08-02
 ### 🚀 Added
 - **SheetDB API Integration**: Cloud sync support for Google Sheets for daily check-ins, interventions, and drug info.
 - **Shift Date Badging**: Added prominent, red high-visibility date badge in `DD/MM/YYYY` format.
