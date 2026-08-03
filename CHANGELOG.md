@@ -4,6 +4,47 @@ All notable changes, bug fixes, and feature enhancements for the Clinical Pharma
 
 ---
 
+[1.6.0] - 2026-08-04
+🚀 Added
+Shift Snapshot & Locking Workflow: Implemented an "Upsert" snapshot model (cp3_checkins_db & CheckIn Google Sheets tab). Saving or Finalizing a shift creates an immutable, dated record for that specific Date + Ward combination.
+
+Shift State Controls: Added Save Draft and 🔒 Finalize & Lock Shift Report buttons. Finalizing locks Section A controls into read-only mode and displays a green FINALIZED & LOCKED audit badge.
+
+Admin Unlock Override: Added an Admin-only button (btn-admin-unlock) allowing administrators to unlock and re-open finalized shift reports if emergency edits are needed.
+
+Counselling Stepper Buttons: Restored touch-friendly - and + increment/decrement buttons for both Sessions and Patient counts across Bedside, Discharge, and Group counselling cards.
+
+🎨 Changed & UI Refinements
+Live CP3 Dashboard Re-Architecture: Transformed Tab 1 into a unified front page featuring Section A controls, Draft/Finalize action bar, live Borang CP3 (Pin 2/24) report preview, and a Print/Export PDF action bar.
+
+Reduced Header Typography: Scaled down Section A & Card headers from text-base to text-sm (~1pt smaller) for better visual hierarchy.
+
+Inline Ward & Task Layout: Relocated Task Commitment (Full Time / Part Time) selector inside the red box directly underneath the Designated Ward selector.
+
+Inline Physicians & Ward Rounds: Placed Attending Physician(s) and Ward Rounds Conducted side-by-side in the same row with reduced text size (text-[11px]).
+
+Ward Rounds Terminology & Defaults:
+
+Renamed options to Routine Round, Grand Round, and Pharmacist Round.
+
+Configured defaults so only Routine Round is ticked by default.
+
+Action Button Placement: Positioned the Draft & Finalize control bar directly between Section A controls and the CP3 Report preview, and placed the Print/Export PDF action bar below the CP3 Report preview.
+
+🔒 Security & Access Control
+Strict Admin Tab Hiding: Hided the 5. Admin / Settings and 6. Laporan PF 6.3(b) navigation tabs entirely from the UI for regular pharmacist profiles. Tabs only render when an Administrator logs in.
+
+Location-Isolated Interventions: Locked intervention history viewing in Tab 2 so regular pharmacists strictly view entries matching their assigned unit ward (currentUser.ward).
+
+User-Restricted Drug Info (DI) History: Updated renderDiLogs() so regular pharmacists only see DI enquiries logged under their own profile/username. Administrators retain full cross-user visibility.
+
+🛠️ Fixed
+Google Sheets Date Auto-Formatting Glitch: Built a safe normalizeToISO() date parser helper to seamlessly convert incoming date strings (YYYY-MM-DD, DD/MM/YYYY, or serial values) across all report filters.
+
+CP3 Report Preview Data Decoupling: Solved past report preview unreliability by binding the generated CP3 document directly to saved shift snapshots rather than live, uncommitted form inputs.
+
+---
+
 ## [1.5.0] - 2026-08-03
 ### 🛠️ Fixed
 - **SheetDB Date Parsing Bug**: Resolved an issue where intervention counts displayed `0` on both the CP3 Generator and PF 6.3(b) reports due to Google Sheets auto-formatting `YYYY-MM-DD` strings into serials or `DD/MM/YYYY`.
