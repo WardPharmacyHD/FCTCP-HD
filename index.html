@@ -317,7 +317,7 @@
 
     <!-- NAVIGATION TABS -->
     <div class="bg-slate-800 rounded-xl shadow-sm mb-6 border border-slate-700 no-print">
-      <div class="flex border-b border-slate-700 overflow-x-auto">
+      <div class="flex border-b border-slate-700 overflow-x-auto items-center">
         <button onclick="switchTab('checkin')" id="tab-checkin" class="tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-file-contract text-sky-400"></i>
           <span>1. Live CP3 Dashboard & Finalize</span>
@@ -334,15 +334,28 @@
           <i class="fa-solid fa-list-check text-amber-400"></i>
           <span>4. Follow-Up Required</span>
         </button>
-        <!-- ADMIN ONLY TABS (STRICTLY HIDDEN BY DEFAULT FOR REGULAR PHARMACISTS) -->
-        <button onclick="switchTab('admin')" id="tab-admin" class="hidden py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
-          <i class="fa-solid fa-shield-halved text-amber-400"></i>
-          <span>5. Admin / Settings</span>
-        </button>
-        <button onclick="switchTab('summary')" id="tab-summary" class="hidden py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
-          <i class="fa-solid fa-table-list text-emerald-400"></i>
-          <span>6. Laporan PF 6.3(b) <span class="text-[10px] bg-amber-950 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-800 ms-1">ADMIN</span></span>
-        </button>
+        
+        <!-- NESTED ADMIN DROPDOWN MENU CONTAINER (STRICTLY HIDDEN BY DEFAULT FOR REGULAR PHARMACISTS) -->
+        <div id="admin-menu-container" class="hidden relative">
+          <button onclick="toggleAdminMenu()" id="tab-admin-menu" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap focus:outline-none">
+            <i class="fa-solid fa-shield-halved text-amber-400"></i>
+            <span>5. Admin Menu</span>
+            <i class="fa-solid fa-chevron-down text-[10px] ms-1 text-slate-400"></i>
+          </button>
+
+          <!-- DROPDOWN SUB-ITEMS -->
+          <div id="admin-menu-dropdown" class="hidden absolute right-0 mt-1 w-60 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-[60] overflow-hidden py-1">
+            <button onclick="switchTab('admin'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 transition">
+              <i class="fa-solid fa-sliders text-amber-400 w-4 text-center"></i>
+              <span class="font-medium">Admin / Settings</span>
+            </button>
+            <button onclick="switchTab('summary'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition">
+              <i class="fa-solid fa-table-list text-emerald-400 w-4 text-center"></i>
+              <span class="font-medium">Laporan PF 6.3(b) Generator</span>
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -387,7 +400,6 @@
                 <span>Designated Ward</span>
                 <span class="text-[10px] bg-rose-900 text-rose-200 px-1.5 py-0.2 rounded uppercase">Location</span>
               </label>
-              <!-- REMOVED applyWardFilterPermissions() FROM ONCHANGE TO ALLOW FREELY CHANGING WARDS -->
               <select id="ward-name" onchange="syncWardSelection(); populatePatientDatalists();" class="shift-input w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
@@ -1325,6 +1337,24 @@
       fetchCloudData(); // Automatic background sync for cross-device visibility
     });
 
+    // CLOSE ADMIN DROPDOWN WHEN CLICKING OUTSIDE
+    document.addEventListener('click', (e) => {
+      const adminContainer = document.getElementById('admin-menu-container');
+      if (adminContainer && !adminContainer.contains(e.target)) {
+        hideAdminMenu();
+      }
+    });
+
+    function toggleAdminMenu() {
+      const dropdown = document.getElementById('admin-menu-dropdown');
+      if (dropdown) dropdown.classList.toggle('hidden');
+    }
+
+    function hideAdminMenu() {
+      const dropdown = document.getElementById('admin-menu-dropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+    }
+
     // HELPER TO CONVERT MULTI-SELECT CODE STRING OR ARRAY TO ARRAY
     function getCodesArray(codeVal) {
       if (!codeVal) return [];
@@ -1744,7 +1774,6 @@
     }
 
     function applyWardFilterPermissions() {
-      // PERMISSION CHECKER ONLY - DOES NOT OVERWRITE SELECTED WARD VALUE
       const wardSelect = document.getElementById('ward-name');
       if (!wardSelect) return;
       wardSelect.disabled = false;
@@ -2046,7 +2075,7 @@
       }
     }
 
-    // APPLY USER SESSION UI (TOGGLES ADMIN TAB VISIBILITY STRICTLY FOR NON-ADMINS)
+    // APPLY USER SESSION UI (TOGGLES ADMIN MENU CONTAINER VISIBILITY STRICTLY FOR ADMINS)
     function applyUserSessionUI() {
       if (!currentUser) return;
       hideLoginOverlay();
@@ -2067,15 +2096,12 @@
         roleBadge.classList.add('hidden');
       }
 
-      // STRICT ADMIN TABS VISIBILITY ENFORCEMENT
-      const tabAdmin = document.getElementById('tab-admin');
-      const tabSummary = document.getElementById('tab-summary');
+      // STRICT ADMIN MENU DROPDOWN VISIBILITY ENFORCEMENT
+      const adminMenuContainer = document.getElementById('admin-menu-container');
       if (isAdmin) {
-        if (tabAdmin) tabAdmin.classList.remove('hidden');
-        if (tabSummary) tabSummary.classList.remove('hidden');
+        if (adminMenuContainer) adminMenuContainer.classList.remove('hidden');
       } else {
-        if (tabAdmin) tabAdmin.classList.add('hidden');
-        if (tabSummary) tabSummary.classList.add('hidden');
+        if (adminMenuContainer) adminMenuContainer.classList.add('hidden');
       }
 
       const wardSelect = document.getElementById('ward-name');
@@ -2093,8 +2119,7 @@
     function logoutUser() {
       localStorage.removeItem('active_user_key');
       currentUser = null;
-      document.getElementById('tab-admin')?.classList.add('hidden');
-      document.getElementById('tab-summary')?.classList.add('hidden');
+      document.getElementById('admin-menu-container')?.classList.add('hidden');
       switchTab('checkin');
       showLoginOverlay();
     }
@@ -2118,11 +2143,17 @@
       document.getElementById('tab-interventions').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-di').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-followup').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      if (document.getElementById('tab-admin')) document.getElementById('tab-admin').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      if (document.getElementById('tab-summary')) document.getElementById('tab-summary').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+      if (document.getElementById('tab-admin-menu')) {
+        document.getElementById('tab-admin-menu').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap focus:outline-none";
+      }
 
       document.getElementById('view-' + tabName).classList.remove('hidden');
-      if (document.getElementById('tab-' + tabName)) {
+
+      if (tabName === 'admin' || tabName === 'summary') {
+        if (document.getElementById('tab-admin-menu')) {
+          document.getElementById('tab-admin-menu').className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap focus:outline-none";
+        }
+      } else if (document.getElementById('tab-' + tabName)) {
         document.getElementById('tab-' + tabName).className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
       }
 
