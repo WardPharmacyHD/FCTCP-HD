@@ -28,6 +28,10 @@
   <!-- GLOBAL FLOATING TOAST NOTIFICATION CONTAINER -->
   <div id="toast-container" class="fixed top-5 left-1/2 -translate-x-1/2 z-[200] space-y-2 pointer-events-none max-w-md w-full px-4"></div>
 
+  <!-- PATIENT AUTOCOMPLETE DATALISTS -->
+  <datalist id="patients-name-list"></datalist>
+  <datalist id="patients-rn-list"></datalist>
+
   <!-- EDIT INTERVENTION MODAL -->
   <div id="edit-intervention-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
     <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-700 max-h-[90vh] overflow-y-auto">
@@ -43,11 +47,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Patient Name</label>
-            <input type="text" id="edit-patient-name" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <input type="text" id="edit-patient-name" list="patients-name-list" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">RN / MRN / Bed No.</label>
-            <input type="text" id="edit-rn-number" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            <input type="text" id="edit-rn-number" list="patients-rn-list" required class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
           </div>
         </div>
 
@@ -383,7 +387,7 @@
                 <span>Designated Ward</span>
                 <span class="text-[10px] bg-rose-900 text-rose-200 px-1.5 py-0.2 rounded uppercase">Location</span>
               </label>
-              <select id="ward-name" onchange="syncWardSelection(); applyWardFilterPermissions();" class="shift-input w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <select id="ward-name" onchange="syncWardSelection(); applyWardFilterPermissions(); populatePatientDatalists();" class="shift-input w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
@@ -411,10 +415,10 @@
             <!-- ROW 1 RIGHT: ATTENDING PHYSICIANS & WARD ROUNDS CONDUCTED INLINE -->
             <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
               
-              <!-- ATTENDING PHYSICIAN(S) -->
+              <!-- ATTENDING PHYSICIAN(S) - REMOVED HARDCODED VALUE DEFAULT -->
               <div>
                 <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Attending Physician(s)</label>
-                <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
               </div>
 
               <!-- WARD ROUNDS CONDUCTED (INLINE WITH DOCTORS FIELD & ONLY ROUTINE TICKED BY DEFAULT) -->
@@ -599,7 +603,7 @@
               </tr>
               <tr class="border-b border-slate-700">
                 <td class="p-1 font-bold">Physician(s)</td>
-                <td class="p-1 border-r border-slate-700">: <span id="pdf-physicians">Dr. Aris, Dr. Chen</span></td>
+                <td class="p-1 border-r border-slate-700">: <span id="pdf-physicians">-</span></td>
                 <td class="p-1 font-bold">Number of Cases Clerked (CP2)</td>
                 <td class="p-1">: <span id="pdf-cp2">0</span></td>
               </tr>
@@ -792,12 +796,12 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">Patient Name</label>
-              <input type="text" id="patient-name" required placeholder="e.g. Tan Ah Kow" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <input type="text" id="patient-name" list="patients-name-list" required placeholder="e.g. Tan Ah Kow" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
             
             <div>
               <label class="block text-xs font-semibold text-slate-400 uppercase mb-1">RN / MRN / Bed No.</label>
-              <input type="text" id="rn-number" required placeholder="e.g. RN-884920" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <input type="text" id="rn-number" list="patients-rn-list" required placeholder="e.g. RN-884920" class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
             </div>
           </div>
 
@@ -1256,6 +1260,9 @@
     let storedUrl = localStorage.getItem('sheetdb_url');
     let sheetDbApiUrl = (storedUrl && storedUrl.trim() !== "") ? storedUrl : defaultSheetDbUrl;
 
+    // LOCAL PATIENT CENSUS DATABASE FOR AUTOCOMPLETE
+    let patientsData = JSON.parse(localStorage.getItem('cp3_patients_db')) || [];
+
     // PERSISTENT SHIFT SNAPSHOT DATABASE
     let checkinsData = JSON.parse(localStorage.getItem('cp3_checkins_db')) || [];
 
@@ -1310,6 +1317,7 @@
       loadActiveShiftSnapshot();
       loadLastPatientData();
       syncShiftDate();
+      setupPatientAutofill();
       renderInterventions();
       renderDiLogs();
       renderFollowUpLogs();
@@ -1334,6 +1342,88 @@
         }
       }
       return s;
+    }
+
+    // POPULATE DATALISTS FOR PATIENT NAME AND RN AUTOCOMPLETE
+    function populatePatientDatalists() {
+      const activeWard = document.getElementById('ward-name')?.value || '';
+      const nameList = document.getElementById('patients-name-list');
+      const rnList = document.getElementById('patients-rn-list');
+      if (!nameList || !rnList) return;
+
+      nameList.innerHTML = '';
+      rnList.innerHTML = '';
+
+      // Filter by active ward if ward is specified, else include all
+      const filtered = patientsData.filter(p => {
+        if (!p.ward || !activeWard) return true;
+        return String(p.ward).trim().toUpperCase() === String(activeWard).trim().toUpperCase();
+      });
+
+      filtered.forEach(p => {
+        if (p.name) {
+          const optN = document.createElement('option');
+          optN.value = p.name;
+          optN.label = `${p.rn || ''} (${p.ward || ''})`;
+          nameList.appendChild(optN);
+        }
+        if (p.rn) {
+          const optR = document.createElement('option');
+          optR.value = p.rn;
+          optR.label = `${p.name || ''} (${p.ward || ''})`;
+          rnList.appendChild(optR);
+        }
+      });
+    }
+
+    // SETUP TWO-WAY AUTOFILL LISTENERS
+    function setupPatientAutofill() {
+      const ptInput = document.getElementById('patient-name');
+      const rnInput = document.getElementById('rn-number');
+
+      if (ptInput && rnInput) {
+        ptInput.addEventListener('input', () => {
+          const val = ptInput.value.trim();
+          if (!val) return;
+          const match = patientsData.find(p => p.name && p.name.trim().toLowerCase() === val.toLowerCase());
+          if (match && match.rn) {
+            rnInput.value = match.rn;
+          }
+        });
+
+        rnInput.addEventListener('input', () => {
+          const val = rnInput.value.trim();
+          if (!val) return;
+          const match = patientsData.find(p => p.rn && p.rn.trim().toLowerCase() === val.toLowerCase());
+          if (match && match.name) {
+            ptInput.value = match.name;
+          }
+        });
+      }
+
+      // Modal Auto-fill
+      const editPtInput = document.getElementById('edit-patient-name');
+      const editRnInput = document.getElementById('edit-rn-number');
+
+      if (editPtInput && editRnInput) {
+        editPtInput.addEventListener('input', () => {
+          const val = editPtInput.value.trim();
+          if (!val) return;
+          const match = patientsData.find(p => p.name && p.name.trim().toLowerCase() === val.toLowerCase());
+          if (match && match.rn) {
+            editRnInput.value = match.rn;
+          }
+        });
+
+        editRnInput.addEventListener('input', () => {
+          const val = editRnInput.value.trim();
+          if (!val) return;
+          const match = patientsData.find(p => p.rn && p.rn.trim().toLowerCase() === val.toLowerCase());
+          if (match && match.name) {
+            editPtInput.value = match.name;
+          }
+        });
+      }
     }
 
     // UPDATE SELECTED CP3 CODE COUNTER BADGE ON TAB 2
@@ -1415,12 +1505,24 @@
       showToast('Intervention updated successfully!', 'success');
     }
 
-    // FETCH LATEST CLOUD DATA FROM GOOGLE SHEETS (CROSS-DEVICE SYNC)
+    // FETCH LATEST CLOUD DATA FROM GOOGLE SHEETS (CROSS-DEVICE SYNC INCLUDING PATIENTS CENSUS)
     async function fetchCloudData() {
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
       if (!activeUrl) return;
 
       try {
+        // Fetch Patient Census
+        const patientsUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Patients` : `${activeUrl}?sheet=Patients`;
+        const resPat = await fetch(patientsUrl);
+        if (resPat.ok) {
+          const cloudPat = await resPat.json();
+          if (Array.isArray(cloudPat) && cloudPat.length > 0) {
+            patientsData = cloudPat;
+            localStorage.setItem('cp3_patients_db', JSON.stringify(patientsData));
+            populatePatientDatalists();
+          }
+        }
+
         // Fetch Main Interventions
         const resInt = await fetch(activeUrl);
         if (resInt.ok) {
@@ -1637,6 +1739,7 @@
       loadActiveShiftSnapshot();
       updatePdfReport();
       renderInterventions();
+      populatePatientDatalists();
     }
 
     function applyWardFilterPermissions() {
@@ -1707,7 +1810,7 @@
         date: shiftDate,
         ward: wardName,
         task: taskType,
-        physicians: document.getElementById('physicians').value.trim(),
+        physicians: document.getElementById('physicians')?.value.trim() || "",
         roundRoutine: document.getElementById('round-routine')?.checked ? "YES" : "NO",
         roundGrand: document.getElementById('round-grand')?.checked ? "YES" : "NO",
         roundPharmacist: document.getElementById('round-pharmacist')?.checked ? "YES" : "NO",
@@ -1796,7 +1899,7 @@
       inputs.forEach(el => el.disabled = isLocked);
 
       if (snapshot) {
-        if (snapshot.physicians !== undefined) document.getElementById('physicians').value = snapshot.physicians;
+        document.getElementById('physicians').value = snapshot.physicians !== undefined ? snapshot.physicians : "";
         if (snapshot.cp1 !== undefined) document.getElementById('cp1-count').innerText = snapshot.cp1;
         if (snapshot.cp2 !== undefined) document.getElementById('cp2-count').innerText = snapshot.cp2;
 
@@ -1815,6 +1918,20 @@
         if (snapshot.roundRoutine !== undefined) document.getElementById('round-routine').checked = (snapshot.roundRoutine === true || snapshot.roundRoutine === "YES");
         if (snapshot.roundGrand !== undefined) document.getElementById('round-grand').checked = (snapshot.roundGrand === true || snapshot.roundGrand === "YES");
         if (snapshot.roundPharmacist !== undefined) document.getElementById('round-pharmacist').checked = (snapshot.roundPharmacist === true || snapshot.roundPharmacist === "YES");
+      } else {
+        // NO SNAPSHOT FOUND FOR THIS SHIFT DATE + WARD -> RESET INPUT CONTROLS TO BLANK / DEFAULT
+        document.getElementById('physicians').value = "";
+        document.getElementById('cp1-count').innerText = "0";
+        document.getElementById('cp2-count').innerText = "0";
+        document.getElementById('counsel-bedside-sessions').value = "0";
+        document.getElementById('counsel-bedside-pts').value = "0";
+        document.getElementById('counsel-discharge-sessions').value = "0";
+        document.getElementById('counsel-discharge-pts').value = "0";
+        document.getElementById('counsel-group-sessions').value = "0";
+        document.getElementById('counsel-group-pts').value = "0";
+        if (document.getElementById('round-routine')) document.getElementById('round-routine').checked = true;
+        if (document.getElementById('round-grand')) document.getElementById('round-grand').checked = false;
+        if (document.getElementById('round-pharmacist')) document.getElementById('round-pharmacist').checked = false;
       }
     }
 
@@ -1975,6 +2092,7 @@
       applyWardFilterPermissions();
       updatePdfReport();
       renderPfSummaryReport();
+      populatePatientDatalists();
     }
 
     function logoutUser() {
@@ -2024,6 +2142,7 @@
         renderFollowUpLogs();
       } else if (tabName === 'interventions') {
         renderInterventions();
+        populatePatientDatalists();
       }
     }
 
@@ -2046,7 +2165,7 @@
     }
 
     function exportDataBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ checkins: checkinsData, interventions: interventionsData, drugInfo: diLogsData, followUp: followUpData }, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ checkins: checkinsData, interventions: interventionsData, drugInfo: diLogsData, followUp: followUpData, patients: patientsData }, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `cp3_backup_${Date.now()}.json`);
@@ -2483,7 +2602,7 @@
       if (document.getElementById('pdf-ward')) document.getElementById('pdf-ward').innerText = activeWard;
 
       // Section A Details
-      const phys = lockedSnapshot ? lockedSnapshot.physicians : (document.getElementById('physicians')?.value || "-");
+      const phys = (lockedSnapshot && lockedSnapshot.physicians !== undefined) ? lockedSnapshot.physicians : (document.getElementById('physicians')?.value.trim() || "-");
       const cp1Val = lockedSnapshot ? lockedSnapshot.cp1 : (document.getElementById('cp1-count')?.innerText || "0");
       const cp2Val = lockedSnapshot ? lockedSnapshot.cp2 : (document.getElementById('cp2-count')?.innerText || "0");
       const taskVal = lockedSnapshot ? lockedSnapshot.task : (document.querySelector('input[name="task_type"]:checked')?.value || "Full Time");
