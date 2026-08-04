@@ -387,7 +387,8 @@
                 <span>Designated Ward</span>
                 <span class="text-[10px] bg-rose-900 text-rose-200 px-1.5 py-0.2 rounded uppercase">Location</span>
               </label>
-              <select id="ward-name" onchange="syncWardSelection(); applyWardFilterPermissions(); populatePatientDatalists();" class="shift-input w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <!-- REMOVED applyWardFilterPermissions() FROM ONCHANGE TO ALLOW FREELY CHANGING WARDS -->
+              <select id="ward-name" onchange="syncWardSelection(); populatePatientDatalists();" class="shift-input w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
@@ -415,7 +416,7 @@
             <!-- ROW 1 RIGHT: ATTENDING PHYSICIANS & WARD ROUNDS CONDUCTED INLINE -->
             <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
               
-              <!-- ATTENDING PHYSICIAN(S) - REMOVED HARDCODED VALUE DEFAULT -->
+              <!-- ATTENDING PHYSICIAN(S) -->
               <div>
                 <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Attending Physician(s)</label>
                 <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
@@ -1743,16 +1744,10 @@
     }
 
     function applyWardFilterPermissions() {
+      // PERMISSION CHECKER ONLY - DOES NOT OVERWRITE SELECTED WARD VALUE
       const wardSelect = document.getElementById('ward-name');
       if (!wardSelect) return;
-
-      if (currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin') {
-        wardSelect.disabled = false;
-      } else {
-        const userWard = currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE";
-        wardSelect.value = userWard;
-        wardSelect.disabled = false;
-      }
+      wardSelect.disabled = false;
     }
 
     // SAVE SHIFT SNAPSHOT IN DRAFT MODE
@@ -2085,7 +2080,7 @@
 
       const wardSelect = document.getElementById('ward-name');
       if (wardSelect && currentUser.ward) {
-        wardSelect.value = currentUser.ward;
+        wardSelect.value = currentUser.ward; // SET INITIAL DEFAULT ONLY ON LOGIN
       }
 
       syncWardSelection();
