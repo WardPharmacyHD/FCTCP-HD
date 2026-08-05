@@ -2389,13 +2389,34 @@ function saveShiftSnapshot(statusMode = "DRAFT") {
       });
     }
 
-    function deleteEntry(id) {
-      interventionsData = interventionsData.filter(item => item.id !== id);
-      localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
-      renderInterventions();
-      updatePdfReport();
-      renderPfSummaryReport();
+    async function deleteEntry(id) {
+  if (!confirm("Are you sure you want to delete this intervention entry?")) return;
+
+  // 1. Remove locally & update localStorage
+  interventionsData = interventionsData.filter(item => item.id !== id);
+  localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
+
+  // 2. Update UI components
+  renderInterventions();
+  updatePdfReport();
+  renderPfSummaryReport();
+
+  // 3. Sync deletion request to Google Apps Script
+  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+  if (activeUrl) {
+    try {
+      await fetch(activeUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: "delete", id: id })
+      });
+      showToast('Entry deleted from Google Sheet!', 'success');
+    } catch (err) {
+      console.warn('Deleted locally, but failed to sync deletion with Google Sheet.');
+      showToast('Deleted locally (Cloud sync failed)', 'error');
     }
+  }
+}
 
     // DRUG INFORMATION FORM HANDLER & USER-RESTRICTED RENDER LOGS
     async function handleDiSubmit(e) {
