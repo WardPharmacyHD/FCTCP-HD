@@ -1356,20 +1356,61 @@
       return String(codeVal).split(',').map(s => s.trim()).filter(Boolean);
     }
 
-    function normalizeToISO(dateStr) {
-      if (!dateStr) return "";
-      let s = String(dateStr).trim();
-      if (s.includes('T')) {
-        s = s.split('T')[0];
-      }
-      if (s.includes('/')) {
-        let p = s.split('/');
-        if (p.length === 3 && p[2].length === 4) {
+   function normalizeToISO(dateStr) {
+  if (!dateStr) return "";
+  let s = String(dateStr).trim();
+
+  // 1. Handle ISO timestamps with 'T' using local date methods
+  if (s.includes('T')) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+    s = s.split('T')[0];
+  }
+
+  // 2. Handle Slash Formats (YYYY/MM/DD, DD/MM/YYYY, or MM/DD/YYYY)
+  if (s.includes('/')) {
+    let p = s.split('/');
+    if (p.length === 3) {
+      // YYYY/MM/DD
+      if (p[0].length === 4) {
+        return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
+      } 
+      // DD/MM/YYYY or MM/DD/YYYY
+      else if (p[2].length === 4) {
+        let n1 = parseInt(p[0], 10);
+        let n2 = parseInt(p[1], 10);
+        
+        // If first number > 12, it must be DD/MM/YYYY (e.g., 25/08/2026)
+        if (n1 > 12) {
+          return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+        } 
+        // If second number > 12, it must be MM/DD/YYYY (e.g., 08/25/2026)
+        else if (n2 > 12) {
+          return `${p[2]}-${p[0].padStart(2, '0')}-${p[1].padStart(2, '0')}`;
+        } 
+        // Default standard DD/MM/YYYY
+        else {
           return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
         }
       }
-      return s;
     }
+  }
+
+  // 3. Handle Dash Formats with unpadded numbers (e.g., 2026-8-5 -> 2026-08-05)
+  if (s.includes('-')) {
+    let p = s.split('-');
+    if (p.length === 3 && p[0].length === 4) {
+      return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
+    }
+  }
+
+  return s;
+}
 
     function populatePatientDatalists() {
       const activeWard = document.getElementById('ward-name')?.value || '';
