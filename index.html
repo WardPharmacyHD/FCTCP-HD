@@ -390,9 +390,19 @@
 
       <!-- SECTION A INPUT CONTROLS CARD -->
       <div class="bg-slate-800 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-700 space-y-4 no-print">
-        <h2 class="text-sm font-bold text-slate-100 flex items-center border-b border-slate-700 pb-2">
-          <i class="fa-solid fa-sliders text-sky-400 me-2"></i> Section A: Daily Shift Controls
-        </h2>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700 pb-2 gap-2">
+          <h2 class="text-sm font-bold text-slate-100 flex items-center">
+            <i class="fa-solid fa-sliders text-sky-400 me-2"></i> Section A: Daily Shift Controls
+          </h2>
+          
+          <!-- MULTI-USER TEAM CONTRIBUTORS DISPLAY BADGE -->
+          <div class="flex items-center space-x-2 text-xs">
+            <span class="text-slate-400 font-semibold uppercase text-[10px]">Pharmacist Team Today:</span>
+            <div id="ward-contributors-list" class="flex flex-wrap items-center gap-1.5">
+              <span class="text-slate-500 italic text-[11px]">Loading team entries...</span>
+            </div>
+          </div>
+        </div>
         
         <form id="checkin-form" onsubmit="event.preventDefault();" class="space-y-4">
           
@@ -467,7 +477,7 @@
             
             <!-- CASES & MED HISTORY COUNTERS -->
             <div class="space-y-2 lg:col-span-1">
-              <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Clinical Clerking</label>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">My Personal Clinical Clerking</label>
               
               <div class="bg-slate-900/60 p-2.5 rounded-xl border border-slate-700 flex items-center justify-between">
                 <div>
@@ -494,7 +504,7 @@
 
             <!-- COUNSELLING COUNTERS -->
             <div class="space-y-2 lg:col-span-2">
-              <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Patient Counselling Sessions</label>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">My Personal Counselling Sessions</label>
               
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 
@@ -1258,7 +1268,7 @@
 
   <!-- JAVASCRIPT CONNECTIVITY & LOGIC -->
   <script>
-    // SAFE JSON PARSER HELPER (PREVENTS INITIALIZATION CRASHES)
+    // SAFE JSON PARSER HELPER
     function safeJsonParse(key, fallback) {
       try {
         const item = localStorage.getItem(key);
@@ -1298,7 +1308,7 @@
     let diLogsData = safeJsonParse('cp3_dilogs_db', []);
     let followUpData = safeJsonParse('cp3_followup_db', []);
 
-    // SAFE PORTAL INITIALIZER
+    // PORTAL INITIALIZER
     function initPortal() {
       populateUserLoginDropdown();
       renderUserDirectoryTable();
@@ -1356,61 +1366,51 @@
       return String(codeVal).split(',').map(s => s.trim()).filter(Boolean);
     }
 
-   function normalizeToISO(dateStr) {
-  if (!dateStr) return "";
-  let s = String(dateStr).trim();
+    // HARDENED SMART DATE PARSER
+    function normalizeToISO(dateStr) {
+      if (!dateStr) return "";
+      let s = String(dateStr).trim();
 
-  // 1. Handle ISO timestamps with 'T' using local date methods
-  if (s.includes('T')) {
-    const d = new Date(s);
-    if (!isNaN(d.getTime())) {
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    }
-    s = s.split('T')[0];
-  }
+      if (s.includes('T')) {
+        s = s.split('T')[0];
+      }
 
-  // 2. Handle Slash Formats (YYYY/MM/DD, DD/MM/YYYY, or MM/DD/YYYY)
-  if (s.includes('/')) {
-    let p = s.split('/');
-    if (p.length === 3) {
-      // YYYY/MM/DD
-      if (p[0].length === 4) {
-        return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
-      } 
-      // DD/MM/YYYY or MM/DD/YYYY
-      else if (p[2].length === 4) {
-        let n1 = parseInt(p[0], 10);
-        let n2 = parseInt(p[1], 10);
-        
-        // If first number > 12, it must be DD/MM/YYYY (e.g., 25/08/2026)
-        if (n1 > 12) {
-          return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
-        } 
-        // If second number > 12, it must be MM/DD/YYYY (e.g., 08/25/2026)
-        else if (n2 > 12) {
-          return `${p[2]}-${p[0].padStart(2, '0')}-${p[1].padStart(2, '0')}`;
-        } 
-        // Default standard DD/MM/YYYY
-        else {
-          return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+      if (s.includes('/')) {
+        let p = s.split('/');
+        if (p.length === 3) {
+          if (p[0].length === 4) {
+            return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
+          } else if (p[2].length === 4) {
+            let n1 = parseInt(p[0], 10);
+            let n2 = parseInt(p[1], 10);
+            if (n1 > 12) {
+              return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+            } else if (n2 > 12) {
+              return `${p[2]}-${p[0].padStart(2, '0')}-${p[1].padStart(2, '0')}`;
+            } else {
+              return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+            }
+          }
         }
       }
-    }
-  }
 
-  // 3. Handle Dash Formats with unpadded numbers (e.g., 2026-8-5 -> 2026-08-05)
-  if (s.includes('-')) {
-    let p = s.split('-');
-    if (p.length === 3 && p[0].length === 4) {
-      return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
-    }
-  }
+      if (s.includes('-')) {
+        let p = s.split('-');
+        if (p.length === 3 && p[0].length === 4) {
+          return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
+        }
+      }
 
-  return s;
-}
+      const d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+
+      return s;
+    }
 
     function populatePatientDatalists() {
       const activeWard = document.getElementById('ward-name')?.value || '';
@@ -1567,12 +1567,20 @@
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
       if (!activeUrl) return;
 
+      const extractArray = (json) => {
+        if (Array.isArray(json)) return json;
+        if (json && Array.isArray(json.data)) return json.data;
+        if (json && Array.isArray(json.result)) return json.result;
+        return null;
+      };
+
       try {
         const patientsUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Patients` : `${activeUrl}?sheet=Patients`;
         const resPat = await fetch(patientsUrl);
         if (resPat.ok) {
-          const cloudPat = await resPat.json();
-          if (Array.isArray(cloudPat) && cloudPat.length > 0) {
+          const rawPat = await resPat.json();
+          const cloudPat = extractArray(rawPat);
+          if (cloudPat && cloudPat.length > 0) {
             patientsData = cloudPat;
             localStorage.setItem('cp3_patients_db', JSON.stringify(patientsData));
             populatePatientDatalists();
@@ -1581,8 +1589,9 @@
 
         const resInt = await fetch(activeUrl);
         if (resInt.ok) {
-          const cloudInt = await resInt.json();
-          if (Array.isArray(cloudInt) && cloudInt.length > 0) {
+          const rawInt = await resInt.json();
+          const cloudInt = extractArray(rawInt);
+          if (cloudInt && cloudInt.length > 0) {
             interventionsData = cloudInt;
             localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
           }
@@ -1591,8 +1600,9 @@
         const diUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=DrugInfo` : `${activeUrl}?sheet=DrugInfo`;
         const resDi = await fetch(diUrl);
         if (resDi.ok) {
-          const cloudDi = await resDi.json();
-          if (Array.isArray(cloudDi) && cloudDi.length > 0) {
+          const rawDi = await resDi.json();
+          const cloudDi = extractArray(rawDi);
+          if (cloudDi && cloudDi.length > 0) {
             diLogsData = cloudDi;
             localStorage.setItem('cp3_dilogs_db', JSON.stringify(diLogsData));
           }
@@ -1601,15 +1611,12 @@
         const checkinUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
         const resCheck = await fetch(checkinUrl);
         if (resCheck.ok) {
-          const cloudCheck = await resCheck.json();
-          if (Array.isArray(cloudCheck) && cloudCheck.length > 0) {
+          const rawCheck = await resCheck.json();
+          const cloudCheck = extractArray(rawCheck);
+          if (cloudCheck && cloudCheck.length > 0) {
             cloudCheck.forEach(cloudSnap => {
-              const cloudDate = normalizeToISO(cloudSnap.date).split('T')[0];
-              const cloudWard = String(cloudSnap.ward || '').trim().toUpperCase();
-              const idx = checkinsData.findIndex(c => 
-                normalizeToISO(c.date).split('T')[0] === cloudDate && 
-                String(c.ward || '').trim().toUpperCase() === cloudWard
-              );
+              const cloudId = String(cloudSnap.id || '').trim();
+              const idx = checkinsData.findIndex(c => String(c.id || '').trim() === cloudId);
               if (idx === -1) {
                 checkinsData.push(cloudSnap);
               } else {
@@ -1630,7 +1637,7 @@
         updatePdfReport();
         renderPfSummaryReport();
       } catch (err) {
-        console.warn("Using local cached records.");
+        console.warn("Using local cached records.", err);
       }
     }
 
@@ -1840,9 +1847,11 @@
 
       const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value).split('T')[0];
       const wardName = (document.getElementById('ward-name').value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
-      const targetId = "checkin-" + shiftDate + "-" + wardName.replace(/[^a-zA-Z0-9]/g, '_');
+      const cleanWardKey = wardName.replace(/[^a-zA-Z0-9]/g, '_');
+      const activeUserKey = (localStorage.getItem('active_user_key') || 'anonymous').replace(/[^a-zA-Z0-9]/g, '_');
+      const targetId = "checkin-" + shiftDate + "-" + cleanWardKey + "-" + activeUserKey;
 
-      const activeIndex = checkinsData.findIndex(c => c.id === targetId || (normalizeToISO(c.date).split('T')[0] === shiftDate && String(c.ward).trim().toUpperCase() === wardName));
+      const activeIndex = checkinsData.findIndex(c => c.id === targetId);
 
       if (activeIndex !== -1) {
         checkinsData[activeIndex].status = "DRAFT";
@@ -1852,13 +1861,17 @@
       }
     }
 
+    // MULTI-USER ISOLATED SNAPSHOT SAVER
     function saveShiftSnapshot(statusMode = "DRAFT") {
       const rawDate = document.getElementById('global-shift-date')?.value || "2026-08-05";
       const shiftDate = normalizeToISO(rawDate).split('T')[0];
-      const wardName = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
-      const taskType = document.querySelector('input[name="task_type"]:checked')?.value || "Full Time";
+      const rawWard = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
+      const wardName = rawWard.trim().toUpperCase();
+      const cleanWardKey = wardName.replace(/[^a-zA-Z0-9]/g, '_');
+      const activeUserKey = (localStorage.getItem('active_user_key') || 'anonymous').replace(/[^a-zA-Z0-9]/g, '_');
 
-      const snapshotId = "checkin-" + shiftDate + "-" + wardName.replace(/[^a-zA-Z0-9]/g, '_');
+      const snapshotId = "checkin-" + shiftDate + "-" + cleanWardKey + "-" + activeUserKey;
+      const taskType = document.querySelector('input[name="task_type"]:checked')?.value || "Full Time";
 
       const snapshot = {
         id: snapshotId,
@@ -1871,14 +1884,14 @@
         roundRoutine: document.getElementById('round-routine')?.checked ? "YES" : "NO",
         roundGrand: document.getElementById('round-grand')?.checked ? "YES" : "NO",
         roundPharmacist: document.getElementById('round-pharmacist')?.checked ? "YES" : "NO",
-        cp1: document.getElementById('cp1-count')?.innerText || "0",
-        cp2: document.getElementById('cp2-count')?.innerText || "0",
-        counselBedsideSessions: document.getElementById('counsel-bedside-sessions')?.value || "0",
-        counselBedsidePts: document.getElementById('counsel-bedside-pts')?.value || "0",
-        counselDischargeSessions: document.getElementById('counsel-discharge-sessions')?.value || "0",
-        counselDischargePts: document.getElementById('counsel-discharge-pts')?.value || "0",
-        counselGroupSessions: document.getElementById('counsel-group-sessions')?.value || "0",
-        counselGroupPts: document.getElementById('counsel-group-pts')?.value || "0",
+        cp1: parseInt(document.getElementById('cp1-count')?.innerText, 10) || 0,
+        cp2: parseInt(document.getElementById('cp2-count')?.innerText, 10) || 0,
+        counselBedsideSessions: parseInt(document.getElementById('counsel-bedside-sessions')?.value, 10) || 0,
+        counselBedsidePts: parseInt(document.getElementById('counsel-bedside-pts')?.value, 10) || 0,
+        counselDischargeSessions: parseInt(document.getElementById('counsel-discharge-sessions')?.value, 10) || 0,
+        counselDischargePts: parseInt(document.getElementById('counsel-discharge-pts')?.value, 10) || 0,
+        counselGroupSessions: parseInt(document.getElementById('counsel-group-sessions')?.value, 10) || 0,
+        counselGroupPts: parseInt(document.getElementById('counsel-group-pts')?.value, 10) || 0,
         user_name: currentUser ? currentUser.name : "Anonymous",
         user_ward: currentUser ? currentUser.ward : wardName,
         updatedAt: new Date().toISOString()
@@ -1906,18 +1919,17 @@
       }
     }
 
+    // USER-ISOLATED SHIFT SNAPSHOT LOADER
     function loadActiveShiftSnapshot() {
       const rawDate = document.getElementById('global-shift-date')?.value || "2026-08-05";
       const shiftDate = normalizeToISO(rawDate).split('T')[0];
-      const wardName = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
-      const targetId = "checkin-" + shiftDate + "-" + wardName.replace(/[^a-zA-Z0-9]/g, '_');
+      const activeWard = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
+      const cleanWardKey = activeWard.replace(/[^a-zA-Z0-9]/g, '_');
+      const activeUserKey = (localStorage.getItem('active_user_key') || 'anonymous').replace(/[^a-zA-Z0-9]/g, '_');
+      
+      const targetId = "checkin-" + shiftDate + "-" + cleanWardKey + "-" + activeUserKey;
 
       let snapshot = checkinsData.find(c => c.id === targetId);
-      if (!snapshot) {
-        snapshot = checkinsData.slice().reverse().find(
-          c => (normalizeToISO(c.date).split('T')[0] === shiftDate) && (String(c.ward).trim().toUpperCase() === wardName)
-        );
-      }
 
       const isLocked = snapshot && snapshot.status === "LOCKED";
       const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
@@ -1932,10 +1944,7 @@
 
       if (isLocked) {
         if (banner) banner.className = "bg-emerald-950/80 border-2 border-emerald-500 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg no-print";
-        if (badge) {
-          badge.className = "text-xs font-black uppercase px-2 py-0.5 rounded bg-emerald-500 text-slate-950";
-          badge.innerText = "FINALIZED & LOCKED";
-        }
+        if (badge) { badge.className = "text-xs font-black uppercase px-2 py-0.5 rounded bg-emerald-500 text-slate-950"; badge.innerText = "FINALIZED & LOCKED"; }
         if (iconBg) iconBg.className = "bg-emerald-500 text-slate-950 p-2.5 rounded-xl text-lg font-bold";
         if (icon) icon.className = "fa-solid fa-lock";
         if (desc) desc.innerText = `Report snapshot locked by ${snapshot.user_name || 'Pharmacist'}. Section A controls are read-only.`;
@@ -1943,40 +1952,36 @@
         if (unlockBtn) unlockBtn.classList.toggle('hidden', !isAdmin);
       } else {
         if (banner) banner.className = "bg-amber-950/80 border-2 border-amber-500 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg no-print";
-        if (badge) {
-          badge.className = "text-xs font-black uppercase px-2 py-0.5 rounded bg-amber-500 text-slate-950";
-          badge.innerText = "DRAFT / IN PROGRESS";
-        }
+        if (badge) { badge.className = "text-xs font-black uppercase px-2 py-0.5 rounded bg-amber-500 text-slate-950"; badge.innerText = "DRAFT / IN PROGRESS"; }
         if (iconBg) iconBg.className = "bg-amber-500 text-slate-950 p-2.5 rounded-xl text-lg font-bold";
         if (icon) icon.className = "fa-solid fa-pen-ruler";
-        if (desc) desc.innerText = "Live entries from Tabs 2, 3 & 4 update this report dynamically. Lock shift when rounds are complete.";
+        if (desc) desc.innerText = "Live entries from all pharmacists on this ward update this report dynamically.";
         if (lockBtn) lockBtn.disabled = false;
         if (unlockBtn) unlockBtn.classList.add('hidden');
       }
 
-      const inputs = document.querySelectorAll('.shift-input');
-      inputs.forEach(el => el.disabled = isLocked);
+      document.querySelectorAll('.shift-input').forEach(el => el.disabled = isLocked);
 
       if (snapshot) {
-        document.getElementById('physicians').value = snapshot.physicians !== undefined ? snapshot.physicians : "";
-        if (snapshot.cp1 !== undefined) document.getElementById('cp1-count').innerText = snapshot.cp1;
-        if (snapshot.cp2 !== undefined) document.getElementById('cp2-count').innerText = snapshot.cp2;
+        document.getElementById('physicians').value = snapshot.physicians ?? "";
+        document.getElementById('cp1-count').innerText = snapshot.cp1 ?? 0;
+        document.getElementById('cp2-count').innerText = snapshot.cp2 ?? 0;
 
-        document.getElementById('counsel-bedside-sessions').value = Math.max(0, parseInt(snapshot.counselBedsideSessions) || 0);
-        document.getElementById('counsel-bedside-pts').value = Math.max(0, parseInt(snapshot.counselBedsidePts) || 0);
-        document.getElementById('counsel-discharge-sessions').value = Math.max(0, parseInt(snapshot.counselDischargeSessions) || 0);
-        document.getElementById('counsel-discharge-pts').value = Math.max(0, parseInt(snapshot.counselDischargePts) || 0);
-        document.getElementById('counsel-group-sessions').value = Math.max(0, parseInt(snapshot.counselGroupSessions) || 0);
-        document.getElementById('counsel-group-pts').value = Math.max(0, parseInt(snapshot.counselGroupPts) || 0);
+        document.getElementById('counsel-bedside-sessions').value = snapshot.counselBedsideSessions ?? 0;
+        document.getElementById('counsel-bedside-pts').value = snapshot.counselBedsidePts ?? 0;
+        document.getElementById('counsel-discharge-sessions').value = snapshot.counselDischargeSessions ?? 0;
+        document.getElementById('counsel-discharge-pts').value = snapshot.counselDischargePts ?? 0;
+        document.getElementById('counsel-group-sessions').value = snapshot.counselGroupSessions ?? 0;
+        document.getElementById('counsel-group-pts').value = snapshot.counselGroupPts ?? 0;
 
         if (snapshot.task) {
           const radio = document.querySelector(`input[name="task_type"][value="${snapshot.task}"]`);
           if (radio) radio.checked = true;
         }
 
-        if (snapshot.roundRoutine !== undefined) document.getElementById('round-routine').checked = (snapshot.roundRoutine === true || snapshot.roundRoutine === "YES");
-        if (snapshot.roundGrand !== undefined) document.getElementById('round-grand').checked = (snapshot.roundGrand === true || snapshot.roundGrand === "YES");
-        if (snapshot.roundPharmacist !== undefined) document.getElementById('round-pharmacist').checked = (snapshot.roundPharmacist === true || snapshot.roundPharmacist === "YES");
+        document.getElementById('round-routine').checked = (snapshot.roundRoutine === "YES" || snapshot.roundRoutine === true);
+        document.getElementById('round-grand').checked = (snapshot.roundGrand === "YES" || snapshot.roundGrand === true);
+        document.getElementById('round-pharmacist').checked = (snapshot.roundPharmacist === "YES" || snapshot.roundPharmacist === true);
       } else {
         document.getElementById('physicians').value = "";
         document.getElementById('cp1-count').innerText = "0";
@@ -1987,9 +1992,9 @@
         document.getElementById('counsel-discharge-pts').value = "0";
         document.getElementById('counsel-group-sessions').value = "0";
         document.getElementById('counsel-group-pts').value = "0";
-        if (document.getElementById('round-routine')) document.getElementById('round-routine').checked = true;
-        if (document.getElementById('round-grand')) document.getElementById('round-grand').checked = false;
-        if (document.getElementById('round-pharmacist')) document.getElementById('round-pharmacist').checked = false;
+        document.getElementById('round-routine').checked = true;
+        document.getElementById('round-grand').checked = false;
+        document.getElementById('round-pharmacist').checked = false;
       }
     }
 
@@ -2272,11 +2277,11 @@
       const el = document.getElementById(id);
       if (!el) return;
       if (el.tagName === 'INPUT') {
-        let val = (parseInt(el.value) || 0) + delta;
+        let val = (parseInt(el.value, 10) || 0) + delta;
         if (val < 0) val = 0;
         el.value = val;
       } else {
-        let val = (parseInt(el.innerText) || 0) + delta;
+        let val = (parseInt(el.innerText, 10) || 0) + delta;
         if (val < 0) val = 0;
         el.innerText = val;
       }
@@ -2365,14 +2370,12 @@
       const selectedDropdownWard = document.getElementById('ward-name')?.value || userAssignedWard;
       
       const activeWard = isAdmin ? selectedDropdownWard : userAssignedWard;
+      const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
       const filtered = interventionsData.filter(item => {
         const itemDate = normalizeToISO(item.date).split('T')[0];
         const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
-
-        const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        const targetWard = String(activeWard).trim().toUpperCase();
-        const wardMatch = itemWard === targetWard;
+        const wardMatch = cleanStr(item.ward) === cleanStr(activeWard);
 
         return dateMatch && wardMatch;
       });
@@ -2404,6 +2407,7 @@
               <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">${item.rn}</span>
               <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${codeDisplay}${countBadge}</span>
               <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
+              <span class="text-xs bg-slate-900 text-sky-400 border border-slate-700 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-user-doctor me-1"></i>${item.user_name || 'RPh'}</span>
               ${isAcc ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
             </div>
             <p class="text-xs text-slate-300">${item.desc}</p>
@@ -2611,10 +2615,9 @@
       if (!tbody) return;
 
       const activeWard = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
-      const filtered = followUpData.filter(item => {
-        const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        return itemWard === activeWard;
-      });
+      const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      
+      const filtered = followUpData.filter(item => cleanStr(item.ward) === cleanStr(activeWard));
 
       if (countEl) countEl.innerText = filtered.length;
       tbody.innerHTML = '';
@@ -2728,57 +2731,108 @@
       }
     }
 
+    // MULTI-USER WARD AGGREGATED REPORT UPDATER
     function updatePdfReport() {
       let rawDate = document.getElementById('global-shift-date')?.value || "2026-08-05";
       let singleDate = normalizeToISO(rawDate).split('T')[0];
       const activeWard = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
-
-      const targetId = "checkin-" + singleDate + "-" + activeWard.replace(/[^a-zA-Z0-9]/g, '_');
-      let lockedSnapshot = checkinsData.find(c => c.id === targetId);
-      if (!lockedSnapshot) {
-        lockedSnapshot = checkinsData.slice().reverse().find(
-          c => (normalizeToISO(c.date).split('T')[0] === singleDate) && (String(c.ward).trim().toUpperCase() === activeWard)
-        );
-      }
+      const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
       const formattedSingleDate = formatDateDDMMYYYY(singleDate);
       if (document.getElementById('pdf-date')) document.getElementById('pdf-date').innerText = formattedSingleDate;
       if (document.getElementById('pdf-footer-date')) document.getElementById('pdf-footer-date').innerText = formattedSingleDate;
       if (document.getElementById('pdf-ward')) document.getElementById('pdf-ward').innerText = activeWard;
 
-      const phys = (lockedSnapshot && lockedSnapshot.physicians !== undefined) ? lockedSnapshot.physicians : (document.getElementById('physicians')?.value.trim() || "-");
-      const cp1Val = lockedSnapshot ? lockedSnapshot.cp1 : (document.getElementById('cp1-count')?.innerText || "0");
-      const cp2Val = lockedSnapshot ? lockedSnapshot.cp2 : (document.getElementById('cp2-count')?.innerText || "0");
-      const taskVal = lockedSnapshot ? lockedSnapshot.task : (document.querySelector('input[name="task_type"]:checked')?.value || "Full Time");
-      const rRoutine = lockedSnapshot ? lockedSnapshot.roundRoutine : (document.getElementById('round-routine')?.checked ? "YES" : "NO");
-      const rGrand = lockedSnapshot ? lockedSnapshot.roundGrand : (document.getElementById('round-grand')?.checked ? "YES" : "NO");
-      const rPharm = lockedSnapshot ? lockedSnapshot.roundPharmacist : (document.getElementById('round-pharmacist')?.checked ? "YES" : "NO");
+      // Filter all snapshots for this ward & date across ALL users
+      const wardCheckins = checkinsData.filter(c => 
+        normalizeToISO(c.date).split('T')[0] === singleDate && 
+        cleanStr(c.ward) === cleanStr(activeWard)
+      );
 
-      if (document.getElementById('pdf-physicians')) document.getElementById('pdf-physicians').innerText = phys || "-";
-      if (document.getElementById('pdf-cp1')) document.getElementById('pdf-cp1').innerText = cp1Val;
-      if (document.getElementById('pdf-cp2')) document.getElementById('pdf-cp2').innerText = cp2Val;
-      if (document.getElementById('pdf-task')) document.getElementById('pdf-task').innerText = taskVal;
-      if (document.getElementById('pdf-round-routine')) document.getElementById('pdf-round-routine').innerText = rRoutine;
-      if (document.getElementById('pdf-round-grand')) document.getElementById('pdf-round-grand').innerText = rGrand;
-      if (document.getElementById('pdf-round-pharmacist')) document.getElementById('pdf-round-pharmacist').innerText = rPharm;
+      let totalCp1 = 0;
+      let totalCp2 = 0;
+      let bSessions = 0, bPts = 0;
+      let dSessions = 0, dPts = 0;
+      let gSessions = 0, gPts = 0;
+      let physicianSet = new Set();
+      let roundRoutine = "NO", roundGrand = "NO", roundPharmacist = "NO";
+      let contributorsMap = new Map();
+
+      wardCheckins.forEach(c => {
+        totalCp1 += parseInt(c.cp1, 10) || 0;
+        totalCp2 += parseInt(c.cp2, 10) || 0;
+        bSessions += parseInt(c.counselBedsideSessions, 10) || 0;
+        bPts += parseInt(c.counselBedsidePts, 10) || 0;
+        dSessions += parseInt(c.counselDischargeSessions, 10) || 0;
+        dPts += parseInt(c.counselDischargePts, 10) || 0;
+        gSessions += parseInt(c.counselGroupSessions, 10) || 0;
+        gPts += parseInt(c.counselGroupPts, 10) || 0;
+
+        if (c.physicians && c.physicians.trim() !== "" && c.physicians !== "-") {
+          c.physicians.split(',').forEach(p => {
+            const trimmed = p.trim();
+            if (trimmed) physicianSet.add(trimmed);
+          });
+        }
+
+        if (c.roundRoutine === "YES" || c.roundRoutine === true) roundRoutine = "YES";
+        if (c.roundGrand === "YES" || c.roundGrand === true) roundGrand = "YES";
+        if (c.roundPharmacist === "YES" || c.roundPharmacist === true) roundPharmacist = "YES";
+
+        if (c.user_name) {
+          contributorsMap.set(c.user_name, c.status || 'DRAFT');
+        }
+      });
+
+      // Include users who logged interventions on this ward today
+      interventionsData.forEach(item => {
+        if (normalizeToISO(item.date).split('T')[0] === singleDate && cleanStr(item.ward) === cleanStr(activeWard)) {
+          if (item.user_name && !contributorsMap.has(item.user_name)) {
+            contributorsMap.set(item.user_name, 'ACTIVE');
+          }
+        }
+      });
+
+      // Render Team Contributors UI Badge List
+      const contributorsContainer = document.getElementById('ward-contributors-list');
+      if (contributorsContainer) {
+        contributorsContainer.innerHTML = '';
+        if (contributorsMap.size === 0) {
+          contributorsContainer.innerHTML = '<span class="text-slate-400 italic text-[11px]">No entries logged yet for today.</span>';
+        } else {
+          contributorsMap.forEach((status, uname) => {
+            const span = document.createElement('span');
+            span.className = 'inline-flex items-center bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-[10px] font-semibold text-sky-300';
+            span.innerHTML = `<i class="fa-solid fa-user-doctor text-[9px] text-sky-400 me-1"></i> ${uname} <span class="text-[8px] ms-1 text-slate-400">(${status})</span>`;
+            contributorsContainer.appendChild(span);
+          });
+        }
+      }
+
+      const mergedPhysicians = Array.from(physicianSet).join(', ');
+
+      if (document.getElementById('pdf-physicians')) document.getElementById('pdf-physicians').innerText = mergedPhysicians || "-";
+      if (document.getElementById('pdf-cp1')) document.getElementById('pdf-cp1').innerText = totalCp1.toString();
+      if (document.getElementById('pdf-cp2')) document.getElementById('pdf-cp2').innerText = totalCp2.toString();
+      if (document.getElementById('pdf-task')) document.getElementById('pdf-task').innerText = wardCheckins.length > 0 ? wardCheckins[0].task : "Full Time";
+      if (document.getElementById('pdf-round-routine')) document.getElementById('pdf-round-routine').innerText = roundRoutine;
+      if (document.getElementById('pdf-round-grand')) document.getElementById('pdf-round-grand').innerText = roundGrand;
+      if (document.getElementById('pdf-round-pharmacist')) document.getElementById('pdf-round-pharmacist').innerText = roundPharmacist;
 
       let filteredInterventions = interventionsData.filter(item => {
         const itemDate = normalizeToISO(item.date).split('T')[0];
-        const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        return itemDate === singleDate && itemWard === activeWard;
+        return itemDate === singleDate && cleanStr(item.ward) === cleanStr(activeWard);
       });
 
       let filteredDi = diLogsData.filter(item => {
         const itemDate = normalizeToISO(item.date).split('T')[0];
-        const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        return itemDate === singleDate && itemWard === activeWard;
+        return itemDate === singleDate && cleanStr(item.ward) === cleanStr(activeWard);
       });
 
       let filteredFu = followUpData.filter(item => {
         const itemDate = normalizeToISO(item.date).split('T')[0];
         const isPending = item.status !== "Complete";
-        const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        const wardMatch = itemWard === activeWard;
+        const wardMatch = cleanStr(item.ward) === cleanStr(activeWard);
         return wardMatch && ((itemDate === singleDate) || (itemDate < singleDate && isPending));
       });
 
@@ -2810,8 +2864,8 @@
           const targetCount = document.getElementById(`count-${code}`);
           const targetAcc = document.getElementById(`acc-${code}`);
 
-          if (targetCount) targetCount.innerText = (parseInt(targetCount.innerText) || 0) + 1;
-          if (targetAcc && isAcc) targetAcc.innerText = (parseInt(targetAcc.innerText) || 0) + 1;
+          if (targetCount) targetCount.innerText = (parseInt(targetCount.innerText, 10) || 0) + 1;
+          if (targetAcc && isAcc) targetAcc.innerText = (parseInt(targetAcc.innerText, 10) || 0) + 1;
         });
       });
 
@@ -2850,7 +2904,7 @@
           const el = document.getElementById(elementId);
           const elT = document.getElementById(`${elementId}-t`);
           if (el) {
-            const updated = (parseInt(el.innerText) || 0) + 1;
+            const updated = (parseInt(el.innerText, 10) || 0) + 1;
             el.innerText = updated.toString();
             if (elT) elT.innerText = updated.toString();
           }
@@ -2858,20 +2912,12 @@
       });
       if (document.getElementById('di-total-provided')) document.getElementById('di-total-provided').innerText = totalDiCount.toString();
 
-      const bSessions = parseInt(lockedSnapshot?.counselBedsideSessions ?? document.getElementById('counsel-bedside-sessions')?.value ?? 0) || 0;
-      const bPts = parseInt(lockedSnapshot?.counselBedsidePts ?? document.getElementById('counsel-bedside-pts')?.value ?? 0) || 0;
-      const dSessions = parseInt(lockedSnapshot?.counselDischargeSessions ?? document.getElementById('counsel-discharge-sessions')?.value ?? 0) || 0;
-      const dPts = parseInt(lockedSnapshot?.counselDischargePts ?? document.getElementById('counsel-discharge-pts')?.value ?? 0) || 0;
-      const gSessions = parseInt(lockedSnapshot?.counselGroupSessions ?? document.getElementById('counsel-group-sessions')?.value ?? 0) || 0;
-      const gPts = parseInt(lockedSnapshot?.counselGroupPts ?? document.getElementById('counsel-group-pts')?.value ?? 0) || 0;
-
-      if (document.getElementById('pdf-counsel-bed-s')) document.getElementById('pdf-counsel-bed-s').innerText = bSessions;
-      if (document.getElementById('pdf-counsel-bed-p')) document.getElementById('pdf-counsel-bed-p').innerText = bPts;
-      if (document.getElementById('pdf-counsel-dis-s')) document.getElementById('pdf-counsel-dis-s').innerText = dSessions;
-      if (document.getElementById('pdf-counsel-dis-p')) document.getElementById('pdf-counsel-dis-p').innerText = dPts;
-      if (document.getElementById('pdf-counsel-grp-s')) document.getElementById('pdf-counsel-grp-s').innerText = gSessions;
-      if (document.getElementById('pdf-counsel-grp-p')) document.getElementById('pdf-counsel-grp-p').innerText = gPts;
-
+      if (document.getElementById('pdf-counsel-bed-s')) document.getElementById('pdf-counsel-bed-s').innerText = bSessions.toString();
+      if (document.getElementById('pdf-counsel-bed-p')) document.getElementById('pdf-counsel-bed-p').innerText = bPts.toString();
+      if (document.getElementById('pdf-counsel-dis-s')) document.getElementById('pdf-counsel-dis-s').innerText = dSessions.toString();
+      if (document.getElementById('pdf-counsel-dis-p')) document.getElementById('pdf-counsel-dis-p').innerText = dPts.toString();
+      if (document.getElementById('pdf-counsel-grp-s')) document.getElementById('pdf-counsel-grp-s').innerText = gSessions.toString();
+      if (document.getElementById('pdf-counsel-grp-p')) document.getElementById('pdf-counsel-grp-p').innerText = gPts.toString();
       if (document.getElementById('pdf-grand-total')) document.getElementById('pdf-grand-total').innerText = (bPts + dPts + gPts).toString();
 
       const tbodyC = document.getElementById('pdf-interventions-table');
@@ -2890,7 +2936,7 @@
               <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${item.patient}</td>
               <td class="p-1 border-r border-slate-700 font-mono text-slate-400">${item.rn}</td>
               <td class="p-1 border-r border-slate-700 font-bold text-sky-400 text-center">#${index + 1} (${codes})</td>
-              <td class="p-1 border-r border-slate-700 text-slate-200">${item.desc} ${isAcc ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''}</td>
+              <td class="p-1 border-r border-slate-700 text-slate-200">${item.desc} ${isAcc ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''} <span class="text-slate-500 text-[9px]"> - ${item.user_name || 'RPh'}</span></td>
               <td class="p-1 text-center no-print flex items-center justify-center space-x-1.5">
                 <button onclick="openEditInterventionModal('${item.id}')" class="text-sky-400 hover:text-sky-300 p-0.5" title="Edit Entry"><i class="fa-solid fa-pen-to-square"></i></button>
                 <button onclick="deleteEntry('${item.id}')" class="text-rose-400 hover:text-rose-300 p-0.5" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
