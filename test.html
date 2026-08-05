@@ -1823,61 +1823,62 @@
       }
     }
 
-    // CORE SNAPSHOT SAVER
-    function saveShiftSnapshot(statusMode = "DRAFT") {
-      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value).split('T')[0];
-      const wardName = document.getElementById('ward-name').value;
-      const taskType = document.querySelector('input[name="task_type"]:checked')?.value || "Full Time";
+    // DETERMINISTIC SHIFT SNAPSHOT SAVER
+function saveShiftSnapshot(statusMode = "DRAFT") {
+  const rawDate = document.getElementById('global-shift-date')?.value || "2026-08-05";
+  const shiftDate = normalizeToISO(rawDate).split('T')[0];
+  const wardName = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
+  const taskType = document.querySelector('input[name="task_type"]:checked')?.value || "Full Time";
 
-      const snapshot = {
-        id: "checkin-" + Date.now().toString(),
-        type: "SECTION_A_CHECKIN",
-        status: statusMode,
-        date: shiftDate,
-        ward: wardName,
-        task: taskType,
-        physicians: document.getElementById('physicians')?.value.trim() || "",
-        roundRoutine: document.getElementById('round-routine')?.checked ? "YES" : "NO",
-        roundGrand: document.getElementById('round-grand')?.checked ? "YES" : "NO",
-        roundPharmacist: document.getElementById('round-pharmacist')?.checked ? "YES" : "NO",
-        cp1: document.getElementById('cp1-count')?.innerText || "0",
-        cp2: document.getElementById('cp2-count')?.innerText || "0",
-        counselBedsideSessions: document.getElementById('counsel-bedside-sessions')?.value || "0",
-        counselBedsidePts: document.getElementById('counsel-bedside-pts')?.value || "0",
-        counselDischargeSessions: document.getElementById('counsel-discharge-sessions')?.value || "0",
-        counselDischargePts: document.getElementById('counsel-discharge-pts')?.value || "0",
-        counselGroupSessions: document.getElementById('counsel-group-sessions')?.value || "0",
-        counselGroupPts: document.getElementById('counsel-group-pts')?.value || "0",
-        user_name: currentUser ? currentUser.name : "Anonymous",
-        user_ward: currentUser ? currentUser.ward : wardName,
-        updatedAt: new Date().toISOString()
-      };
+  // Fixed ID per date + ward (Prevents duplicate rows)
+  const snapshotId = "checkin-" + shiftDate + "-" + wardName.replace(/[^a-zA-Z0-9]/g, '_');
 
-      const existingIndex = checkinsData.findIndex(
-        c => normalizeToISO(c.date).split('T')[0] === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
-      );
+  const snapshot = {
+    id: snapshotId,
+    type: "SECTION_A_CHECKIN",
+    status: statusMode,
+    date: shiftDate,
+    ward: wardName,
+    task: taskType,
+    physicians: document.getElementById('physicians')?.value.trim() || "",
+    roundRoutine: document.getElementById('round-routine')?.checked ? "YES" : "NO",
+    roundGrand: document.getElementById('round-grand')?.checked ? "YES" : "NO",
+    roundPharmacist: document.getElementById('round-pharmacist')?.checked ? "YES" : "NO",
+    cp1: document.getElementById('cp1-count')?.innerText || "0",
+    cp2: document.getElementById('cp2-count')?.innerText || "0",
+    counselBedsideSessions: document.getElementById('counsel-bedside-sessions')?.value || "0",
+    counselBedsidePts: document.getElementById('counsel-bedside-pts')?.value || "0",
+    counselDischargeSessions: document.getElementById('counsel-discharge-sessions')?.value || "0",
+    counselDischargePts: document.getElementById('counsel-discharge-pts')?.value || "0",
+    counselGroupSessions: document.getElementById('counsel-group-sessions')?.value || "0",
+    counselGroupPts: document.getElementById('counsel-group-pts')?.value || "0",
+    user_name: currentUser ? currentUser.name : "Anonymous",
+    user_ward: currentUser ? currentUser.ward : wardName,
+    updatedAt: new Date().toISOString()
+  };
 
-      if (existingIndex !== -1) {
-        checkinsData[existingIndex] = snapshot;
-      } else {
-        checkinsData.push(snapshot);
-      }
+  const existingIndex = checkinsData.findIndex(c => c.id === snapshotId);
 
-      localStorage.setItem('cp3_checkins_db', JSON.stringify(checkinsData));
-      loadActiveShiftSnapshot();
-      updatePdfReport();
+  if (existingIndex !== -1) {
+    checkinsData[existingIndex] = snapshot;
+  } else {
+    checkinsData.push(snapshot);
+  }
 
-      // Cloud Background Sync (Apps Script compatible header)
-      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-      if (activeUrl) {
-        const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
-        fetch(targetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ data: [snapshot] })
-        }).catch(err => console.warn('Background check-in sync skipped or offline.'));
-      }
-    }
+  localStorage.setItem('cp3_checkins_db', JSON.stringify(checkinsData));
+  updatePdfReport();
+
+  // Cloud Sync
+  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+  if (activeUrl) {
+    const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
+    fetch(targetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ data: [snapshot] })
+    }).catch(err => console.warn('Background check-in sync skipped or offline.'));
+  }
+}
 
     // LOAD SHIFT SNAPSHOT & APPLY READ-ONLY LOCKING IF FINALIZED
     function loadActiveShiftSnapshot() {
