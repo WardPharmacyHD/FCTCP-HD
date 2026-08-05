@@ -2508,101 +2508,134 @@
       updatePdfReport();
     }
 
-    function handleFollowUpSubmit(e) {
-      e.preventDefault();
-      const rawDate = document.getElementById('global-shift-date').value;
-      const actionInput = document.getElementById('followup-action').value.trim();
+    // 1. ADD NEW FOLLOW-UP ITEM (WITH GOOGLE SHEETS SYNC)
+async function handleFollowUpSubmit(e) {
+  e.preventDefault();
+  const rawDate = document.getElementById('global-shift-date').value;
+  const actionInput = document.getElementById('followup-action').value.trim();
 
-      const payload = {
-        id: "fu-" + Date.now().toString(),
-        date: rawDate,
-        displayDate: formatDateShortMonth(rawDate),
-        ward: document.getElementById('ward-name').value,
-        action: actionInput,
-        status: "",
-        user_name: currentUser ? currentUser.name : "Anonymous",
-        user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
-      };
+  const payload = {
+    id: "fu-" + Date.now().toString(),
+    date: rawDate,
+    displayDate: formatDateShortMonth(rawDate),
+    ward: document.getElementById('ward-name').value,
+    action: actionInput,
+    status: "",
+    user_name: currentUser ? currentUser.name : "Anonymous",
+    user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
+  };
 
-      followUpData.push(payload);
-      localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+  followUpData.push(payload);
+  localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
 
-      document.getElementById('followup-action').value = '';
-      renderFollowUpLogs();
-      updatePdfReport();
-      showToast('Follow-Up Action Item Saved!', 'success');
+  document.getElementById('followup-action').value = '';
+  renderFollowUpLogs();
+  updatePdfReport();
+
+  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+  if (activeUrl) {
+    try {
+      const targetUrl = activeUrl.includes('?') 
+        ? `${activeUrl}&sheet=FollowUp` 
+        : `${activeUrl}?sheet=FollowUp`;
+
+      await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ data: [payload] })
+      });
+      showToast('Follow-Up Action Item Saved & Synced!', 'success');
+    } catch (err) {
+      console.warn('Saved Follow-Up locally, but failed to reach Google Sheets.');
+      showToast('Saved locally (Cloud sync failed)', 'error');
     }
+  }
+}
 
-    function editFollowUpAction(id) {
-      const item = followUpData.find(i => i.id === id);
-      if (!item) return;
+// 2. TOGGLE FOLLOW-UP COMPLETION STATUS (WITH UPSERT SYNC)
+async function toggleFollowUpStatus(id) {
+  const targetId = String(id).trim();
+  const item = followUpData.find(i => String(i.id).trim() === targetId);
+  if (!item) return;
 
-      const newAction = prompt("Edit Follow-up Issue / Details:", item.action);
-      if (newAction !== null && newAction.trim() !== "") {
-        item.action = newAction.trim();
-        localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
-        renderFollowUpLogs();
-        updatePdfReport();
-        showToast('Follow-Up Item Updated!', 'success');
+  item.status = (item.status === "Complete") ? "" : "Complete";
+  localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+  renderFollowUpLogs();
+  updatePdfReport();
+
+  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+  if (activeUrl) {
+    try {
+      const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
+      await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ data: [item] })
+      });
+    } catch (err) {
+      console.warn('Status updated locally, but cloud sync failed.');
+    }
+  }
+}
+
+// 3. EDIT FOLLOW-UP TEXT (WITH UPSERT SYNC)
+async function editFollowUpAction(id) {
+  const targetId = String(id).trim();
+  const item = followUpData.find(i => String(i.id).trim() === targetId);
+  if (!item) return;
+
+  const newAction = prompt("Edit Follow-up Issue / Details:", item.action);
+  if (newAction !== null && newAction.trim() !== "") {
+    item.action = newAction.trim();
+    localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+    renderFollowUpLogs();
+    updatePdfReport();
+
+    const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+    if (activeUrl) {
+      try {
+        const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
+        await fetch(targetUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ data: [item] })
+        });
+        showToast('Follow-Up Item Updated & Synced!', 'success');
+      } catch (err) {
+        console.warn('Updated locally, but cloud sync failed.');
       }
     }
+  }
+}
 
-    function toggleFollowUpStatus(id) {
-      const item = followUpData.find(i => i.id === id);
-      if (!item) return;
-      item.status = (item.status === "Complete") ? "" : "Complete";
-      localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
-      renderFollowUpLogs();
-      updatePdfReport();
-    }
+// 4. DELETE FOLLOW-UP ENTRY (WITH DELETION SYNC)
+async function deleteFollowUpEntry(id) {
+  if (!confirm("Delete this follow-up checklist item?")) return;
 
-    function renderFollowUpLogs() {
-      const countEl = document.getElementById('followup-entry-count');
-      if (countEl) countEl.innerText = followUpData.length;
+  const targetId = String(id).trim();
+  showLoading("Deleting follow-up item...");
 
-      const tbody = document.getElementById('followup-logs-tbody');
-      if (!tbody) return;
-      tbody.innerHTML = '';
+  try {
+    followUpData = followUpData.filter(item => String(item.id).trim() !== targetId);
+    localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
 
-      if (followUpData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">No follow-up issues logged. Use the bar above to add an item.</td></tr>';
-        return;
-      }
+    renderFollowUpLogs();
+    updatePdfReport();
 
-      const sorted = [...followUpData].sort((a, b) => new Date(normalizeToISO(b.date)) - new Date(normalizeToISO(a.date)));
-
-      sorted.forEach(item => {
-        const isComplete = item.status === "Complete";
-        const tr = document.createElement('tr');
-        
-        tr.className = isComplete 
-          ? 'bg-zinc-700/80 text-zinc-400 line-through border-b border-zinc-600 font-mono transition-colors' 
-          : 'bg-slate-900/60 hover:bg-slate-800 text-slate-100 border-b border-slate-800 font-mono transition-colors';
-
-        tr.innerHTML = `
-          <td class="p-2.5 border-r ${isComplete ? 'border-zinc-600' : 'border-slate-800'} text-center font-bold">${item.displayDate || formatDateShortMonth(item.date)}</td>
-          <td class="p-2.5 border-r ${isComplete ? 'border-zinc-600' : 'border-slate-800'} cursor-pointer" onclick="editFollowUpAction('${item.id}')" title="Click to edit issue text">
-            ${item.action}
-          </td>
-          <td class="p-2.5 border-r ${isComplete ? 'border-zinc-600' : 'border-slate-800'} text-center no-underline">
-            <button onclick="toggleFollowUpStatus('${item.id}')" class="w-full py-1 px-2 rounded font-bold text-xs transition flex items-center justify-center space-x-1 ${isComplete ? 'bg-zinc-900/80 text-zinc-300 border border-zinc-500' : 'bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800'}">
-              ${isComplete ? '<i class="fa-solid fa-check text-emerald-400 me-1"></i> Complete' : '<i class="fa-regular fa-square me-1"></i> Pending'}
-            </button>
-          </td>
-          <td class="p-2.5 text-center no-underline">
-            <button onclick="editFollowUpAction('${item.id}')" class="text-sky-400 hover:text-sky-300 p-1 me-2" title="Edit text"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button onclick="deleteFollowUpEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 p-1" title="Delete entry"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        `;
-        tbody.appendChild(tr);
+    const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+    if (activeUrl) {
+      const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
+      await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: "delete", id: targetId })
       });
     }
-
-    function deleteFollowUpEntry(id) {
-      followUpData = followUpData.filter(item => item.id !== id);
-      localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
-      renderFollowUpLogs();
-      updatePdfReport();
+    showToast('Follow-Up item permanently deleted!', 'success');
+  } catch (err) {
+    console.warn('Deleted locally, but cloud deletion failed:', err);
+  } finally {
+    hideLoading();
     }
 
     function updatePdfReport() {
