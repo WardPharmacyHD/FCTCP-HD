@@ -427,11 +427,11 @@
             <!-- ROW 1 RIGHT: ATTENDING PHYSICIANS & WARD ROUNDS CONDUCTED INLINE -->
             <div class="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
               
-              <!-- ATTENDING PHYSICIAN(S) -->
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Attending Physician(s)</label>
-                <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
-              </div>
+           <!-- ATTENDING PHYSICIAN(S) -->
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Attending Physician(s)</label>
+              <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="" oninput="updatePdfReport()" onchange="updatePdfReport(); saveShiftSnapshot('DRAFT');" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+            </div>
 
               <!-- WARD ROUNDS CONDUCTED (INLINE WITH DOCTORS FIELD & ONLY ROUTINE TICKED BY DEFAULT) -->
               <div>
