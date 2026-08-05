@@ -22,6 +22,12 @@
       footer, .no-print { display: none !important; }
     }
   </style>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CP3 Portal">
+<link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col relative pb-12">
 
@@ -3201,5 +3207,15 @@
       downloadAnchor.remove();
     }
   </script>
-</body>
+<!-- Paste Service Worker Script Right Before Closing </body> Tag -->
+      <script>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js', { scope: './' })
+              .then(reg => console.log('PWA Service Worker registered:', reg.scope))
+              .catch(err => console.error('Service Worker registration failed:', err));
+          });
+        }
+      </script>
+    </body>
 </html>
