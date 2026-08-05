@@ -1258,8 +1258,6 @@
 
   <!-- JAVASCRIPT CONNECTIVITY & LOGIC -->
   <script>
-   <!-- JAVASCRIPT CONNECTIVITY & LOGIC -->
-  <script>
     // SAFE JSON PARSER HELPER (PREVENTS INITIALIZATION CRASHES)
     function safeJsonParse(key, fallback) {
       try {
@@ -1300,40 +1298,40 @@
     let diLogsData = safeJsonParse('cp3_dilogs_db', []);
     let followUpData = safeJsonParse('cp3_followup_db', []);
 
-   // SAFE PORTAL INITIALIZER (FIRES IMMEDIATELY IF DOM IS ALREADY LOADED)
-function initPortal() {
-  populateUserLoginDropdown();
-  renderUserDirectoryTable();
-  checkStoredAuthSession();
-  updateApiStatusDisplay();
-  loadActiveShiftSnapshot();
-  loadLastPatientData();
-  syncShiftDate();
-  setupPatientAutofill();
-  renderInterventions();
-  renderDiLogs();
-  renderFollowUpLogs();
-  fetchCloudData();
-}
+    // SAFE PORTAL INITIALIZER
+    function initPortal() {
+      populateUserLoginDropdown();
+      renderUserDirectoryTable();
+      checkStoredAuthSession();
+      updateApiStatusDisplay();
+      loadActiveShiftSnapshot();
+      loadLastPatientData();
+      syncShiftDate();
+      setupPatientAutofill();
+      renderInterventions();
+      renderDiLogs();
+      renderFollowUpLogs();
+      fetchCloudData();
+    }
 
-if (document.readyState === 'loading') {
-  window.addEventListener('DOMContentLoaded', initPortal);
-} else {
-  initPortal();
-}
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', initPortal);
+    } else {
+      initPortal();
+    }
 
-document.addEventListener('click', (e) => {
-  const adminContainer = document.getElementById('admin-menu-container');
-  if (adminContainer && !adminContainer.contains(e.target)) {
-    hideAdminMenu();
-  }
-});
+    document.addEventListener('click', (e) => {
+      const adminContainer = document.getElementById('admin-menu-container');
+      if (adminContainer && !adminContainer.contains(e.target)) {
+        hideAdminMenu();
+      }
+    });
 
-function toggleAdminMenu(e) {
-  if (e) e.stopPropagation();
-  const dropdown = document.getElementById('admin-menu-dropdown');
-  if (dropdown) dropdown.classList.toggle('hidden');
-}
+    function toggleAdminMenu(e) {
+      if (e) e.stopPropagation();
+      const dropdown = document.getElementById('admin-menu-dropdown');
+      if (dropdown) dropdown.classList.toggle('hidden');
+    }
 
     function hideAdminMenu() {
       const dropdown = document.getElementById('admin-menu-dropdown');
@@ -1358,7 +1356,6 @@ function toggleAdminMenu(e) {
       return String(codeVal).split(',').map(s => s.trim()).filter(Boolean);
     }
 
-    // HARDENED ISO DATE NORMALIZER
     function normalizeToISO(dateStr) {
       if (!dateStr) return "";
       let s = String(dateStr).trim();
@@ -1814,7 +1811,6 @@ function toggleAdminMenu(e) {
       }
     }
 
-    // DETERMINISTIC SNAPSHOT SAVER
     function saveShiftSnapshot(statusMode = "DRAFT") {
       const rawDate = document.getElementById('global-shift-date')?.value || "2026-08-05";
       const shiftDate = normalizeToISO(rawDate).split('T')[0];
@@ -1869,7 +1865,6 @@ function toggleAdminMenu(e) {
       }
     }
 
-    // LOAD SHIFT SNAPSHOT
     function loadActiveShiftSnapshot() {
       const rawDate = document.getElementById('global-shift-date')?.value || "2026-08-05";
       const shiftDate = normalizeToISO(rawDate).split('T')[0];
@@ -2232,7 +2227,6 @@ function toggleAdminMenu(e) {
       renderPfSummaryReport();
     }
 
-    // AUTO-SAVING COUNTER UPDATER
     function updateCounter(id, delta) {
       const el = document.getElementById(id);
       if (!el) return;
@@ -2382,7 +2376,6 @@ function toggleAdminMenu(e) {
       });
     }
 
-    // TYPE-SAFE DELETE FUNCTION WITH CLOUD DELETION & LOADING OVERLAY
     async function deleteEntry(id) {
       if (!confirm("Are you sure you want to delete this intervention entry?")) return;
 
@@ -2391,16 +2384,13 @@ function toggleAdminMenu(e) {
       showLoading("Deleting entry & updating CP3 report...");
 
       try {
-        // 1. Remove locally & update localStorage
         interventionsData = interventionsData.filter(item => String(item.id).trim() !== targetId);
         localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
 
-        // 2. Immediately update all UI tallies
         renderInterventions();
         updatePdfReport();
         renderPfSummaryReport();
 
-        // 3. Send delete command to Google Apps Script
         const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
         if (activeUrl) {
           await fetch(activeUrl, {
@@ -2409,7 +2399,7 @@ function toggleAdminMenu(e) {
             body: JSON.stringify({ action: "delete", id: targetId })
           });
         }
-        showToast('Entry permanently deleted from Google Sheet!', 'success');
+        showToast('Entry permanently deleted!', 'success');
       } catch (err) {
         console.warn('Deleted locally, but failed to sync deletion with Google Sheet.', err);
         showToast('Deleted locally (Cloud sync failed)', 'error');
@@ -2531,134 +2521,170 @@ function toggleAdminMenu(e) {
       updatePdfReport();
     }
 
-    // 1. ADD NEW FOLLOW-UP ITEM (WITH GOOGLE SHEETS SYNC)
-async function handleFollowUpSubmit(e) {
-  e.preventDefault();
-  const rawDate = document.getElementById('global-shift-date').value;
-  const actionInput = document.getElementById('followup-action').value.trim();
+    async function handleFollowUpSubmit(e) {
+      e.preventDefault();
+      const rawDate = document.getElementById('global-shift-date').value;
+      const actionInput = document.getElementById('followup-action').value.trim();
 
-  const payload = {
-    id: "fu-" + Date.now().toString(),
-    date: rawDate,
-    displayDate: formatDateShortMonth(rawDate),
-    ward: document.getElementById('ward-name').value,
-    action: actionInput,
-    status: "",
-    user_name: currentUser ? currentUser.name : "Anonymous",
-    user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
-  };
+      const payload = {
+        id: "fu-" + Date.now().toString(),
+        date: rawDate,
+        displayDate: formatDateShortMonth(rawDate),
+        ward: document.getElementById('ward-name').value,
+        action: actionInput,
+        status: "",
+        user_name: currentUser ? currentUser.name : "Anonymous",
+        user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
+      };
 
-  followUpData.push(payload);
-  localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+      followUpData.push(payload);
+      localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
 
-  document.getElementById('followup-action').value = '';
-  renderFollowUpLogs();
-  updatePdfReport();
+      document.getElementById('followup-action').value = '';
+      renderFollowUpLogs();
+      updatePdfReport();
 
-  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-  if (activeUrl) {
-    try {
-      const targetUrl = activeUrl.includes('?') 
-        ? `${activeUrl}&sheet=FollowUp` 
-        : `${activeUrl}?sheet=FollowUp`;
+      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+      if (activeUrl) {
+        try {
+          const targetUrl = activeUrl.includes('?') 
+            ? `${activeUrl}&sheet=FollowUp` 
+            : `${activeUrl}?sheet=FollowUp`;
 
-      await fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ data: [payload] })
-      });
-      showToast('Follow-Up Action Item Saved & Synced!', 'success');
-    } catch (err) {
-      console.warn('Saved Follow-Up locally, but failed to reach Google Sheets.');
-      showToast('Saved locally (Cloud sync failed)', 'error');
-    }
-  }
-}
-
-// 2. TOGGLE FOLLOW-UP COMPLETION STATUS (WITH UPSERT SYNC)
-async function toggleFollowUpStatus(id) {
-  const targetId = String(id).trim();
-  const item = followUpData.find(i => String(i.id).trim() === targetId);
-  if (!item) return;
-
-  item.status = (item.status === "Complete") ? "" : "Complete";
-  localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
-  renderFollowUpLogs();
-  updatePdfReport();
-
-  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-  if (activeUrl) {
-    try {
-      const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
-      await fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ data: [item] })
-      });
-    } catch (err) {
-      console.warn('Status updated locally, but cloud sync failed.');
-    }
-  }
-}
-
-// 3. EDIT FOLLOW-UP TEXT (WITH UPSERT SYNC)
-async function editFollowUpAction(id) {
-  const targetId = String(id).trim();
-  const item = followUpData.find(i => String(i.id).trim() === targetId);
-  if (!item) return;
-
-  const newAction = prompt("Edit Follow-up Issue / Details:", item.action);
-  if (newAction !== null && newAction.trim() !== "") {
-    item.action = newAction.trim();
-    localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
-    renderFollowUpLogs();
-    updatePdfReport();
-
-    const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-    if (activeUrl) {
-      try {
-        const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
-        await fetch(targetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ data: [item] })
-        });
-        showToast('Follow-Up Item Updated & Synced!', 'success');
-      } catch (err) {
-        console.warn('Updated locally, but cloud sync failed.');
+          await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ data: [payload] })
+          });
+          showToast('Follow-Up Action Item Saved & Synced!', 'success');
+        } catch (err) {
+          console.warn('Saved Follow-Up locally, but failed to reach Google Sheets.');
+          showToast('Saved locally (Cloud sync failed)', 'error');
+        }
       }
     }
-  }
-}
 
-// 4. DELETE FOLLOW-UP ENTRY (WITH DELETION SYNC)
-async function deleteFollowUpEntry(id) {
-  if (!confirm("Delete this follow-up checklist item?")) return;
+    function renderFollowUpLogs() {
+      const tbody = document.getElementById('followup-logs-tbody');
+      const countEl = document.getElementById('followup-entry-count');
+      if (!tbody) return;
 
-  const targetId = String(id).trim();
-  showLoading("Deleting follow-up item...");
+      const activeWard = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
+      const filtered = followUpData.filter(item => {
+        const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
+        return itemWard === activeWard;
+      });
 
-  try {
-    followUpData = followUpData.filter(item => String(item.id).trim() !== targetId);
-    localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+      if (countEl) countEl.innerText = filtered.length;
+      tbody.innerHTML = '';
 
-    renderFollowUpLogs();
-    updatePdfReport();
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-400 italic">No follow-up items logged for ${activeWard}.</td></tr>`;
+        return;
+      }
 
-    const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-    if (activeUrl) {
-      const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
-      await fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: "delete", id: targetId })
+      filtered.forEach(item => {
+        const isDone = item.status === "Complete";
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/60 transition';
+        tr.innerHTML = `
+          <td class="p-3 border-r border-slate-800 font-mono text-center text-slate-400">${item.displayDate || formatDateShortMonth(item.date)}</td>
+          <td class="p-3 border-r border-slate-800 text-slate-200 cursor-pointer" onclick="editFollowUpAction('${item.id}')">${item.action}</td>
+          <td class="p-3 border-r border-slate-800 text-center">
+            <button onclick="toggleFollowUpStatus('${item.id}')" class="px-2.5 py-1 rounded text-[11px] font-bold ${isDone ? 'bg-emerald-950 text-emerald-300 border border-emerald-700' : 'bg-amber-950 text-amber-300 border border-amber-700'}">
+              ${isDone ? '<i class="fa-solid fa-check me-1"></i> Complete' : '<i class="fa-solid fa-clock me-1"></i> Pending'}
+            </button>
+          </td>
+          <td class="p-3 text-center">
+            <button onclick="deleteFollowUpEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+          </td>
+        `;
+        tbody.appendChild(tr);
       });
     }
-    showToast('Follow-Up item permanently deleted!', 'success');
-  } catch (err) {
-    console.warn('Deleted locally, but cloud deletion failed:', err);
-  } finally {
-    hideLoading();
+
+    async function toggleFollowUpStatus(id) {
+      const targetId = String(id).trim();
+      const item = followUpData.find(i => String(i.id).trim() === targetId);
+      if (!item) return;
+
+      item.status = (item.status === "Complete") ? "" : "Complete";
+      localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+      renderFollowUpLogs();
+      updatePdfReport();
+
+      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+      if (activeUrl) {
+        try {
+          const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
+          await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ data: [item] })
+          });
+        } catch (err) {
+          console.warn('Status updated locally, but cloud sync failed.');
+        }
+      }
+    }
+
+    async function editFollowUpAction(id) {
+      const targetId = String(id).trim();
+      const item = followUpData.find(i => String(i.id).trim() === targetId);
+      if (!item) return;
+
+      const newAction = prompt("Edit Follow-up Issue / Details:", item.action);
+      if (newAction !== null && newAction.trim() !== "") {
+        item.action = newAction.trim();
+        localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+        renderFollowUpLogs();
+        updatePdfReport();
+
+        const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+        if (activeUrl) {
+          try {
+            const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
+            await fetch(targetUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({ data: [item] })
+            });
+            showToast('Follow-Up Item Updated & Synced!', 'success');
+          } catch (err) {
+            console.warn('Updated locally, but cloud sync failed.');
+          }
+        }
+      }
+    }
+
+    async function deleteFollowUpEntry(id) {
+      if (!confirm("Delete this follow-up checklist item?")) return;
+
+      const targetId = String(id).trim();
+      showLoading("Deleting follow-up item...");
+
+      try {
+        followUpData = followUpData.filter(item => String(item.id).trim() !== targetId);
+        localStorage.setItem('cp3_followup_db', JSON.stringify(followUpData));
+
+        renderFollowUpLogs();
+        updatePdfReport();
+
+        const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+        if (activeUrl) {
+          const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=FollowUp` : `${activeUrl}?sheet=FollowUp`;
+          await fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ action: "delete", id: targetId })
+          });
+        }
+        showToast('Follow-Up item permanently deleted!', 'success');
+      } catch (err) {
+        console.warn('Deleted locally, but cloud deletion failed:', err);
+      } finally {
+        hideLoading();
+      }
     }
 
     function updatePdfReport() {
@@ -2807,7 +2833,6 @@ async function deleteFollowUpEntry(id) {
 
       if (document.getElementById('pdf-grand-total')) document.getElementById('pdf-grand-total').innerText = (bPts + dPts + gPts).toString();
 
-      // SECTION C TABLE RENDERING WITH INLINE EDIT/DELETE ACTION BUTTONS ON FRONT REPORT
       const tbodyC = document.getElementById('pdf-interventions-table');
       if (tbodyC) {
         tbodyC.innerHTML = '';
