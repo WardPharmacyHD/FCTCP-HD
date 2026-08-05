@@ -298,8 +298,29 @@
             <p class="text-[10px] bg-rose-950/80 border border-rose-800 text-rose-300 font-bold px-1.5 py-0.5 rounded mt-0.5" id="user-ward-display">WARD 1 - MEDICAL MALE</p>
           </div>
           
-          <!-- CHANGE PIN & LOGOUT BUTTONS -->
-          <div class="flex items-center space-x-1 ml-1">
+          <!-- ADMIN MENU DROPDOWN, CHANGE PIN & LOGOUT BUTTONS IN TOP HEADER -->
+          <div class="flex items-center space-x-1.5 ml-1">
+            
+            <!-- ADMIN MENU DROPDOWN (ONLY VISIBLE FOR ADMIN USERS) -->
+            <div id="admin-menu-container" class="hidden relative">
+              <button onclick="toggleAdminMenu()" id="btn-admin-menu" class="text-amber-300 hover:text-white text-xs px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900/90 rounded-lg border border-amber-600/80 transition flex items-center space-x-1.5 shadow">
+                <i class="fa-solid fa-shield-halved text-amber-400"></i>
+                <span class="font-bold text-[11px] hidden sm:inline">Admin Menu</span>
+                <i class="fa-solid fa-chevron-down text-[9px] ms-0.5 opacity-80"></i>
+              </button>
+
+              <div id="admin-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-[150] overflow-hidden py-1">
+                <button onclick="switchTab('admin'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 transition">
+                  <i class="fa-solid fa-sliders text-amber-400 w-4 text-center"></i>
+                  <span class="font-medium">Admin / Settings</span>
+                </button>
+                <button onclick="switchTab('summary'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition">
+                  <i class="fa-solid fa-table-list text-emerald-400 w-4 text-center"></i>
+                  <span class="font-medium">Laporan PF 6.3(b) Generator</span>
+                </button>
+              </div>
+            </div>
+
             <button onclick="openChangePinModal()" title="Change PIN" class="text-slate-400 hover:text-amber-400 text-xs p-1.5 bg-slate-900 hover:bg-slate-800 rounded border border-slate-700 transition">
               <i class="fa-solid fa-key"></i>
             </button>
@@ -317,7 +338,7 @@
 
     <!-- NAVIGATION TABS -->
     <div class="bg-slate-800 rounded-xl shadow-sm mb-6 border border-slate-700 no-print">
-      <div class="flex border-b border-slate-700 overflow-x-auto">
+      <div class="flex border-b border-slate-700 overflow-x-auto items-center">
         <button onclick="switchTab('checkin')" id="tab-checkin" class="tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-file-contract text-sky-400"></i>
           <span>1. Live CP3 Dashboard & Finalize</span>
@@ -333,15 +354,6 @@
         <button onclick="switchTab('followup')" id="tab-followup" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-list-check text-amber-400"></i>
           <span>4. Follow-Up Required</span>
-        </button>
-        <!-- ADMIN ONLY TABS (STRICTLY HIDDEN BY DEFAULT FOR REGULAR PHARMACISTS) -->
-        <button onclick="switchTab('admin')" id="tab-admin" class="hidden py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
-          <i class="fa-solid fa-shield-halved text-amber-400"></i>
-          <span>5. Admin / Settings</span>
-        </button>
-        <button onclick="switchTab('summary')" id="tab-summary" class="hidden py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
-          <i class="fa-solid fa-table-list text-emerald-400"></i>
-          <span>6. Laporan PF 6.3(b) <span class="text-[10px] bg-amber-950 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-800 ms-1">ADMIN</span></span>
         </button>
       </div>
     </div>
@@ -387,7 +399,7 @@
                 <span>Designated Ward</span>
                 <span class="text-[10px] bg-rose-900 text-rose-200 px-1.5 py-0.2 rounded uppercase">Location</span>
               </label>
-              <select id="ward-name" onchange="syncWardSelection(); applyWardFilterPermissions(); populatePatientDatalists();" class="shift-input w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
+              <select id="ward-name" onchange="syncWardSelection(); populatePatientDatalists();" class="shift-input w-full bg-slate-900 border-2 border-rose-500 text-rose-100 font-bold rounded-lg p-2 text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none">
                 <option value="EMERGENCY DEPARTMENT">EMERGENCY DEPARTMENT</option>
                 <option value="ICU">ICU</option>
                 <option value="WARD 1 - MEDICAL MALE" selected>WARD 1 - MEDICAL MALE</option>
@@ -418,7 +430,7 @@
               <!-- ATTENDING PHYSICIAN(S) -->
               <div>
                 <label class="block text-[11px] font-semibold text-slate-400 uppercase mb-1">Attending Physician(s)</label>
-                <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="Dr. Aris, Dr. Chen" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <input type="text" id="physicians" placeholder="e.g. Dr. Aris, Dr. Chen" value="" oninput="updatePdfReport()" onchange="updatePdfReport()" class="shift-input w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2 text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none">
               </div>
 
               <!-- WARD ROUNDS CONDUCTED (INLINE WITH DOCTORS FIELD & ONLY ROUTINE TICKED BY DEFAULT) -->
@@ -603,7 +615,7 @@
               </tr>
               <tr class="border-b border-slate-700">
                 <td class="p-1 font-bold">Physician(s)</td>
-                <td class="p-1 border-r border-slate-700">: <span id="pdf-physicians">Dr. Aris, Dr. Chen</span></td>
+                <td class="p-1 border-r border-slate-700">: <span id="pdf-physicians">-</span></td>
                 <td class="p-1 font-bold">Number of Cases Clerked (CP2)</td>
                 <td class="p-1">: <span id="pdf-cp2">0</span></td>
               </tr>
@@ -1324,6 +1336,24 @@
       fetchCloudData(); // Automatic background sync for cross-device visibility
     });
 
+    // CLOSE ADMIN DROPDOWN WHEN CLICKING OUTSIDE
+    document.addEventListener('click', (e) => {
+      const adminContainer = document.getElementById('admin-menu-container');
+      if (adminContainer && !adminContainer.contains(e.target)) {
+        hideAdminMenu();
+      }
+    });
+
+    function toggleAdminMenu() {
+      const dropdown = document.getElementById('admin-menu-dropdown');
+      if (dropdown) dropdown.classList.toggle('hidden');
+    }
+
+    function hideAdminMenu() {
+      const dropdown = document.getElementById('admin-menu-dropdown');
+      if (dropdown) dropdown.classList.add('hidden');
+    }
+
     // HELPER TO CONVERT MULTI-SELECT CODE STRING OR ARRAY TO ARRAY
     function getCodesArray(codeVal) {
       if (!codeVal) return [];
@@ -1376,29 +1406,46 @@
       });
     }
 
-    // SETUP TWO-WAY AUTOFILL LISTENERS
+    // SETUP TWO-WAY AUTOFILL LISTENERS (TRIGGERED ON 'CHANGE' TO PREVENT MID-TYPE AUTOFILL GLITCHES)
     function setupPatientAutofill() {
       const ptInput = document.getElementById('patient-name');
       const rnInput = document.getElementById('rn-number');
 
-      if (ptInput && rnInput) {
-        ptInput.addEventListener('input', () => {
-          const val = ptInput.value.trim();
-          if (!val) return;
-          const match = patientsData.find(p => p.name && p.name.trim().toLowerCase() === val.toLowerCase());
-          if (match && match.rn) {
-            rnInput.value = match.rn;
-          }
-        });
+      function doAutofillByName(inputEl, targetEl) {
+        const val = inputEl.value.trim().toLowerCase();
+        if (!val) return;
+        const activeWard = (document.getElementById('ward-name')?.value || '').trim().toUpperCase();
 
-        rnInput.addEventListener('input', () => {
-          const val = rnInput.value.trim();
-          if (!val) return;
-          const match = patientsData.find(p => p.rn && p.rn.trim().toLowerCase() === val.toLowerCase());
-          if (match && match.name) {
-            ptInput.value = match.name;
-          }
-        });
+        // Search matching patient within active ward first, then fallback
+        const match = patientsData.find(p => 
+          p.name && p.name.trim().toLowerCase() === val && 
+          (!activeWard || String(p.ward).trim().toUpperCase() === activeWard)
+        ) || patientsData.find(p => p.name && p.name.trim().toLowerCase() === val);
+
+        if (match && match.rn) {
+          targetEl.value = match.rn;
+        }
+      }
+
+      function doAutofillByRn(inputEl, targetEl) {
+        const val = inputEl.value.trim().toLowerCase();
+        if (!val) return;
+        const activeWard = (document.getElementById('ward-name')?.value || '').trim().toUpperCase();
+
+        // Search matching RN within active ward first, then fallback
+        const match = patientsData.find(p => 
+          p.rn && String(p.rn).trim().toLowerCase() === val && 
+          (!activeWard || String(p.ward).trim().toUpperCase() === activeWard)
+        ) || patientsData.find(p => p.rn && String(p.rn).trim().toLowerCase() === val);
+
+        if (match && match.name) {
+          targetEl.value = match.name;
+        }
+      }
+
+      if (ptInput && rnInput) {
+        ptInput.addEventListener('change', () => doAutofillByName(ptInput, rnInput));
+        rnInput.addEventListener('change', () => doAutofillByRn(rnInput, ptInput));
       }
 
       // Modal Auto-fill
@@ -1406,23 +1453,8 @@
       const editRnInput = document.getElementById('edit-rn-number');
 
       if (editPtInput && editRnInput) {
-        editPtInput.addEventListener('input', () => {
-          const val = editPtInput.value.trim();
-          if (!val) return;
-          const match = patientsData.find(p => p.name && p.name.trim().toLowerCase() === val.toLowerCase());
-          if (match && match.rn) {
-            editRnInput.value = match.rn;
-          }
-        });
-
-        editRnInput.addEventListener('input', () => {
-          const val = editRnInput.value.trim();
-          if (!val) return;
-          const match = patientsData.find(p => p.rn && p.rn.trim().toLowerCase() === val.toLowerCase());
-          if (match && match.name) {
-            editPtInput.value = match.name;
-          }
-        });
+        editPtInput.addEventListener('change', () => doAutofillByName(editPtInput, editRnInput));
+        editRnInput.addEventListener('change', () => doAutofillByRn(editRnInput, editPtInput));
       }
     }
 
@@ -1444,7 +1476,8 @@
       document.getElementById('edit-patient-name').value = item.patient || '';
       document.getElementById('edit-rn-number').value = item.rn || '';
       document.getElementById('edit-intervention-desc').value = item.desc || '';
-      document.getElementById('edit-is-accepted').checked = (item.accepted === true || item.accepted === "YES");
+      const isAccStr = String(item.accepted).toUpperCase().trim();
+      document.getElementById('edit-is-accepted').checked = (item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE");
 
       const existingCodes = getCodesArray(item.code);
       document.querySelectorAll('input[name="edit_cp3_codes"]').forEach(cb => {
@@ -1484,9 +1517,9 @@
       interventionsData[itemIndex] = updatedItem;
       localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
 
-      // Sync update with SheetDB using PATCH by ID
+      // Sync update with SheetDB using PATCH by ID if on SheetDB
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-      if (activeUrl) {
+      if (activeUrl && activeUrl.includes('sheetdb.io')) {
         try {
           await fetch(`${activeUrl}/id/${id}`, {
             method: 'PATCH',
@@ -1494,7 +1527,7 @@
             body: JSON.stringify({ data: updatedItem })
           });
         } catch (err) {
-          console.warn("Updated locally, but SheetDB PATCH failed.");
+          console.warn("Updated locally, but API PATCH failed.");
         }
       }
 
@@ -1600,7 +1633,7 @@
     // STRICT DD/MM/YYYY FORMAT HELPER
     function formatDateDDMMYYYY(dateStr) {
       if (!dateStr || dateStr === "N/A") return "N/A";
-      const clean = normalizeToISO(dateStr);
+      const clean = normalizeToISO(dateStr).split('T')[0];
       const parts = clean.split('-');
       if (parts.length === 3 && parts[0].length === 4) {
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -1612,7 +1645,7 @@
     function formatDateShortMonth(dateStr) {
       if (!dateStr) return "";
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const clean = normalizeToISO(dateStr);
+      const clean = normalizeToISO(dateStr).split('T')[0];
       const parts = clean.split('-');
       if (parts.length === 3) {
         const day = parseInt(parts[2], 10);
@@ -1745,14 +1778,7 @@
     function applyWardFilterPermissions() {
       const wardSelect = document.getElementById('ward-name');
       if (!wardSelect) return;
-
-      if (currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin') {
-        wardSelect.disabled = false;
-      } else {
-        const userWard = currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE";
-        wardSelect.value = userWard;
-        wardSelect.disabled = false;
-      }
+      wardSelect.disabled = false;
     }
 
     // SAVE SHIFT SNAPSHOT IN DRAFT MODE
@@ -1782,11 +1808,11 @@
         return;
       }
 
-      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value);
+      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value).split('T')[0];
       const wardName = document.getElementById('ward-name').value;
 
       const activeIndex = checkinsData.findIndex(
-        c => normalizeToISO(c.date) === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
+        c => normalizeToISO(c.date).split('T')[0] === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
       );
 
       if (activeIndex !== -1) {
@@ -1799,7 +1825,7 @@
 
     // CORE SNAPSHOT SAVER
     function saveShiftSnapshot(statusMode = "DRAFT") {
-      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value);
+      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value).split('T')[0];
       const wardName = document.getElementById('ward-name').value;
       const taskType = document.querySelector('input[name="task_type"]:checked')?.value || "Full Time";
 
@@ -1810,7 +1836,7 @@
         date: shiftDate,
         ward: wardName,
         task: taskType,
-        physicians: document.getElementById('physicians').value.trim(),
+        physicians: document.getElementById('physicians')?.value.trim() || "",
         roundRoutine: document.getElementById('round-routine')?.checked ? "YES" : "NO",
         roundGrand: document.getElementById('round-grand')?.checked ? "YES" : "NO",
         roundPharmacist: document.getElementById('round-pharmacist')?.checked ? "YES" : "NO",
@@ -1828,7 +1854,7 @@
       };
 
       const existingIndex = checkinsData.findIndex(
-        c => normalizeToISO(c.date) === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
+        c => normalizeToISO(c.date).split('T')[0] === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
       );
 
       if (existingIndex !== -1) {
@@ -1841,13 +1867,13 @@
       loadActiveShiftSnapshot();
       updatePdfReport();
 
-      // Cloud Background Sync
+      // Cloud Background Sync (Apps Script compatible header)
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
       if (activeUrl) {
         const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
         fetch(targetUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({ data: [snapshot] })
         }).catch(err => console.warn('Background check-in sync skipped or offline.'));
       }
@@ -1855,11 +1881,11 @@
 
     // LOAD SHIFT SNAPSHOT & APPLY READ-ONLY LOCKING IF FINALIZED
     function loadActiveShiftSnapshot() {
-      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value);
+      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value).split('T')[0];
       const wardName = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
 
       const snapshot = checkinsData.find(
-        c => normalizeToISO(c.date) === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
+        c => normalizeToISO(c.date).split('T')[0] === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
       );
 
       const isLocked = snapshot && snapshot.status === "LOCKED";
@@ -1899,7 +1925,7 @@
       inputs.forEach(el => el.disabled = isLocked);
 
       if (snapshot) {
-        if (snapshot.physicians !== undefined) document.getElementById('physicians').value = snapshot.physicians;
+        document.getElementById('physicians').value = snapshot.physicians !== undefined ? snapshot.physicians : "";
         if (snapshot.cp1 !== undefined) document.getElementById('cp1-count').innerText = snapshot.cp1;
         if (snapshot.cp2 !== undefined) document.getElementById('cp2-count').innerText = snapshot.cp2;
 
@@ -1918,6 +1944,20 @@
         if (snapshot.roundRoutine !== undefined) document.getElementById('round-routine').checked = (snapshot.roundRoutine === true || snapshot.roundRoutine === "YES");
         if (snapshot.roundGrand !== undefined) document.getElementById('round-grand').checked = (snapshot.roundGrand === true || snapshot.roundGrand === "YES");
         if (snapshot.roundPharmacist !== undefined) document.getElementById('round-pharmacist').checked = (snapshot.roundPharmacist === true || snapshot.roundPharmacist === "YES");
+      } else {
+        // NO SNAPSHOT FOUND FOR THIS SHIFT DATE + WARD -> RESET INPUT CONTROLS TO BLANK / DEFAULT
+        document.getElementById('physicians').value = "";
+        document.getElementById('cp1-count').innerText = "0";
+        document.getElementById('cp2-count').innerText = "0";
+        document.getElementById('counsel-bedside-sessions').value = "0";
+        document.getElementById('counsel-bedside-pts').value = "0";
+        document.getElementById('counsel-discharge-sessions').value = "0";
+        document.getElementById('counsel-discharge-pts').value = "0";
+        document.getElementById('counsel-group-sessions').value = "0";
+        document.getElementById('counsel-group-pts').value = "0";
+        if (document.getElementById('round-routine')) document.getElementById('round-routine').checked = true;
+        if (document.getElementById('round-grand')) document.getElementById('round-grand').checked = false;
+        if (document.getElementById('round-pharmacist')) document.getElementById('round-pharmacist').checked = false;
       }
     }
 
@@ -2037,7 +2077,7 @@
       }
     }
 
-    // APPLY USER SESSION UI (TOGGLES ADMIN TAB VISIBILITY STRICTLY FOR NON-ADMINS)
+    // APPLY USER SESSION UI (TOGGLES ADMIN MENU CONTAINER VISIBILITY STRICTLY FOR ADMINS)
     function applyUserSessionUI() {
       if (!currentUser) return;
       hideLoginOverlay();
@@ -2058,20 +2098,17 @@
         roleBadge.classList.add('hidden');
       }
 
-      // STRICT ADMIN TABS VISIBILITY ENFORCEMENT
-      const tabAdmin = document.getElementById('tab-admin');
-      const tabSummary = document.getElementById('tab-summary');
+      // STRICT ADMIN MENU DROPDOWN VISIBILITY ENFORCEMENT
+      const adminMenuContainer = document.getElementById('admin-menu-container');
       if (isAdmin) {
-        if (tabAdmin) tabAdmin.classList.remove('hidden');
-        if (tabSummary) tabSummary.classList.remove('hidden');
+        if (adminMenuContainer) adminMenuContainer.classList.remove('hidden');
       } else {
-        if (tabAdmin) tabAdmin.classList.add('hidden');
-        if (tabSummary) tabSummary.classList.add('hidden');
+        if (adminMenuContainer) adminMenuContainer.classList.add('hidden');
       }
 
       const wardSelect = document.getElementById('ward-name');
       if (wardSelect && currentUser.ward) {
-        wardSelect.value = currentUser.ward;
+        wardSelect.value = currentUser.ward; // SET INITIAL DEFAULT ONLY ON LOGIN
       }
 
       syncWardSelection();
@@ -2084,8 +2121,7 @@
     function logoutUser() {
       localStorage.removeItem('active_user_key');
       currentUser = null;
-      document.getElementById('tab-admin')?.classList.add('hidden');
-      document.getElementById('tab-summary')?.classList.add('hidden');
+      document.getElementById('admin-menu-container')?.classList.add('hidden');
       switchTab('checkin');
       showLoginOverlay();
     }
@@ -2109,10 +2145,9 @@
       document.getElementById('tab-interventions').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-di').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-followup').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      if (document.getElementById('tab-admin')) document.getElementById('tab-admin').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      if (document.getElementById('tab-summary')) document.getElementById('tab-summary').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
 
       document.getElementById('view-' + tabName).classList.remove('hidden');
+
       if (document.getElementById('tab-' + tabName)) {
         document.getElementById('tab-' + tabName).className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
       }
@@ -2141,7 +2176,7 @@
       try {
         const res = await fetch(activeUrl);
         if (res.ok) {
-          alert('API Connection Successful! Google Sheets endpoint is reachable.');
+          alert('API Connection Successful! Endpoint is reachable.');
         } else {
           alert('API endpoint returned error code: ' + res.status);
         }
@@ -2161,7 +2196,7 @@
     }
 
     function configureApiUrl() {
-      const url = prompt("Enter your SheetDB API Endpoint URL (e.g. https://sheetdb.io/api/v1/your_id):", sheetDbApiUrl || defaultSheetDbUrl);
+      const url = prompt("Enter your SheetDB / Apps Script API Endpoint URL:", sheetDbApiUrl || defaultSheetDbUrl);
       if (url !== null) {
         sheetDbApiUrl = url.trim();
         localStorage.setItem('sheetdb_url', sheetDbApiUrl);
@@ -2180,7 +2215,7 @@
         el.innerText = 'Connected: ' + activeUrl.substring(0, 32) + '...';
         el.className = 'font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.5 rounded';
       } else {
-        el.innerText = 'Local Demo Mode (Paste SheetDB API URL in config)';
+        el.innerText = 'Local Demo Mode (Paste API URL in config)';
         el.className = 'font-mono bg-amber-900/60 text-amber-200 border border-amber-700 px-1.5 py-0.5 rounded';
       }
     }
@@ -2262,11 +2297,11 @@
         try {
           await fetch(activeUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ data: [payload] })
           });
         } catch (err) {
-          console.warn('Saved locally, but failed to reach SheetDB API.');
+          console.warn('Saved locally, but failed to reach API.');
         }
       }
 
@@ -2289,7 +2324,7 @@
     // STRICT LOCATION-RESTRICTED PAST INTERVENTION FILTERING (TAB 2)
     function renderInterventions() {
       const targetDate = document.getElementById('global-shift-date').value;
-      const cleanTargetDate = normalizeToISO(targetDate);
+      const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
       const target = new Date(cleanTargetDate);
       const minDateObj = new Date(target);
       minDateObj.setDate(minDateObj.getDate() - 4);
@@ -2302,7 +2337,7 @@
       const activeWard = isAdmin ? selectedDropdownWard : userAssignedWard;
 
       const filtered = interventionsData.filter(item => {
-        const itemDate = normalizeToISO(item.date);
+        const itemDate = normalizeToISO(item.date).split('T')[0];
         const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
 
         const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
@@ -2327,6 +2362,8 @@
         const codesArr = getCodesArray(item.code);
         const codeDisplay = codesArr.join(', ');
         const countBadge = codesArr.length > 1 ? ` (${codesArr.length} Categories)` : '';
+        const isAccStr = String(item.accepted).toUpperCase().trim();
+        const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
 
         const div = document.createElement('div');
         div.className = 'p-4 hover:bg-slate-700/50 flex items-start justify-between transition';
@@ -2337,7 +2374,7 @@
               <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">${item.rn}</span>
               <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${codeDisplay}${countBadge}</span>
               <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
-              ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
+              ${isAcc ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
             </div>
             <p class="text-xs text-slate-300">${item.desc}</p>
           </div>
@@ -2390,11 +2427,11 @@
 
           await fetch(targetUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ data: [payload] })
           });
         } catch (err) {
-          console.warn('Saved DI locally, but failed to reach SheetDB API.');
+          console.warn('Saved DI locally, but failed to reach API.');
         }
       }
 
@@ -2410,7 +2447,7 @@
     // USER-RESTRICTED DRUG INFO HISTORY (NON-ADMINS ONLY SEE LOGS MATCHING THEIR USER PROFILE)
     function renderDiLogs() {
       const targetDate = document.getElementById('global-shift-date').value;
-      const cleanTargetDate = normalizeToISO(targetDate);
+      const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
       const target = new Date(cleanTargetDate);
       const minDateObj = new Date(target);
       minDateObj.setDate(minDateObj.getDate() - 4);
@@ -2419,7 +2456,7 @@
       const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
 
       const filtered = diLogsData.filter(item => {
-        const itemDate = normalizeToISO(item.date);
+        const itemDate = normalizeToISO(item.date).split('T')[0];
         const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
 
         // User restrictions: Non-admin users strictly see only DI logs created under their profile
@@ -2574,12 +2611,13 @@
 
     // UPDATE PRINTABLE CP3 FORM PREVIEW
     function updatePdfReport() {
-      let singleDate = normalizeToISO(document.getElementById('global-shift-date')?.value || "2026-08-04");
-      const activeWard = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
+      let rawDate = document.getElementById('global-shift-date')?.value || "2026-08-04";
+      let singleDate = normalizeToISO(rawDate).split('T')[0];
+      const activeWard = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
 
       // Look up if a snapshot exists for this shift
       const lockedSnapshot = checkinsData.find(
-        c => normalizeToISO(c.date) === singleDate && String(c.ward).trim().toUpperCase() === activeWard.trim().toUpperCase()
+        c => (normalizeToISO(c.date).split('T')[0] === singleDate) && (String(c.ward).trim().toUpperCase() === activeWard)
       );
 
       const formattedSingleDate = formatDateDDMMYYYY(singleDate);
@@ -2588,7 +2626,7 @@
       if (document.getElementById('pdf-ward')) document.getElementById('pdf-ward').innerText = activeWard;
 
       // Section A Details
-      const phys = lockedSnapshot ? lockedSnapshot.physicians : (document.getElementById('physicians')?.value || "-");
+      const phys = (lockedSnapshot && lockedSnapshot.physicians !== undefined) ? lockedSnapshot.physicians : (document.getElementById('physicians')?.value.trim() || "-");
       const cp1Val = lockedSnapshot ? lockedSnapshot.cp1 : (document.getElementById('cp1-count')?.innerText || "0");
       const cp2Val = lockedSnapshot ? lockedSnapshot.cp2 : (document.getElementById('cp2-count')?.innerText || "0");
       const taskVal = lockedSnapshot ? lockedSnapshot.task : (document.querySelector('input[name="task_type"]:checked')?.value || "Full Time");
@@ -2606,22 +2644,22 @@
 
       // Filtered Interventions & Drug Info
       let filteredInterventions = interventionsData.filter(item => {
-        const itemDate = normalizeToISO(item.date);
+        const itemDate = normalizeToISO(item.date).split('T')[0];
         const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        return itemDate === singleDate && itemWard === activeWard.trim().toUpperCase();
+        return itemDate === singleDate && itemWard === activeWard;
       });
 
       let filteredDi = diLogsData.filter(item => {
-        const itemDate = normalizeToISO(item.date);
+        const itemDate = normalizeToISO(item.date).split('T')[0];
         const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        return itemDate === singleDate && itemWard === activeWard.trim().toUpperCase();
+        return itemDate === singleDate && itemWard === activeWard;
       });
 
       let filteredFu = followUpData.filter(item => {
-        const itemDate = normalizeToISO(item.date);
+        const itemDate = normalizeToISO(item.date).split('T')[0];
         const isPending = item.status !== "Complete";
         const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        const wardMatch = itemWard === activeWard.trim().toUpperCase();
+        const wardMatch = itemWard === activeWard;
         return wardMatch && ((itemDate === singleDate) || (itemDate < singleDate && isPending));
       });
 
@@ -2644,7 +2682,8 @@
 
       filteredInterventions.forEach(item => {
         const codes = getCodesArray(item.code);
-        const isAcc = item.accepted === true || item.accepted === "YES";
+        const isAccStr = String(item.accepted).toUpperCase().trim();
+        const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
 
         codes.forEach(code => {
           totalInterventions++;
@@ -2730,11 +2769,13 @@
             const codes = getCodesArray(item.code).join(', ');
             const tr = document.createElement('tr');
             tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
+            const isAccStr = String(item.accepted).toUpperCase().trim();
+            const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
             tr.innerHTML = `
               <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${item.patient}</td>
               <td class="p-1 border-r border-slate-700 font-mono text-slate-400">${item.rn}</td>
               <td class="p-1 border-r border-slate-700 font-bold text-sky-400 text-center">#${index + 1} (${codes})</td>
-              <td class="p-1 text-slate-200">${item.desc} ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''}</td>
+              <td class="p-1 text-slate-200">${item.desc} ${isAcc ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''}</td>
             `;
             tbodyC.appendChild(tr);
           });
@@ -2798,10 +2839,10 @@
       const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
 
       const filtered = interventionsData.filter(item => {
-        const cleanDate = normalizeToISO(item.date);
+        const cleanDate = normalizeToISO(item.date).split('T')[0];
         if (!cleanDate) return false;
         if (monthFilter === "ALL") return true;
-        const month = cleanDate.split('-')[1];
+        const month = cleanDate.split('-')[1]; // safely gets YYYY-MM-DD -> MM
         return month === monthFilter;
       });
 
@@ -2821,11 +2862,14 @@
 
       staffKeys.forEach(key => {
         const user = PIN_DATABASE[key];
-        const staffNameUpper = user.name.toUpperCase();
+        const staffNameUpper = (user.name || "").trim().toUpperCase();
         
         const staffLogs = filtered.filter(item => {
-          const itemUser = (item.user_name || '').toUpperCase();
-          return itemUser.includes(staffNameUpper) || itemUser.includes(key.toUpperCase());
+          const itemUser = String(item.user_name || '').trim().toUpperCase();
+          return itemUser === staffNameUpper || 
+                 itemUser.includes(staffNameUpper) || 
+                 staffNameUpper.includes(itemUser) || 
+                 itemUser === String(key).trim().toUpperCase();
         });
 
         const tallies = {
@@ -2839,7 +2883,8 @@
 
         staffLogs.forEach(log => {
           const codes = getCodesArray(log.code);
-          const isAccepted = log.accepted === true || log.accepted === "YES";
+          const isAccStr = String(log.accepted).toUpperCase().trim();
+          const isAccepted = log.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
 
           codes.forEach(code => {
             tallies.total++;
