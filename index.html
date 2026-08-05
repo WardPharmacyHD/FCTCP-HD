@@ -1368,49 +1368,59 @@
 
     // HARDENED SMART DATE PARSER
     function normalizeToISO(dateStr) {
-      if (!dateStr) return "";
-      let s = String(dateStr).trim();
+  if (!dateStr) return "";
+  let s = String(dateStr).trim();
 
-      if (s.includes('T')) {
-        s = s.split('T')[0];
-      }
-
-      if (s.includes('/')) {
-        let p = s.split('/');
-        if (p.length === 3) {
-          if (p[0].length === 4) {
-            return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
-          } else if (p[2].length === 4) {
-            let n1 = parseInt(p[0], 10);
-            let n2 = parseInt(p[1], 10);
-            if (n1 > 12) {
-              return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
-            } else if (n2 > 12) {
-              return `${p[2]}-${p[0].padStart(2, '0')}-${p[1].padStart(2, '0')}`;
-            } else {
-              return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
-            }
-          }
-        }
-      }
-
-      if (s.includes('-')) {
-        let p = s.split('-');
-        if (p.length === 3 && p[0].length === 4) {
-          return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
-        }
-      }
-
-      const d = new Date(s);
-      if (!isNaN(d.getTime())) {
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-      }
-
-      return s;
+  // 1. Handle UTC ISO timestamps (e.g. "2026-08-04T16:00:00.000Z") using local time methods
+  if (s.includes('T')) {
+    const d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
     }
+    s = s.split('T')[0];
+  }
+
+  // 2. Handle slash formats (YYYY/MM/DD, DD/MM/YYYY, or MM/DD/YYYY)
+  if (s.includes('/')) {
+    let p = s.split('/');
+    if (p.length === 3) {
+      if (p[0].length === 4) {
+        return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
+      } else if (p[2].length === 4) {
+        let n1 = parseInt(p[0], 10);
+        let n2 = parseInt(p[1], 10);
+        if (n1 > 12) {
+          return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+        } else if (n2 > 12) {
+          return `${p[2]}-${p[0].padStart(2, '0')}-${p[1].padStart(2, '0')}`;
+        } else {
+          return `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+        }
+      }
+    }
+  }
+
+  // 3. Handle dash formats (YYYY-MM-DD)
+  if (s.includes('-')) {
+    let p = s.split('-');
+    if (p.length === 3 && p[0].length === 4) {
+      return `${p[0]}-${p[1].padStart(2, '0')}-${p[2].padStart(2, '0')}`;
+    }
+  }
+
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  return s;
+}
 
     function populatePatientDatalists() {
       const activeWard = document.getElementById('ward-name')?.value || '';
