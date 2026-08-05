@@ -253,7 +253,7 @@
   <div class="bg-slate-950 border-b border-slate-800 text-emerald-300 px-4 py-2 text-xs flex justify-between items-center no-print">
     <div>
       <i class="fa-solid fa-plug me-1"></i> <strong>Google Sheets Connection:</strong> 
-      <span id="api-status" class="font-mono bg-emerald-950/80 border border-emerald-800 px-1.5 py-0.5 rounded text-emerald-300">Connected: https://script.google.com/...</span>
+      <span id="api-status" class="font-mono bg-emerald-950/80 border border-emerald-800 px-1.5 py-0.5 rounded text-emerald-300">Connected: https://sheetdb.io/api/v1/ok0ovi...</span>
     </div>
     <button onclick="configureApiUrl()" class="underline font-semibold hover:text-white">Set API URL</button>
   </div>
@@ -1086,7 +1086,7 @@
 
           <div class="bg-slate-900/60 p-4 rounded-lg border border-slate-700 space-y-2">
             <p class="text-xs font-bold text-slate-200">Google Sheets API Status</p>
-            <p class="text-xs text-slate-400">Test if your endpoint is actively receiving data from this web client.</p>
+            <p class="text-xs text-slate-400">Test if your SheetDB endpoint is actively receiving data from this web client.</p>
             <button onclick="testApiConnection()" class="bg-slate-700 hover:bg-slate-600 text-slate-100 text-xs px-3 py-1.5 rounded transition border border-slate-600">
               <i class="fa-solid fa-network-wired me-1"></i> Test Endpoint Connection
             </button>
@@ -1268,7 +1268,7 @@
     let PIN_DATABASE = { ...defaultUsers, ...storedUsers };
 
     let currentUser = null;
-    let defaultSheetDbUrl = "https://script.google.com/macros/s/example/exec"; 
+    let defaultSheetDbUrl = "https://sheetdb.io/api/v1/ok0ovi4us96gp"; 
     let storedUrl = localStorage.getItem('sheetdb_url');
     let sheetDbApiUrl = (storedUrl && storedUrl.trim() !== "") ? storedUrl : defaultSheetDbUrl;
 
@@ -1279,9 +1279,47 @@
     let checkinsData = JSON.parse(localStorage.getItem('cp3_checkins_db')) || [];
 
     // LOCAL STORAGE PERSISTENT DATASETS
-    let interventionsData = JSON.parse(localStorage.getItem('cp3_interventions_db')) || [];
-    let diLogsData = JSON.parse(localStorage.getItem('cp3_dilogs_db')) || [];
-    let followUpData = JSON.parse(localStorage.getItem('cp3_followup_db')) || [];
+    let interventionsData = JSON.parse(localStorage.getItem('cp3_interventions_db')) || [
+      {
+        id: "101",
+        date: "2026-08-04",
+        ward: "WARD 1 - MEDICAL MALE",
+        patient: "Tan Ah Kow",
+        rn: "RN-884920",
+        code: "2.1, 2.2",
+        desc: "Reduced Enoxaparin from 60mg BD to 80mg OD due to reduced renal clearance (GFR 25).",
+        accepted: "YES",
+        user_name: "Norhanim Solehah Bt Che Abdullah",
+        user_ward: "WARD 1 - MEDICAL MALE"
+      }
+    ];
+
+    let diLogsData = JSON.parse(localStorage.getItem('cp3_dilogs_db')) || [
+      {
+        id: "di-101",
+        date: "2026-08-04",
+        ward: "WARD 1 - MEDICAL MALE",
+        enquirer: "Dr. Azlin (MO)",
+        category: "Drug Dose/Administration",
+        question: "Is renal dose adjustment required for Meropenem IV in GFR 20 mL/min?",
+        response: "Recommended Meropenem 500mg IV q12h based on Sanford Guide 2026.",
+        user_name: "Norhanim Solehah Bt Che Abdullah",
+        user_ward: "WARD 1 - MEDICAL MALE"
+      }
+    ];
+
+    let followUpData = JSON.parse(localStorage.getItem('cp3_followup_db')) || [
+      {
+        id: "fu-101",
+        date: "2026-08-04",
+        displayDate: "4-Aug",
+        ward: "WARD 1 - MEDICAL MALE",
+        action: "Review Renal Profile at 14:00 after Meropenem dose adjustment.",
+        status: "",
+        user_name: "Norhanim Solehah Bt Che Abdullah",
+        user_ward: "WARD 1 - MEDICAL MALE"
+      }
+    ];
 
     window.addEventListener('DOMContentLoaded', () => {
       populateUserLoginDropdown();
@@ -1438,7 +1476,7 @@
       document.getElementById('edit-patient-name').value = item.patient || '';
       document.getElementById('edit-rn-number').value = item.rn || '';
       document.getElementById('edit-intervention-desc').value = item.desc || '';
-      document.getElementById('edit-is-accepted').checked = (item.accepted === true || String(item.accepted).toUpperCase().trim() === "YES" || String(item.accepted).toUpperCase().trim() === "TRUE");
+      document.getElementById('edit-is-accepted').checked = (item.accepted === true || item.accepted === "YES");
 
       const existingCodes = getCodesArray(item.code);
       document.querySelectorAll('input[name="edit_cp3_codes"]').forEach(cb => {
@@ -1478,10 +1516,9 @@
       interventionsData[itemIndex] = updatedItem;
       localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
 
-      // Note: Google Apps Script Web App does not natively support PATCH.
-      // This is left in case you revert to a REST API. For Apps Script, it edits locally.
+      // Sync update with SheetDB using PATCH by ID
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-      if (activeUrl && activeUrl.includes('sheetdb.io')) {
+      if (activeUrl) {
         try {
           await fetch(`${activeUrl}/id/${id}`, {
             method: 'PATCH',
@@ -1489,7 +1526,7 @@
             body: JSON.stringify({ data: updatedItem })
           });
         } catch (err) {
-          console.warn("Updated locally, but API PATCH failed.");
+          console.warn("Updated locally, but SheetDB PATCH failed.");
         }
       }
 
@@ -1497,7 +1534,7 @@
       updatePdfReport();
       renderPfSummaryReport();
       closeEditInterventionModal();
-      showToast('Intervention updated locally!', 'success');
+      showToast('Intervention updated successfully!', 'success');
     }
 
     // FETCH LATEST CLOUD DATA FROM GOOGLE SHEETS (CROSS-DEVICE SYNC INCLUDING PATIENTS CENSUS)
@@ -1518,7 +1555,7 @@
           }
         }
 
-        // Fetch Main Interventions (Assuming first sheet or 'Sheet1')
+        // Fetch Main Interventions
         const resInt = await fetch(activeUrl);
         if (resInt.ok) {
           const cloudInt = await resInt.json();
@@ -1595,7 +1632,7 @@
     // STRICT DD/MM/YYYY FORMAT HELPER
     function formatDateDDMMYYYY(dateStr) {
       if (!dateStr || dateStr === "N/A") return "N/A";
-      const clean = normalizeToISO(dateStr).split('T')[0];
+      const clean = normalizeToISO(dateStr);
       const parts = clean.split('-');
       if (parts.length === 3 && parts[0].length === 4) {
         return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -1607,7 +1644,7 @@
     function formatDateShortMonth(dateStr) {
       if (!dateStr) return "";
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const clean = normalizeToISO(dateStr).split('T')[0];
+      const clean = normalizeToISO(dateStr);
       const parts = clean.split('-');
       if (parts.length === 3) {
         const day = parseInt(parts[2], 10);
@@ -1770,11 +1807,11 @@
         return;
       }
 
-      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value).split('T')[0];
+      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value);
       const wardName = document.getElementById('ward-name').value;
 
       const activeIndex = checkinsData.findIndex(
-        c => normalizeToISO(c.date).split('T')[0] === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
+        c => normalizeToISO(c.date) === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
       );
 
       if (activeIndex !== -1) {
@@ -1787,7 +1824,7 @@
 
     // CORE SNAPSHOT SAVER
     function saveShiftSnapshot(statusMode = "DRAFT") {
-      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value).split('T')[0];
+      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value);
       const wardName = document.getElementById('ward-name').value;
       const taskType = document.querySelector('input[name="task_type"]:checked')?.value || "Full Time";
 
@@ -1816,7 +1853,7 @@
       };
 
       const existingIndex = checkinsData.findIndex(
-        c => normalizeToISO(c.date).split('T')[0] === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
+        c => normalizeToISO(c.date) === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
       );
 
       if (existingIndex !== -1) {
@@ -1829,13 +1866,13 @@
       loadActiveShiftSnapshot();
       updatePdfReport();
 
-      // Cloud Background Sync (Apps Script compatible)
+      // Cloud Background Sync
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
       if (activeUrl) {
         const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
         fetch(targetUrl, {
           method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ data: [snapshot] })
         }).catch(err => console.warn('Background check-in sync skipped or offline.'));
       }
@@ -1843,11 +1880,11 @@
 
     // LOAD SHIFT SNAPSHOT & APPLY READ-ONLY LOCKING IF FINALIZED
     function loadActiveShiftSnapshot() {
-      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value).split('T')[0];
+      const shiftDate = normalizeToISO(document.getElementById('global-shift-date').value);
       const wardName = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
 
       const snapshot = checkinsData.find(
-        c => normalizeToISO(c.date).split('T')[0] === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
+        c => normalizeToISO(c.date) === shiftDate && String(c.ward).trim().toUpperCase() === String(wardName).trim().toUpperCase()
       );
 
       const isLocked = snapshot && snapshot.status === "LOCKED";
@@ -2107,17 +2144,10 @@
       document.getElementById('tab-interventions').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-di').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-followup').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      if (document.getElementById('btn-admin-menu')) {
-        document.getElementById('btn-admin-menu').className = "text-amber-300 hover:text-white text-xs px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900/90 rounded-lg border border-amber-600/80 transition flex items-center space-x-1.5 shadow";
-      }
 
       document.getElementById('view-' + tabName).classList.remove('hidden');
 
-      if (tabName === 'admin' || tabName === 'summary') {
-        if (document.getElementById('btn-admin-menu')) {
-          document.getElementById('btn-admin-menu').className = "text-white text-xs px-2.5 py-1.5 bg-amber-600 rounded-lg border border-amber-500 transition flex items-center space-x-1.5 shadow";
-        }
-      } else if (document.getElementById('tab-' + tabName)) {
+      if (document.getElementById('tab-' + tabName)) {
         document.getElementById('tab-' + tabName).className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
       }
 
@@ -2184,7 +2214,7 @@
         el.innerText = 'Connected: ' + activeUrl.substring(0, 32) + '...';
         el.className = 'font-mono bg-emerald-950/80 text-emerald-300 border border-emerald-800 px-1.5 py-0.5 rounded';
       } else {
-        el.innerText = 'Local Demo Mode (Paste API URL in config)';
+        el.innerText = 'Local Demo Mode (Paste SheetDB API URL in config)';
         el.className = 'font-mono bg-amber-900/60 text-amber-200 border border-amber-700 px-1.5 py-0.5 rounded';
       }
     }
@@ -2264,14 +2294,13 @@
 
       if (activeUrl) {
         try {
-          const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Sheet1` : `${activeUrl}?sheet=Sheet1`;
-          await fetch(targetUrl, {
+          await fetch(activeUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ data: [payload] })
           });
         } catch (err) {
-          console.warn('Saved locally, but failed to reach Apps Script API.');
+          console.warn('Saved locally, but failed to reach SheetDB API.');
         }
       }
 
@@ -2294,7 +2323,7 @@
     // STRICT LOCATION-RESTRICTED PAST INTERVENTION FILTERING (TAB 2)
     function renderInterventions() {
       const targetDate = document.getElementById('global-shift-date').value;
-      const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
+      const cleanTargetDate = normalizeToISO(targetDate);
       const target = new Date(cleanTargetDate);
       const minDateObj = new Date(target);
       minDateObj.setDate(minDateObj.getDate() - 4);
@@ -2307,7 +2336,7 @@
       const activeWard = isAdmin ? selectedDropdownWard : userAssignedWard;
 
       const filtered = interventionsData.filter(item => {
-        const itemDate = normalizeToISO(item.date).split('T')[0];
+        const itemDate = normalizeToISO(item.date);
         const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
 
         const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
@@ -2332,7 +2361,6 @@
         const codesArr = getCodesArray(item.code);
         const codeDisplay = codesArr.join(', ');
         const countBadge = codesArr.length > 1 ? ` (${codesArr.length} Categories)` : '';
-        const isAcc = item.accepted === true || String(item.accepted).toUpperCase().trim() === "YES" || String(item.accepted).toUpperCase().trim() === "TRUE";
 
         const div = document.createElement('div');
         div.className = 'p-4 hover:bg-slate-700/50 flex items-start justify-between transition';
@@ -2343,7 +2371,7 @@
               <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">${item.rn}</span>
               <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${codeDisplay}${countBadge}</span>
               <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
-              ${isAcc ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
+              ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
             </div>
             <p class="text-xs text-slate-300">${item.desc}</p>
           </div>
@@ -2395,12 +2423,12 @@
             : `${activeUrl}?sheet=DrugInfo`;
 
           await fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({ data: [payload] })
-          });
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ data: [payload] })
+      });
         } catch (err) {
-          console.warn('Saved DI locally, but failed to reach Apps Script API.');
+          console.warn('Saved DI locally, but failed to reach SheetDB API.');
         }
       }
 
@@ -2416,7 +2444,7 @@
     // USER-RESTRICTED DRUG INFO HISTORY (NON-ADMINS ONLY SEE LOGS MATCHING THEIR USER PROFILE)
     function renderDiLogs() {
       const targetDate = document.getElementById('global-shift-date').value;
-      const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
+      const cleanTargetDate = normalizeToISO(targetDate);
       const target = new Date(cleanTargetDate);
       const minDateObj = new Date(target);
       minDateObj.setDate(minDateObj.getDate() - 4);
@@ -2425,7 +2453,7 @@
       const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
 
       const filtered = diLogsData.filter(item => {
-        const itemDate = normalizeToISO(item.date).split('T')[0];
+        const itemDate = normalizeToISO(item.date);
         const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
 
         // User restrictions: Non-admin users strictly see only DI logs created under their profile
@@ -2580,13 +2608,12 @@
 
     // UPDATE PRINTABLE CP3 FORM PREVIEW
     function updatePdfReport() {
-      let rawDate = document.getElementById('global-shift-date')?.value || "2026-08-04";
-      let singleDate = normalizeToISO(rawDate).split('T')[0];
-      const activeWard = (document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
+      let singleDate = normalizeToISO(document.getElementById('global-shift-date')?.value || "2026-08-04");
+      const activeWard = document.getElementById('ward-name')?.value || "WARD 1 - MEDICAL MALE";
 
       // Look up if a snapshot exists for this shift
       const lockedSnapshot = checkinsData.find(
-        c => (normalizeToISO(c.date).split('T')[0] === singleDate) && (String(c.ward).trim().toUpperCase() === activeWard)
+        c => normalizeToISO(c.date) === singleDate && String(c.ward).trim().toUpperCase() === activeWard.trim().toUpperCase()
       );
 
       const formattedSingleDate = formatDateDDMMYYYY(singleDate);
@@ -2613,22 +2640,22 @@
 
       // Filtered Interventions & Drug Info
       let filteredInterventions = interventionsData.filter(item => {
-        const itemDate = normalizeToISO(item.date).split('T')[0];
+        const itemDate = normalizeToISO(item.date);
         const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        return itemDate === singleDate && itemWard === activeWard;
+        return itemDate === singleDate && itemWard === activeWard.trim().toUpperCase();
       });
 
       let filteredDi = diLogsData.filter(item => {
-        const itemDate = normalizeToISO(item.date).split('T')[0];
+        const itemDate = normalizeToISO(item.date);
         const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        return itemDate === singleDate && itemWard === activeWard;
+        return itemDate === singleDate && itemWard === activeWard.trim().toUpperCase();
       });
 
       let filteredFu = followUpData.filter(item => {
-        const itemDate = normalizeToISO(item.date).split('T')[0];
+        const itemDate = normalizeToISO(item.date);
         const isPending = item.status !== "Complete";
         const itemWard = item.ward ? String(item.ward).trim().toUpperCase() : "";
-        const wardMatch = itemWard === activeWard;
+        const wardMatch = itemWard === activeWard.trim().toUpperCase();
         return wardMatch && ((itemDate === singleDate) || (itemDate < singleDate && isPending));
       });
 
@@ -2651,7 +2678,7 @@
 
       filteredInterventions.forEach(item => {
         const codes = getCodesArray(item.code);
-        const isAcc = item.accepted === true || String(item.accepted).toUpperCase().trim() === "YES" || String(item.accepted).toUpperCase().trim() === "TRUE";
+        const isAcc = item.accepted === true || item.accepted === "YES";
 
         codes.forEach(code => {
           totalInterventions++;
@@ -2737,13 +2764,11 @@
             const codes = getCodesArray(item.code).join(', ');
             const tr = document.createElement('tr');
             tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
-            const isAccStr = String(item.accepted).toUpperCase().trim();
-            const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
             tr.innerHTML = `
               <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${item.patient}</td>
               <td class="p-1 border-r border-slate-700 font-mono text-slate-400">${item.rn}</td>
               <td class="p-1 border-r border-slate-700 font-bold text-sky-400 text-center">#${index + 1} (${codes})</td>
-              <td class="p-1 text-slate-200">${item.desc} ${isAcc ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''}</td>
+              <td class="p-1 text-slate-200">${item.desc} ${(item.accepted === true || item.accepted === "YES") ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''}</td>
             `;
             tbodyC.appendChild(tr);
           });
@@ -2807,10 +2832,10 @@
       const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
 
       const filtered = interventionsData.filter(item => {
-        const cleanDate = normalizeToISO(item.date).split('T')[0];
+        const cleanDate = normalizeToISO(item.date);
         if (!cleanDate) return false;
         if (monthFilter === "ALL") return true;
-        const month = cleanDate.split('-')[1]; // safely gets YYYY-MM-DD -> MM
+        const month = cleanDate.split('-')[1];
         return month === monthFilter;
       });
 
@@ -2830,15 +2855,11 @@
 
       staffKeys.forEach(key => {
         const user = PIN_DATABASE[key];
-        const staffNameUpper = (user.name || "").trim().toUpperCase();
+        const staffNameUpper = user.name.toUpperCase();
         
         const staffLogs = filtered.filter(item => {
-          const itemUser = String(item.user_name || '').trim().toUpperCase();
-          // Match by exactly equal, substring containment, or matching the internal login key
-          return itemUser === staffNameUpper || 
-                 itemUser.includes(staffNameUpper) || 
-                 staffNameUpper.includes(itemUser) || 
-                 itemUser === String(key).trim().toUpperCase();
+          const itemUser = (item.user_name || '').toUpperCase();
+          return itemUser.includes(staffNameUpper) || itemUser.includes(key.toUpperCase());
         });
 
         const tallies = {
@@ -2852,8 +2873,7 @@
 
         staffLogs.forEach(log => {
           const codes = getCodesArray(log.code);
-          const isAccStr = String(log.accepted).toUpperCase().trim();
-          const isAccepted = log.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
+          const isAccepted = log.accepted === true || log.accepted === "YES";
 
           codes.forEach(code => {
             tallies.total++;
