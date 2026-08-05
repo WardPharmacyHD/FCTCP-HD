@@ -2242,16 +2242,17 @@
       const el = document.getElementById(id);
       if (!el) return;
       if (el.tagName === 'INPUT') {
-        let val = (parseInt(el.value) || 0) + delta;
-        if (val < 0) val = 0;
-        el.value = val;
+      let val = (parseInt(el.value) || 0) + delta;
+      if (val < 0) val = 0;
+      el.value = val;
       } else {
-        let val = (parseInt(el.innerText) || 0) + delta;
-        if (val < 0) val = 0;
-        el.innerText = val;
+      let val = (parseInt(el.innerText) || 0) + delta;
+      if (val < 0) val = 0;
+      el.innerText = val;
       }
       updatePdfReport();
-    }
+      saveShiftSnapshot("DRAFT"); // <-- Auto-persists counters immediately on every click
+      }
 
     async function handleInterventionSubmit(e) {
       e.preventDefault();
