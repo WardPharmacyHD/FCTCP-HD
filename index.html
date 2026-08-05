@@ -1300,32 +1300,40 @@
     let diLogsData = safeJsonParse('cp3_dilogs_db', []);
     let followUpData = safeJsonParse('cp3_followup_db', []);
 
-    window.addEventListener('DOMContentLoaded', () => {
-      populateUserLoginDropdown();
-      renderUserDirectoryTable();
-      checkStoredAuthSession();
-      updateApiStatusDisplay();
-      loadActiveShiftSnapshot();
-      loadLastPatientData();
-      syncShiftDate();
-      setupPatientAutofill();
-      renderInterventions();
-      renderDiLogs();
-      renderFollowUpLogs();
-      fetchCloudData();
-    });
+   // SAFE PORTAL INITIALIZER (FIRES IMMEDIATELY IF DOM IS ALREADY LOADED)
+function initPortal() {
+  populateUserLoginDropdown();
+  renderUserDirectoryTable();
+  checkStoredAuthSession();
+  updateApiStatusDisplay();
+  loadActiveShiftSnapshot();
+  loadLastPatientData();
+  syncShiftDate();
+  setupPatientAutofill();
+  renderInterventions();
+  renderDiLogs();
+  renderFollowUpLogs();
+  fetchCloudData();
+}
 
-    document.addEventListener('click', (e) => {
-      const adminContainer = document.getElementById('admin-menu-container');
-      if (adminContainer && !adminContainer.contains(e.target)) {
-        hideAdminMenu();
-      }
-    });
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initPortal);
+} else {
+  initPortal();
+}
 
-    function toggleAdminMenu() {
-      const dropdown = document.getElementById('admin-menu-dropdown');
-      if (dropdown) dropdown.classList.toggle('hidden');
-    }
+document.addEventListener('click', (e) => {
+  const adminContainer = document.getElementById('admin-menu-container');
+  if (adminContainer && !adminContainer.contains(e.target)) {
+    hideAdminMenu();
+  }
+});
+
+function toggleAdminMenu(e) {
+  if (e) e.stopPropagation();
+  const dropdown = document.getElementById('admin-menu-dropdown');
+  if (dropdown) dropdown.classList.toggle('hidden');
+}
 
     function hideAdminMenu() {
       const dropdown = document.getElementById('admin-menu-dropdown');
