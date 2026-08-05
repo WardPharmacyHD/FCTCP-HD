@@ -2295,10 +2295,10 @@
       if (activeUrl) {
         try {
           await fetch(activeUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: [payload] })
-          });
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ data: [payload] })
+      });
         } catch (err) {
           console.warn('Saved locally, but failed to reach SheetDB API.');
         }
