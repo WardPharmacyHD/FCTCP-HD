@@ -298,8 +298,29 @@
             <p class="text-[10px] bg-rose-950/80 border border-rose-800 text-rose-300 font-bold px-1.5 py-0.5 rounded mt-0.5" id="user-ward-display">WARD 1 - MEDICAL MALE</p>
           </div>
           
-          <!-- CHANGE PIN & LOGOUT BUTTONS -->
-          <div class="flex items-center space-x-1 ml-1">
+          <!-- ADMIN MENU DROPDOWN, CHANGE PIN & LOGOUT BUTTONS IN TOP HEADER -->
+          <div class="flex items-center space-x-1.5 ml-1">
+            
+            <!-- ADMIN MENU DROPDOWN (ONLY VISIBLE FOR ADMIN USERS) -->
+            <div id="admin-menu-container" class="hidden relative">
+              <button onclick="toggleAdminMenu()" id="btn-admin-menu" class="text-amber-300 hover:text-white text-xs px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900/90 rounded-lg border border-amber-600/80 transition flex items-center space-x-1.5 shadow">
+                <i class="fa-solid fa-shield-halved text-amber-400"></i>
+                <span class="font-bold text-[11px] hidden sm:inline">Admin Menu</span>
+                <i class="fa-solid fa-chevron-down text-[9px] ms-0.5 opacity-80"></i>
+              </button>
+
+              <div id="admin-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-[150] overflow-hidden py-1">
+                <button onclick="switchTab('admin'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 transition">
+                  <i class="fa-solid fa-sliders text-amber-400 w-4 text-center"></i>
+                  <span class="font-medium">Admin / Settings</span>
+                </button>
+                <button onclick="switchTab('summary'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition">
+                  <i class="fa-solid fa-table-list text-emerald-400 w-4 text-center"></i>
+                  <span class="font-medium">Laporan PF 6.3(b) Generator</span>
+                </button>
+              </div>
+            </div>
+
             <button onclick="openChangePinModal()" title="Change PIN" class="text-slate-400 hover:text-amber-400 text-xs p-1.5 bg-slate-900 hover:bg-slate-800 rounded border border-slate-700 transition">
               <i class="fa-solid fa-key"></i>
             </button>
@@ -334,28 +355,6 @@
           <i class="fa-solid fa-list-check text-amber-400"></i>
           <span>4. Follow-Up Required</span>
         </button>
-        
-        <!-- NESTED ADMIN DROPDOWN MENU CONTAINER (STRICTLY HIDDEN BY DEFAULT FOR REGULAR PHARMACISTS) -->
-        <div id="admin-menu-container" class="hidden relative">
-          <button onclick="toggleAdminMenu()" id="tab-admin-menu" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap focus:outline-none">
-            <i class="fa-solid fa-shield-halved text-amber-400"></i>
-            <span>5. Admin Menu</span>
-            <i class="fa-solid fa-chevron-down text-[10px] ms-1 text-slate-400"></i>
-          </button>
-
-          <!-- DROPDOWN SUB-ITEMS -->
-          <div id="admin-menu-dropdown" class="hidden absolute right-0 mt-1 w-60 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-[60] overflow-hidden py-1">
-            <button onclick="switchTab('admin'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 transition">
-              <i class="fa-solid fa-sliders text-amber-400 w-4 text-center"></i>
-              <span class="font-medium">Admin / Settings</span>
-            </button>
-            <button onclick="switchTab('summary'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition">
-              <i class="fa-solid fa-table-list text-emerald-400 w-4 text-center"></i>
-              <span class="font-medium">Laporan PF 6.3(b) Generator</span>
-            </button>
-          </div>
-        </div>
-
       </div>
     </div>
 
@@ -1254,7 +1253,7 @@
   <script>
     let defaultUsers = {
       admin: { pin: "9999", name: "Admin Pharmacist", ward: "ICU", role: "admin" },
-      khalil: { pin: "1234", name: "Mohd Khalil Ismail", ward: "ICU", role: "admin" },
+      khalil: { pin: "1234", name: "Mohd Khalil Ismail", ward: "ICU", role: "user" },
       ain: { pin: "1234", name: "Nurul Ain Sarmo", ward: "WARD 2 - MEDICAL FEMALE", role: "user" },
       fiefa: { pin: "1234", name: "Norhafiefa Alieya Hamzah", ward: "WARD 2 - MEDICAL FEMALE", role: "user" },
       hanim: { pin: "1234", name: "Norhanim Solehah Bt Che Abdullah", ward: "WARD 1 - MEDICAL MALE", role: "user" },
@@ -1285,7 +1284,7 @@
         id: "101",
         date: "2026-08-04",
         ward: "WARD 1 - MEDICAL MALE",
-        patient: "Ali bin Abu",
+        patient: "Tan Ah Kow",
         rn: "RN-884920",
         code: "2.1, 2.2",
         desc: "Reduced Enoxaparin from 60mg BD to 80mg OD due to reduced renal clearance (GFR 25).",
@@ -1407,29 +1406,46 @@
       });
     }
 
-    // SETUP TWO-WAY AUTOFILL LISTENERS
+    // SETUP TWO-WAY AUTOFILL LISTENERS (TRIGGERED ON 'CHANGE' TO PREVENT MID-TYPE AUTOFILL GLITCHES)
     function setupPatientAutofill() {
       const ptInput = document.getElementById('patient-name');
       const rnInput = document.getElementById('rn-number');
 
-      if (ptInput && rnInput) {
-        ptInput.addEventListener('input', () => {
-          const val = ptInput.value.trim();
-          if (!val) return;
-          const match = patientsData.find(p => p.name && p.name.trim().toLowerCase() === val.toLowerCase());
-          if (match && match.rn) {
-            rnInput.value = match.rn;
-          }
-        });
+      function doAutofillByName(inputEl, targetEl) {
+        const val = inputEl.value.trim().toLowerCase();
+        if (!val) return;
+        const activeWard = (document.getElementById('ward-name')?.value || '').trim().toUpperCase();
 
-        rnInput.addEventListener('input', () => {
-          const val = rnInput.value.trim();
-          if (!val) return;
-          const match = patientsData.find(p => p.rn && p.rn.trim().toLowerCase() === val.toLowerCase());
-          if (match && match.name) {
-            ptInput.value = match.name;
-          }
-        });
+        // Search matching patient within active ward first, then fallback
+        const match = patientsData.find(p => 
+          p.name && p.name.trim().toLowerCase() === val && 
+          (!activeWard || String(p.ward).trim().toUpperCase() === activeWard)
+        ) || patientsData.find(p => p.name && p.name.trim().toLowerCase() === val);
+
+        if (match && match.rn) {
+          targetEl.value = match.rn;
+        }
+      }
+
+      function doAutofillByRn(inputEl, targetEl) {
+        const val = inputEl.value.trim().toLowerCase();
+        if (!val) return;
+        const activeWard = (document.getElementById('ward-name')?.value || '').trim().toUpperCase();
+
+        // Search matching RN within active ward first, then fallback
+        const match = patientsData.find(p => 
+          p.rn && String(p.rn).trim().toLowerCase() === val && 
+          (!activeWard || String(p.ward).trim().toUpperCase() === activeWard)
+        ) || patientsData.find(p => p.rn && String(p.rn).trim().toLowerCase() === val);
+
+        if (match && match.name) {
+          targetEl.value = match.name;
+        }
+      }
+
+      if (ptInput && rnInput) {
+        ptInput.addEventListener('change', () => doAutofillByName(ptInput, rnInput));
+        rnInput.addEventListener('change', () => doAutofillByRn(rnInput, ptInput));
       }
 
       // Modal Auto-fill
@@ -1437,23 +1453,8 @@
       const editRnInput = document.getElementById('edit-rn-number');
 
       if (editPtInput && editRnInput) {
-        editPtInput.addEventListener('input', () => {
-          const val = editPtInput.value.trim();
-          if (!val) return;
-          const match = patientsData.find(p => p.name && p.name.trim().toLowerCase() === val.toLowerCase());
-          if (match && match.rn) {
-            editRnInput.value = match.rn;
-          }
-        });
-
-        editRnInput.addEventListener('input', () => {
-          const val = editRnInput.value.trim();
-          if (!val) return;
-          const match = patientsData.find(p => p.rn && p.rn.trim().toLowerCase() === val.toLowerCase());
-          if (match && match.name) {
-            editPtInput.value = match.name;
-          }
-        });
+        editPtInput.addEventListener('change', () => doAutofillByName(editPtInput, editRnInput));
+        editRnInput.addEventListener('change', () => doAutofillByRn(editRnInput, editPtInput));
       }
     }
 
@@ -2143,17 +2144,10 @@
       document.getElementById('tab-interventions').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-di').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       document.getElementById('tab-followup').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      if (document.getElementById('tab-admin-menu')) {
-        document.getElementById('tab-admin-menu').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap focus:outline-none";
-      }
 
       document.getElementById('view-' + tabName).classList.remove('hidden');
 
-      if (tabName === 'admin' || tabName === 'summary') {
-        if (document.getElementById('tab-admin-menu')) {
-          document.getElementById('tab-admin-menu').className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap focus:outline-none";
-        }
-      } else if (document.getElementById('tab-' + tabName)) {
+      if (document.getElementById('tab-' + tabName)) {
         document.getElementById('tab-' + tabName).className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
       }
 
