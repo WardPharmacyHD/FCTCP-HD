@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cp3-portal-v2';
+const CACHE_NAME = 'cp3-portal-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
