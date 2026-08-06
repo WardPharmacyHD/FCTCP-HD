@@ -22,12 +22,16 @@
       footer, .no-print { display: none !important; }
     }
   </style>
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#0f172a">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="CP3 Portal">
-<link rel="apple-touch-icon" href="./icon-192.png">
+
+  <!-- FAVICONS & PWA APP ICONS -->
+  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./icon-512.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CP3 Portal">
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col relative pb-12">
 
@@ -376,7 +380,7 @@
       <!-- SHIFT LOCK STATUS BANNER -->
       <div id="shift-status-banner" class="bg-amber-950/80 border-2 border-amber-500 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg no-print">
         <div class="flex items-center space-x-3">
-          <div id="shift-status-icon-bg" class="bg-amber-500 text-slate-950 p-2.5 rounded-xl text-lg font-bold">
+          <div id="shift-status--bg" class="bg-amber-500 text-slate-950 p-2.5 rounded-xl text-lg font-bold">
             <i id="shift-status-icon" class="fa-solid fa-pen-ruler"></i>
           </div>
           <div>
