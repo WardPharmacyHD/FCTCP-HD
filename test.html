@@ -265,81 +265,86 @@
     </div>
   </div>
 
-  <!-- TOP NAVBAR WITH RED HIGH-VISIBILITY DATE BADGE -->
-  <header class="bg-slate-950 border-b border-slate-800 text-white shadow-md sticky top-0 z-50 no-print">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-2 sm:space-x-3">
-  <!-- Logo Container with Status Dot -->
-  <div class="relative">
-    <img src="./icon-192.png" alt="CPHiS Logo" class="w-9 h-9 sm:w-10 sm:h-10 object-contain rounded-lg">
-    <span id="api-status-dot" title="Checking Connection..." class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-950 rounded-full transition-colors duration-300"></span>
-  </div>
-          <h1 class="font-bold text-sm sm:text-base leading-none">WARD PHARMACY PORTAL HD</h1>
-          <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5 sm:mt-1">CP3 Report Generator</p>
+  <!-- TOP NAVBAR WITH CLEAN LOGO, STATUS DOT & USER CONTROLS -->
+<header class="bg-slate-950 border-b border-slate-800 text-white shadow-md sticky top-0 z-50 no-print">
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-0 min-h-[64px] flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+    
+    <!-- BRAND LOGO WITH PROPER RELATIVE CONTAINER AND DOT -->
+    <div class="flex items-center space-x-3">
+      <div class="relative inline-flex items-center justify-center shrink-0">
+        <div class="bg-white p-1 rounded-xl shadow-md flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 overflow-hidden">
+          <img src="./icon-192.png" alt="CP Logo" class="w-full h-full object-contain">
+        </div>
+        <!-- Live API Status Indicator Dot -->
+        <span id="api-status-dot" title="Checking Connection..." class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-slate-500 border-2 border-slate-950 rounded-full transition-colors duration-300"></span>
+      </div>
+      <div>
+        <h1 class="font-bold text-sm sm:text-base leading-none">WARD PHARMACY PORTAL HD</h1>
+        <p class="text-[10px] sm:text-xs text-slate-400 mt-1">CP3 Report Generator</p>
+      </div>
+    </div>
+    
+    <!-- USER INFO, ACTIVE SHIFT DATE & ACCOUNT SETTINGS -->
+    <div class="flex items-center space-x-2 sm:space-x-4 text-sm ms-auto sm:ms-0">
+      
+      <!-- SHIFT DATE BOX -->
+      <div class="flex items-center space-x-2 bg-rose-950/90 border-2 border-rose-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg shadow-rose-950/50">
+        <i class="fa-regular fa-calendar-check text-rose-400 text-xs sm:text-sm animate-pulse"></i>
+        <div class="flex flex-col">
+          <span class="text-[9px] font-bold text-rose-300 uppercase tracking-wider leading-none">Shift Date:</span>
+          <div class="flex items-center space-x-1 mt-0.5">
+            <span id="global-shift-date-display" class="text-rose-100 font-mono font-black text-xs sm:text-sm">05/08/2026</span>
+            <input type="date" id="global-shift-date" value="2026-08-05" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-rose-300 w-4 text-xs font-black focus:outline-none cursor-pointer [color-scheme:dark]">
+          </div>
         </div>
       </div>
       
-      <!-- User Info, Active Shift Date & Account Settings -->
-      <div class="flex items-center space-x-2 sm:space-x-6 text-sm">
-        
-        <!-- RED HIGH-VISIBILITY SHIFT DATE BOX WITH PROMINENT DD/MM/YYYY FORMAT -->
-        <div class="flex items-center space-x-2 bg-rose-950/90 border-2 border-rose-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg shadow-rose-950/50">
-          <i class="fa-regular fa-calendar-check text-rose-400 text-xs sm:text-sm animate-pulse"></i>
-          <div class="flex flex-col">
-            <span class="text-[9px] font-bold text-rose-300 uppercase tracking-wider leading-none">Shift Date (DD/MM/YYYY):</span>
-            <div class="flex items-center space-x-1 mt-0.5">
-              <span id="global-shift-date-display" class="text-rose-100 font-mono font-black text-xs sm:text-sm">05/08/2026</span>
-              <input type="date" id="global-shift-date" value="2026-08-05" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-rose-300 w-4 text-xs font-black focus:outline-none cursor-pointer [color-scheme:dark]">
-            </div>
+      <!-- USER AVATAR & ACCOUNT DETAILS -->
+      <div class="flex items-center space-x-2 sm:space-x-3 border-l border-slate-800 pl-2 sm:pl-3">
+        <div id="user-avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-600 flex items-center justify-center font-bold text-white text-xs sm:text-sm shadow shrink-0">
+          AP
+        </div>
+        <div class="hidden lg:block">
+          <div class="flex items-center space-x-1.5">
+            <p id="user-display-name" class="font-semibold text-xs leading-none">Admin Pharmacist</p>
+            <span id="user-role-badge" class="text-[9px] bg-amber-500 text-slate-900 font-bold px-1.5 py-0.2 rounded">ADMIN</span>
           </div>
+          <p class="text-[10px] bg-rose-950/80 border border-rose-800 text-rose-300 font-bold px-1.5 py-0.5 rounded mt-0.5" id="user-ward-display">WARD 1 - MEDICAL MALE</p>
         </div>
         
-        <div class="flex items-center space-x-2 sm:space-x-3 border-l border-slate-800 pl-2 sm:pl-4">
-          <div id="user-avatar" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sky-600 flex items-center justify-center font-bold text-white text-xs sm:text-sm shadow">
-            AP
-          </div>
-          <div class="hidden lg:block">
-            <div class="flex items-center space-x-1.5">
-              <p id="user-display-name" class="font-semibold text-xs leading-none">Admin Pharmacist</p>
-              <span id="user-role-badge" class="text-[9px] bg-amber-500 text-slate-900 font-bold px-1.5 py-0.2 rounded">ADMIN</span>
-            </div>
-            <p class="text-[10px] bg-rose-950/80 border border-rose-800 text-rose-300 font-bold px-1.5 py-0.5 rounded mt-0.5" id="user-ward-display">WARD 1 - MEDICAL MALE</p>
-          </div>
-          
-          <!-- ADMIN MENU DROPDOWN, CHANGE PIN & LOGOUT BUTTONS IN TOP HEADER -->
-          <div class="flex items-center space-x-1.5 ml-1">
-            
-            <!-- ADMIN MENU DROPDOWN (ONLY VISIBLE FOR ADMIN USERS) -->
-            <div id="admin-menu-container" class="hidden relative">
-              <button onclick="toggleAdminMenu()" id="btn-admin-menu" class="text-amber-300 hover:text-white text-xs px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900/90 rounded-lg border border-amber-600/80 transition flex items-center space-x-1.5 shadow">
-                <i class="fa-solid fa-shield-halved text-amber-400"></i>
-                <span class="font-bold text-[11px] hidden sm:inline">Admin Menu</span>
-                <i class="fa-solid fa-chevron-down text-[9px] ms-0.5 opacity-80"></i>
+        <!-- ADMIN DROPDOWN & CONTROL BUTTONS -->
+        <div class="flex items-center space-x-1.5 ml-1">
+          <div id="admin-menu-container" class="hidden relative">
+            <button onclick="toggleAdminMenu()" id="btn-admin-menu" class="text-amber-300 hover:text-white text-xs px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900/90 rounded-lg border border-amber-600/80 transition flex items-center space-x-1.5 shadow">
+              <i class="fa-solid fa-shield-halved text-amber-400"></i>
+              <span class="font-bold text-[11px] hidden sm:inline">Admin Menu</span>
+              <i class="fa-solid fa-chevron-down text-[9px] ms-0.5 opacity-80"></i>
+            </button>
+
+            <div id="admin-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-[150] overflow-hidden py-1">
+              <button onclick="switchTab('admin'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 transition">
+                <i class="fa-solid fa-sliders text-amber-400 w-4 text-center"></i>
+                <span class="font-medium">Admin / Settings</span>
               </button>
-
-              <div id="admin-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-[150] overflow-hidden py-1">
-                <button onclick="switchTab('admin'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 transition">
-                  <i class="fa-solid fa-sliders text-amber-400 w-4 text-center"></i>
-                  <span class="font-medium">Admin / Settings</span>
-                </button>
-                <button onclick="switchTab('summary'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition">
-                  <i class="fa-solid fa-table-list text-emerald-400 w-4 text-center"></i>
-                  <span class="font-medium">Laporan PF 6.3(b) Generator</span>
-                </button>
-              </div>
+              <button onclick="switchTab('summary'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition">
+                <i class="fa-solid fa-table-list text-emerald-400 w-4 text-center"></i>
+                <span class="font-medium">Laporan PF 6.3(b) Generator</span>
+              </button>
             </div>
-
-            <button onclick="openChangePinModal()" title="Change PIN" class="text-slate-400 hover:text-amber-400 text-xs p-1.5 bg-slate-900 hover:bg-slate-800 rounded border border-slate-700 transition">
-              <i class="fa-solid fa-key"></i>
-            </button>
-            <button onclick="logoutUser()" title="Lock Shift / Logout" class="text-slate-400 hover:text-rose-400 text-xs p-1.5 bg-slate-900 hover:bg-slate-800 rounded border border-slate-700 transition">
-              <i class="fa-solid fa-lock"></i>
-            </button>
           </div>
+
+          <button onclick="openChangePinModal()" title="Change PIN" class="text-slate-400 hover:text-amber-400 text-xs p-1.5 bg-slate-900 hover:bg-slate-800 rounded border border-slate-700 transition">
+            <i class="fa-solid fa-key"></i>
+          </button>
+          <button onclick="logoutUser()" title="Lock Shift / Logout" class="text-slate-400 hover:text-rose-400 text-xs p-1.5 bg-slate-900 hover:bg-slate-800 rounded border border-slate-700 transition">
+            <i class="fa-solid fa-lock"></i>
+          </button>
         </div>
       </div>
+
     </div>
-  </header>
+  </div>
+</header>
 
   <!-- MAIN CONTAINER -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
