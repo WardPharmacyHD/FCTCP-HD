@@ -12,11 +12,11 @@
   .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 600; }
   input[type="date"] { cursor: pointer; color-scheme: dark; }
 
-  /* STRICT PRINT-ONLY STYLES FOR EXACT OFFICIAL CP3 FORMAT */
+  /* DUAL-PAGE PRINT FIX FOR CP3 REPORT */
   @media print {
     @page {
       size: A4 portrait;
-      margin: 6mm;
+      margin: 8mm;
     }
 
     body { 
@@ -47,16 +47,17 @@
       box-shadow: none !important;
     }
 
-    /* 2-PAGE PRINT ENFORCEMENT */
+    /* FORCED DUAL PAGE BREAK */
     .cp3-print-page {
       page-break-after: always !important;
       break-after: page !important;
       background: #ffffff !important;
       box-sizing: border-box !important;
       padding: 0 !important;
-      margin-bottom: 0 !important;
-      height: 280mm !important;
-      overflow: hidden !important;
+      margin: 0 !important;
+      min-height: auto !important;
+      height: auto !important;
+      overflow: visible !important;
     }
 
     .cp3-print-page:last-child {
@@ -64,7 +65,7 @@
       break-after: avoid !important;
     }
 
-    /* FORCED TWO-COLUMN LAYOUT FOR SECTION B IN PRINT */
+    /* FORCED 2-COLUMN TABLE CONTAINER FOR PRINT */
     .cp3-section-b-container {
       display: table !important;
       width: 100% !important;
@@ -85,15 +86,15 @@
       vertical-align: top !important;
     }
 
-    /* PRINT TABLE BORDERS & FONT SIZES */
+    /* BORDER & FONT SIZES FOR OFFICIAL PRINT FORMAT */
     #printable-cp3 table, 
     #printable-cp3 th, 
     #printable-cp3 td { 
       border-color: #000000 !important; 
       color: #000000 !important; 
       background: #ffffff !important;
-      font-size: 8px !important;
-      padding: 1px 2px !important;
+      font-size: 8.5px !important;
+      padding: 2px 3px !important;
     }
 
     #printable-cp3 .cp3-header-banner {
@@ -755,7 +756,6 @@
     <div>
       <div class="font-bold text-slate-100 uppercase mb-1">B: INTERVENTIONS / REQUESTS ENCOUNTERED</div>
       
-      <!-- FORCED 2-COLUMN TABLE CONTAINER FOR PRINT & PREVIEW -->
       <div class="cp3-section-b-container grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]">
         
         <!-- LEFT HALF: INTERVENTIONS LOG MATRIX -->
@@ -850,6 +850,8 @@
       </div>
     </div>
 
+  </div> <!-- END OF PAGE 1 -->
+
   <!-- PAGE 2: SECTIONS C, D, E & SIGNATURE FOOTER -->
   <div class="cp3-print-page space-y-4">
     
@@ -902,19 +904,23 @@
       </table>
     </div>
 
-<!-- FOOTER & SIGNATURE -->
-<div class="pt-8 border-t border-slate-700 flex justify-between items-end text-slate-400">
-  <div class="space-y-1">
-    <div id="pdf-signature-names" class="font-bold text-slate-200 text-sm underline decoration-dotted underline-offset-4 mb-1">
-      <!-- Dynamically populated with active pharmacist name(s) -->
-      ....................................................
+    <!-- FOOTER & SIGNATURE -->
+    <div class="pt-8 border-t border-slate-700 flex justify-between items-end text-slate-400">
+      <div class="space-y-1">
+        <div id="pdf-signature-names" class="font-bold text-slate-200 text-sm underline decoration-dotted underline-offset-4 mb-1">
+          <!-- Dynamically populated with active pharmacist name(s) -->
+          ....................................................
+        </div>
+        <p class="font-bold text-slate-200">Pharmacist's Sign & Stamp</p>
+        <p>Date: <span class="font-mono text-slate-200" id="pdf-footer-date">05/08/2026</span></p>
+      </div>
+      <div class="text-right">
+        <p class="font-bold text-slate-400">Pin. 2/24</p>
+      </div>
     </div>
-    <p class="font-bold text-slate-200">Pharmacist's Sign & Stamp</p>
-    <p>Date: <span class="font-mono text-slate-200" id="pdf-footer-date">05/08/2026</span></p>
-  </div>
-  <div class="text-right">
-    <p class="font-bold text-slate-400">Pin. 2/24</p>
-  </div>
+
+  </div> <!-- END OF PAGE 2 -->
+
 </div>
 
       <!-- PRINT ACTION BAR -->
