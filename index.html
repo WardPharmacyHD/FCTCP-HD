@@ -2711,9 +2711,13 @@ async function copyDi(id) {
   const item = diLogsData.find(i => String(i.id).trim() === targetId);
   if (!item) return;
 
+  // Extract question starting from line 2 (removes patient info on line 1)
+  const questionOnly = item.question.includes('\n') 
+    ? item.question.split('\n').slice(1).join('\n').trim() 
+    : item.question.trim();
+
   // Format Text to Copy (Question & Answer)
-  const diText = `Q: ${item.question}
-  A: ${item.response}`;
+  const diText = `Q: ${questionOnly}\nA: ${item.response}`;
 
   try {
     // 1. Copy Question & Answer to Clipboard
