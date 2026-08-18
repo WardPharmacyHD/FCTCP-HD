@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -754,11 +754,12 @@
               <tr class="bg-slate-900 border-b border-slate-700 font-bold text-[10px]">
                 <th class="p-1 border-r border-slate-700 w-32">PATIENT NAME</th>
                 <th class="p-1 border-r border-slate-700 w-24">RN</th>
-                <th class="p-1 border-r border-slate-700 w-24">INTERVENTION NO.</th>
+                <th class="p-1 border-r border-slate-700 w-28">INTERVENTION NO.</th>
                 <th class="p-1 border-r border-slate-700">DESCRIPTIONS</th>
+                <th class="p-1 border-r border-slate-700 w-12 text-center">PhIS</th>
                 <th class="p-1 w-14 text-center no-print">ACTION</th>
               </tr>
-            </thead>
+              </thead>
             <tbody id="pdf-interventions-table" class="divide-y divide-slate-800 text-[10px]"></tbody>
           </table>
         </div>
@@ -2355,6 +2356,7 @@
         code: selectedCodes.join(', '),
         desc: document.getElementById('intervention-desc').value,
         accepted: document.getElementById('is-accepted').checked ? "YES" : "NO",
+        recordedToPhis: "NO",
         user_name: currentUser ? currentUser.name : "Anonymous",
         user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
       };
@@ -2395,69 +2397,130 @@
       showToast('Intervention Logged Successfully!', 'success');
     }
 
-    function renderInterventions() {
-      const targetDate = document.getElementById('global-shift-date').value;
-      const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
-      const target = new Date(cleanTargetDate);
-      const minDateObj = new Date(target);
-      minDateObj.setDate(minDateObj.getDate() - 4);
-      const minDateStr = minDateObj.toISOString().split('T')[0];
+    async function copyPci(id) {
+  const targetId = String(id).trim();
+  const item = interventionsData.find(i => String(i.id).trim() === targetId);
+  if (!item) return;
 
-      const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
-      const userAssignedWard = currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE";
-      const selectedDropdownWard = document.getElementById('ward-name')?.value || userAssignedWard;
-      
-      const activeWard = isAdmin ? selectedDropdownWard : userAssignedWard;
-      const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  const isAccStr = String(item.accepted).toUpperCase().trim();
+  const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
 
-      const filtered = interventionsData.filter(item => {
-        const itemDate = normalizeToISO(item.date).split('T')[0];
-        const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
-        const wardMatch = cleanStr(item.ward) === cleanStr(activeWard);
+  // Formatted PhIS Copy Text
+  const pciText = `[PHARMACEUTICAL CARE INTERVENTION]
+Patient: ${item.patient} (${item.rn})
+Ward: ${item.ward}
+CP3 Code: ${item.code}
+Intervention / Recommendation: ${item.desc}
+Accepted by Doctor: ${isAcc ? 'YES' : 'NO'}
+Recorded By: ${item.user_name || 'Pharmacist'}`;
 
-        return dateMatch && wardMatch;
-      });
+  try {
+    // 1. Copy to Clipboard
+    await navigator.clipboard.writeText(pciText);
 
-      filtered.sort((a, b) => new Date(normalizeToISO(b.date)) - new Date(normalizeToISO(a.date)));
-      
-      document.getElementById('entry-count').innerText = filtered.length;
-      const listEl = document.getElementById('interventions-list');
-      listEl.innerHTML = '';
+    // 2. Update local state
+    item.recordedToPhis = "YES";
+    localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
 
-      if (filtered.length === 0) {
-        listEl.innerHTML = `<div class="p-4 text-xs text-slate-400 italic">No interventions logged for ${activeWard} in the last 5 days.</div>`;
-        return;
-      }
+    // 3. Re-render UI
+    renderInterventions();
+    updatePdfReport();
+    renderPfSummaryReport();
 
-      filtered.forEach(item => {
-        const codesArr = getCodesArray(item.code);
-        const codeDisplay = codesArr.join(', ');
-        const countBadge = codesArr.length > 1 ? ` (${codesArr.length} Categories)` : '';
-        const isAccStr = String(item.accepted).toUpperCase().trim();
-        const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
+    // 4. Trigger Toast Splash Notification
+    showToast('PCI copied to clipboard - Kindly update di PHIS, TQ!, 'success');
 
-        const div = document.createElement('div');
-        div.className = 'p-4 hover:bg-slate-700/50 flex items-start justify-between transition';
-        div.innerHTML = `
-          <div class="space-y-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="font-bold text-sm text-slate-100">${item.patient}</span>
-              <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">${item.rn}</span>
-              <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${codeDisplay}${countBadge}</span>
-              <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
-              <span class="text-xs bg-slate-900 text-sky-400 border border-slate-700 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-user-doctor me-1"></i>${item.user_name || 'RPh'}</span>
-              ${isAcc ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
-            </div>
-            <p class="text-xs text-slate-300">${item.desc}</p>
-          </div>
-          <div class="flex items-center space-x-1 ms-2">
-            <button onclick="openEditInterventionModal('${item.id}')" class="text-sky-400 hover:text-sky-300 text-xs p-1 transition" title="Edit Intervention"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button onclick="deleteEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1 transition" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        `;
-        listEl.appendChild(div);
-      });
+    // 5. Sync Update to Google Sheets API
+    const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+    if (activeUrl) {
+      fetch(activeUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ 
+          action: "update_phis", 
+          id: item.id, 
+          recordedToPhis: "YES",
+          data: [item] 
+        })
+      }).catch(err => console.warn('Offline: PhIS status saved locally.'));
     }
+  } catch (err) {
+    showToast('Failed to copy to clipboard', 'error');
+  }
+}
+    
+function renderInterventions() {
+  const targetDate = document.getElementById('global-shift-date').value;
+  const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
+  const target = new Date(cleanTargetDate);
+  const minDateObj = new Date(target);
+  minDateObj.setDate(minDateObj.getDate() - 4);
+  const minDateStr = minDateObj.toISOString().split('T')[0];
+
+  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+  const userAssignedWard = currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE";
+  const selectedDropdownWard = document.getElementById('ward-name')?.value || userAssignedWard;
+  
+  const activeWard = isAdmin ? selectedDropdownWard : userAssignedWard;
+  const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+  const filtered = interventionsData.filter(item => {
+    const itemDate = normalizeToISO(item.date).split('T')[0];
+    const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
+    const wardMatch = cleanStr(item.ward) === cleanStr(activeWard);
+    return dateMatch && wardMatch;
+  });
+
+  filtered.sort((a, b) => new Date(normalizeToISO(b.date)) - new Date(normalizeToISO(a.date)));
+  
+  document.getElementById('entry-count').innerText = filtered.length;
+  const listEl = document.getElementById('interventions-list');
+  listEl.innerHTML = '';
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="p-4 text-xs text-slate-400 italic">No interventions logged for ${activeWard} in the last 5 days.</div>`;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const codesArr = getCodesArray(item.code);
+    const codeDisplay = codesArr.join(', ');
+    const countBadge = codesArr.length > 1 ? ` (${codesArr.length} Categories)` : '';
+    const isAccStr = String(item.accepted).toUpperCase().trim();
+    const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
+    const isPhisRecorded = String(item.recordedToPhis || '').toUpperCase() === "YES";
+
+    const div = document.createElement('div');
+    div.className = 'p-4 hover:bg-slate-700/50 flex flex-col sm:flex-row items-start justify-between transition gap-3';
+    div.innerHTML = `
+      <div class="space-y-1.5 flex-grow">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="font-bold text-sm text-slate-100">${item.patient}</span>
+          <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-mono">${item.rn}</span>
+          <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">CP3 Code: ${codeDisplay}${countBadge}</span>
+          <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
+          <span class="text-xs bg-slate-900 text-sky-400 border border-slate-700 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-user-doctor me-1"></i>${item.user_name || 'RPh'}</span>
+          ${isAcc ? '<span class="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 font-semibold px-2 py-0.5 rounded"><i class="fa-solid fa-check me-1"></i> Accepted</span>' : ''}
+          ${isPhisRecorded 
+            ? '<span class="text-xs bg-emerald-900/80 text-emerald-200 border border-emerald-500 font-black px-2 py-0.5 rounded shadow flex items-center"><i class="fa-solid fa-clipboard-check me-1 text-emerald-400"></i> PhIS: YES</span>' 
+            : '<span class="text-xs bg-amber-950 text-amber-300 border border-amber-800 font-semibold px-2 py-0.5 rounded">PhIS: NO</span>'}
+        </div>
+        <p class="text-xs text-slate-300">${item.desc}</p>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex items-center space-x-2 shrink-0 self-end sm:self-center">
+        <button onclick="copyPci('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold transition shadow flex items-center space-x-1 border border-sky-400/30">
+          <i class="fa-solid fa-copy me-1"></i>
+          <span>Copy PCI</span>
+        </button>
+        <button onclick="openEditInterventionModal('${item.id}')" class="text-sky-400 hover:text-sky-300 text-xs p-1.5 bg-slate-900 rounded border border-slate-700" title="Edit Intervention"><i class="fa-solid fa-pen-to-square"></i></button>
+        <button onclick="deleteEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1.5 bg-slate-900 rounded border border-slate-700" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `;
+    listEl.appendChild(div);
+  });
+}
 
     async function deleteEntry(id) {
       if (!confirm("Are you sure you want to delete this intervention entry?")) return;
@@ -2958,32 +3021,36 @@
       if (document.getElementById('pdf-counsel-grp-p')) document.getElementById('pdf-counsel-grp-p').innerText = gPts.toString();
       if (document.getElementById('pdf-grand-total')) document.getElementById('pdf-grand-total').innerText = (bPts + dPts + gPts).toString();
 
-      const tbodyC = document.getElementById('pdf-interventions-table');
-      if (tbodyC) {
-        tbodyC.innerHTML = '';
-        if (filteredInterventions.length === 0) {
-          tbodyC.innerHTML = '<tr><td colspan="5" class="p-3 text-center text-slate-400 italic">No interventions logged for this selected date and ward.</td></tr>';
-        } else {
-          filteredInterventions.forEach((item, index) => {
-            const codes = getCodesArray(item.code).join(', ');
-            const tr = document.createElement('tr');
-            tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
-            const isAccStr = String(item.accepted).toUpperCase().trim();
-            const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
-            tr.innerHTML = `
-              <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${item.patient}</td>
-              <td class="p-1 border-r border-slate-700 font-mono text-slate-400">${item.rn}</td>
-              <td class="p-1 border-r border-slate-700 font-bold text-sky-400 text-center">#${index + 1} (${codes})</td>
-              <td class="p-1 border-r border-slate-700 text-slate-200">${item.desc} ${isAcc ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''} <span class="text-slate-500 text-[9px]"> - ${item.user_name || 'RPh'}</span></td>
-              <td class="p-1 text-center no-print flex items-center justify-center space-x-1.5">
-                <button onclick="openEditInterventionModal('${item.id}')" class="text-sky-400 hover:text-sky-300 p-0.5" title="Edit Entry"><i class="fa-solid fa-pen-to-square"></i></button>
-                <button onclick="deleteEntry('${item.id}')" class="text-rose-400 hover:text-rose-300 p-0.5" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
-              </td>
-            `;
-            tbodyC.appendChild(tr);
-          });
-        }
-      }
+const tbodyC = document.getElementById('pdf-interventions-table');
+if (tbodyC) {
+  tbodyC.innerHTML = '';
+  if (filteredInterventions.length === 0) {
+    tbodyC.innerHTML = '<tr><td colspan="6" class="p-3 text-center text-slate-400 italic">No interventions logged for this selected date and ward.</td></tr>';
+  } else {
+    filteredInterventions.forEach((item, index) => {
+      const codes = getCodesArray(item.code).join(', ');
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
+      
+      const isAccStr = String(item.accepted).toUpperCase().trim();
+      const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
+      const isPhisRecorded = String(item.recordedToPhis || '').toUpperCase() === "YES";
+
+      tr.innerHTML = `
+        <td class="p-1 border-r border-slate-700 font-bold text-slate-100">${item.patient}</td>
+        <td class="p-1 border-r border-slate-700 font-mono text-slate-400">${item.rn}</td>
+        <td class="p-1 border-r border-slate-700 font-bold text-sky-400 text-center">#${index + 1} (${codes})</td>
+        <td class="p-1 border-r border-slate-700 text-slate-200">${item.desc} ${isAcc ? '<span class="text-emerald-400 font-bold">(Accepted)</span>' : ''} <span class="text-slate-500 text-[9px]"> - ${item.user_name || 'RPh'}</span></td>
+        <td class="p-1 border-r border-slate-700 text-center font-black text-sm text-emerald-400">${isPhisRecorded ? '✓' : ''}</td>
+        <td class="p-1 text-center no-print flex items-center justify-center space-x-1.5">
+          <button onclick="openEditInterventionModal('${item.id}')" class="text-sky-400 hover:text-sky-300 p-0.5" title="Edit Entry"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button onclick="deleteEntry('${item.id}')" class="text-rose-400 hover:text-rose-300 p-0.5" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
+        </td>
+      `;
+      tbodyC.appendChild(tr);
+    });
+  }
+}
 
       const tbodyD = document.getElementById('pdf-di-table');
       if (tbodyD) {
