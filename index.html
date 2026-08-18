@@ -2712,10 +2712,8 @@ async function copyDi(id) {
   if (!item) return;
 
   // Format Text to Copy (Question & Answer)
-  const diText = `[DRUG INFORMATION ENQUIRY]
-Enquirer: ${item.enquirer} (${item.category})
-Q: ${item.question}
-A: ${item.response}`;
+  const diText = `Q: ${item.question}
+  A: ${item.response}`;
 
   try {
     // 1. Copy Question & Answer to Clipboard
