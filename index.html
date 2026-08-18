@@ -764,19 +764,20 @@
           </table>
         </div>
 
-        <!-- SECTION D: REQUEST / INFORMATION PROVIDED -->
-        <div class="my-4 min-w-[600px]">
-          <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">D: REQUEST/ INFORMATION PROVIDED</div>
-          <table class="w-full text-left border-collapse border border-slate-700">
-            <thead>
-              <tr class="bg-slate-900 border-b border-slate-700 font-bold text-[10px]">
-                <th class="p-1 border-r border-slate-700 w-1/2">QUESTIONS</th>
-                <th class="p-1 w-1/2">ANSWERS WITH REFERENCES</th>
-              </tr>
-            </thead>
-            <tbody id="pdf-di-table" class="divide-y divide-slate-800 text-[10px]"></tbody>
-          </table>
-        </div>
+       <!-- SECTION D: REQUEST / INFORMATION PROVIDED -->
+<div class="my-4 min-w-[600px]">
+  <div class="font-bold bg-slate-900 p-1.5 mb-2 text-slate-200 rounded border border-slate-700">D: REQUEST/ INFORMATION PROVIDED</div>
+  <table class="w-full text-left border-collapse border border-slate-700">
+    <thead>
+      <tr class="bg-slate-900 border-b border-slate-700 font-bold text-[10px]">
+        <th class="p-1 border-r border-slate-700 w-1/2">QUESTIONS</th>
+        <th class="p-1 border-r border-slate-700 w-1/2">ANSWERS WITH REFERENCES</th>
+        <th class="p-1 w-12 text-center">PhIS</th>
+      </tr>
+    </thead>
+    <tbody id="pdf-di-table" class="divide-y divide-slate-800 text-[10px]"></tbody>
+  </table>
+</div>
 
         <!-- SECTION E: FOLLOW-UP REQUIRED -->
         <div class="my-4 min-w-[600px]">
@@ -2556,6 +2557,7 @@ function renderInterventions() {
         category: document.getElementById('di-category').value,
         question: document.getElementById('di-question').value.trim(),
         response: document.getElementById('di-response').value.trim(),
+        recordedToPhis: "NO", // Default PhIS/Copy status
         user_name: currentUser ? currentUser.name : "Anonymous",
         user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
       };
@@ -2590,63 +2592,125 @@ function renderInterventions() {
       showToast('Drug Information Enquiry Saved!', 'success');
     }
 
-    function renderDiLogs() {
-      const targetDate = document.getElementById('global-shift-date').value;
-      const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
-      const target = new Date(cleanTargetDate);
-      const minDateObj = new Date(target);
-      minDateObj.setDate(minDateObj.getDate() - 4);
-      const minDateStr = minDateObj.toISOString().split('T')[0];
+async function copyDi(id) {
+  const targetId = String(id).trim();
+  const item = diLogsData.find(i => String(i.id).trim() === targetId);
+  if (!item) return;
 
-      const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+  // Format Text to Copy (Question & Answer)
+  const diText = `[DRUG INFORMATION ENQUIRY]
+Enquirer: ${item.enquirer} (${item.category})
+Q: ${item.question}
+A: ${item.response}`;
 
-      const filtered = diLogsData.filter(item => {
-        const itemDate = normalizeToISO(item.date).split('T')[0];
-        const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
+  try {
+    // 1. Copy Question & Answer to Clipboard
+    await navigator.clipboard.writeText(diText);
 
-        let userMatch = true;
-        if (!isAdmin) {
-          const itemUser = (item.user_name || '').toUpperCase();
-          const currUser = (currentUser ? currentUser.name : '').toUpperCase();
-          const currKey = (localStorage.getItem('active_user_key') || '').toUpperCase();
-          userMatch = itemUser.includes(currUser) || itemUser.includes(currKey);
-        }
+    // 2. Update local state
+    item.recordedToPhis = "YES";
+    localStorage.setItem('cp3_dilogs_db', JSON.stringify(diLogsData));
 
-        return dateMatch && userMatch;
-      });
+    // 3. Re-render UI
+    renderDiLogs();
+    updatePdfReport();
 
-      filtered.sort((a, b) => new Date(normalizeToISO(b.date)) - new Date(normalizeToISO(a.date)));
+    // 4. Trigger Toast Notification
+    showToast('DI Enquiry copied to clipboard - Kindly update di PHIS, TQ!', 'success');
 
-      const countEl = document.getElementById('di-entry-count');
-      if (countEl) countEl.innerText = filtered.length;
+    // 5. Sync Update to Google Sheets (DrugInfo Sheet Tab)
+    const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+    if (activeUrl) {
+      const targetUrl = activeUrl.includes('?') 
+        ? `${activeUrl}&sheet=DrugInfo` 
+        : `${activeUrl}?sheet=DrugInfo`;
 
-      const listEl = document.getElementById('di-logs-list');
-      if (!listEl) return;
-      listEl.innerHTML = '';
-
-      if (filtered.length === 0) {
-        listEl.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No Drug Information enquiries logged for your profile in the last 5 days.</div>';
-        return;
-      }
-
-      filtered.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'p-4 hover:bg-slate-700/50 flex items-start justify-between transition space-x-3';
-        div.innerHTML = `
-          <div class="space-y-1.5 flex-grow">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">${item.enquirer}</span>
-              <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-medium">${item.category}</span>
-              <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
-            </div>
-            <p class="text-xs font-semibold text-slate-200">Q: ${item.question}</p>
-            <p class="text-xs text-emerald-400 bg-slate-900/60 p-2 rounded border border-slate-700/80"><strong>A:</strong> ${item.response}</p>
-          </div>
-          <button onclick="deleteDiEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1 transition"><i class="fa-solid fa-trash"></i></button>
-        `;
-        listEl.appendChild(div);
-      });
+      fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ 
+          action: "update_phis", 
+          id: item.id, 
+          recordedToPhis: "YES",
+          data: [item] 
+        })
+      }).catch(err => console.warn('Offline: DI PhIS status saved locally.'));
     }
+  } catch (err) {
+    showToast('Failed to copy to clipboard', 'error');
+  }
+}   
+    
+function renderDiLogs() {
+  const targetDate = document.getElementById('global-shift-date').value;
+  const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
+  const target = new Date(cleanTargetDate);
+  const minDateObj = new Date(target);
+  minDateObj.setDate(minDateObj.getDate() - 4);
+  const minDateStr = minDateObj.toISOString().split('T')[0];
+
+  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+
+  const filtered = diLogsData.filter(item => {
+    const itemDate = normalizeToISO(item.date).split('T')[0];
+    const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
+
+    let userMatch = true;
+    if (!isAdmin) {
+      const itemUser = (item.user_name || '').toUpperCase();
+      const currUser = (currentUser ? currentUser.name : '').toUpperCase();
+      const currKey = (localStorage.getItem('active_user_key') || '').toUpperCase();
+      userMatch = itemUser.includes(currUser) || itemUser.includes(currKey);
+    }
+
+    return dateMatch && userMatch;
+  });
+
+  filtered.sort((a, b) => new Date(normalizeToISO(b.date)) - new Date(normalizeToISO(a.date)));
+
+  const countEl = document.getElementById('di-entry-count');
+  if (countEl) countEl.innerText = filtered.length;
+
+  const listEl = document.getElementById('di-logs-list');
+  if (!listEl) return;
+  listEl.innerHTML = '';
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No Drug Information enquiries logged for your profile in the last 5 days.</div>';
+    return;
+  }
+
+  filtered.forEach(item => {
+    const isPhisRecorded = String(item.recordedToPhis || '').toUpperCase() === "YES";
+
+    const div = document.createElement('div');
+    div.className = 'p-4 hover:bg-slate-700/50 flex flex-col sm:flex-row items-start justify-between transition gap-3';
+    div.innerHTML = `
+      <div class="space-y-1.5 flex-grow">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">${item.enquirer}</span>
+          <span class="text-xs bg-slate-900 border border-slate-700 px-2 py-0.5 rounded text-slate-300 font-medium">${item.category}</span>
+          <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded"><i class="fa-regular fa-calendar me-1"></i>${formatDateDDMMYYYY(item.date)}</span>
+          ${isPhisRecorded 
+            ? '<span class="text-xs bg-emerald-900/80 text-emerald-200 border border-emerald-500 font-black px-2 py-0.5 rounded shadow flex items-center"><i class="fa-solid fa-clipboard-check me-1 text-emerald-400"></i> PhIS: YES</span>' 
+            : '<span class="text-xs bg-amber-950 text-amber-300 border border-amber-800 font-semibold px-2 py-0.5 rounded">PhIS: NO</span>'}
+        </div>
+        <p class="text-xs font-semibold text-slate-200">Q: ${item.question}</p>
+        <p class="text-xs text-emerald-400 bg-slate-900/60 p-2 rounded border border-slate-700/80"><strong>A:</strong> ${item.response}</p>
+      </div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="flex items-center space-x-2 shrink-0 self-end sm:self-center">
+        <button onclick="copyDi('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold transition shadow flex items-center space-x-1 border border-sky-400/30">
+          <i class="fa-solid fa-copy me-1"></i>
+          <span>Copy DI to Clipboard</span>
+        </button>
+        <button onclick="deleteDiEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1.5 bg-slate-900 rounded border border-slate-700" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `;
+    listEl.appendChild(div);
+  });
+}
 
     function deleteDiEntry(id) {
       diLogsData = diLogsData.filter(item => item.id !== id);
@@ -3040,26 +3104,30 @@ if (tbodyC) {
   }
 }
 
-      const tbodyD = document.getElementById('pdf-di-table');
-      if (tbodyD) {
-        tbodyD.innerHTML = '';
-        if (filteredDi.length === 0) {
-          tbodyD.innerHTML = '<tr><td colspan="2" class="p-3 text-center text-slate-400 italic">No drug information enquiries logged for this selected date and ward.</td></tr>';
-        } else {
-          filteredDi.forEach(item => {
-            const tr = document.createElement('tr');
-            tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
-            tr.innerHTML = `
-              <td class="p-1 border-r border-slate-700 font-semibold text-slate-200">
-                <p class="font-bold text-sky-400">[${item.enquirer} - ${item.category}]</p>
-                <p>${item.question}</p>
-              </td>
-              <td class="p-1 text-slate-200">${item.response}</td>
-            `;
-            tbodyD.appendChild(tr);
-          });
-        }
-      }
+     const tbodyD = document.getElementById('pdf-di-table');
+if (tbodyD) {
+  tbodyD.innerHTML = '';
+  if (filteredDi.length === 0) {
+    tbodyD.innerHTML = '<tr><td colspan="3" class="p-3 text-center text-slate-400 italic">No drug information enquiries logged for this selected date and ward.</td></tr>';
+  } else {
+    filteredDi.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-slate-700 hover:bg-slate-700/40';
+      
+      const isPhisRecorded = String(item.recordedToPhis || '').toUpperCase() === "YES";
+
+      tr.innerHTML = `
+        <td class="p-1 border-r border-slate-700 font-semibold text-slate-200">
+          <p class="font-bold text-sky-400">[${item.enquirer} - ${item.category}]</p>
+          <p>${item.question}</p>
+        </td>
+        <td class="p-1 border-r border-slate-700 text-slate-200">${item.response}</td>
+        <td class="p-1 text-center font-black text-sm text-emerald-400">${isPhisRecorded ? '✓' : ''}</td>
+      `;
+      tbodyD.appendChild(tr);
+    });
+  }
+}
 
       const tbodyE = document.getElementById('pdf-followup-table');
       if (tbodyE) {
