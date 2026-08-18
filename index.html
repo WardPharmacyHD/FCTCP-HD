@@ -2397,26 +2397,14 @@
       showToast('Intervention Logged Successfully!', 'success');
     }
 
-    async function copyPci(id) {
+async function copyPci(id) {
   const targetId = String(id).trim();
   const item = interventionsData.find(i => String(i.id).trim() === targetId);
   if (!item) return;
 
-  const isAccStr = String(item.accepted).toUpperCase().trim();
-  const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
-
-  // Formatted PhIS Copy Text
-  const pciText = `[PHARMACEUTICAL CARE INTERVENTION]
-Patient: ${item.patient} (${item.rn})
-Ward: ${item.ward}
-CP3 Code: ${item.code}
-Intervention / Recommendation: ${item.desc}
-Accepted by Doctor: ${isAcc ? 'YES' : 'NO'}
-Recorded By: ${item.user_name || 'Pharmacist'}`;
-
   try {
-    // 1. Copy to Clipboard
-    await navigator.clipboard.writeText(pciText);
+    // 1. Copy ONLY the Description / Clinical Recommendation to Clipboard
+    await navigator.clipboard.writeText(item.desc || '');
 
     // 2. Update local state
     item.recordedToPhis = "YES";
@@ -2428,7 +2416,7 @@ Recorded By: ${item.user_name || 'Pharmacist'}`;
     renderPfSummaryReport();
 
     // 4. Trigger Toast Splash Notification
-    showToast('PCI copied to clipboard - Kindly update di PHIS, TQ!', 'success');
+    showToast('PCI Description copied to clipboard - Kindly update di PHIS, TQ!', 'success');
 
     // 5. Sync Update to Google Sheets API
     const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
@@ -2512,7 +2500,7 @@ function renderInterventions() {
       <div class="flex items-center space-x-2 shrink-0 self-end sm:self-center">
         <button onclick="copyPci('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold transition shadow flex items-center space-x-1 border border-sky-400/30">
           <i class="fa-solid fa-copy me-1"></i>
-          <span>Copy PCI</span>
+          <span>Copy PCI to Clipboard</span>
         </button>
         <button onclick="openEditInterventionModal('${item.id}')" class="text-sky-400 hover:text-sky-300 text-xs p-1.5 bg-slate-900 rounded border border-slate-700" title="Edit Intervention"><i class="fa-solid fa-pen-to-square"></i></button>
         <button onclick="deleteEntry('${item.id}')" class="text-slate-500 hover:text-rose-400 text-xs p-1.5 bg-slate-900 rounded border border-slate-700" title="Delete Entry"><i class="fa-solid fa-trash"></i></button>
