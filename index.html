@@ -2715,7 +2715,14 @@ async function copyPci(id) {
 }
     
 function renderInterventions() {
-  const targetDate = document.getElementById('global-shift-date').value;
+  const container = document.getElementById('interventions-list');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  const targetDate = document.getElementById('global-shift-date')?.value;
+  if (!targetDate) return;
+
   const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
   const target = new Date(cleanTargetDate);
   const minDateObj = new Date(target);
@@ -2736,25 +2743,23 @@ function renderInterventions() {
     return dateMatch && wardMatch;
   });
 
-  // --- SAFE CONTAINER TARGETING (PREVENTS BLEEDING INTO OTHER TABS) ---
-  const container = document.getElementById('logged-interventions-list'); // <--- Ensure this ID is UNIQUE to the Interventions section!
-  if (!container) return; // Exit if the container isn't in the DOM
-
-  container.innerHTML = ''; // Wipe only this specific container
+  // Update entry counter in header
+  const countEl = document.getElementById('entry-count');
+  if (countEl) countEl.innerText = filtered.length;
 
   if (filtered.length === 0) {
-    container.innerHTML = `<p class="text-xs text-slate-500 py-4 text-center">No interventions logged for this period.</p>`;
+    container.innerHTML = `<p class="text-xs text-slate-500 p-4 text-center">No interventions logged for this period.</p>`;
     return;
   }
 
   filtered.forEach(item => {
-    const isNM = (item.type === 'NM' || item.isNearMiss);
+    const isNM = (item.type === 'NM' || item.isNearMiss === true);
     const typeBadge = isNM 
       ? `<span class="px-1.5 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">NM</span>`
       : `<span class="px-1.5 py-0.5 text-[10px] font-bold bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded">PO</span>`;
 
     const div = document.createElement('div');
-    div.className = "p-3 bg-slate-900/60 border border-slate-800 rounded-lg flex justify-between items-start mb-2";
+    div.className = "p-3 hover:bg-slate-800/50 transition flex justify-between items-start gap-3";
     div.innerHTML = `
       <div class="space-y-1">
         <div class="flex items-center gap-2">
