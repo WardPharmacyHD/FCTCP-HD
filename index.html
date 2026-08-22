@@ -12,18 +12,19 @@
   .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 600; }
   input[type="date"] { cursor: pointer; color-scheme: dark; }
 
-/* DUAL-PAGE & BATCH PRINT VERTICAL STACK FIX */
+/* STRICT OFFICIAL CP3 DUAL-PAGE & BATCH PRINT ENGINE */
   @media print {
     @page {
       size: A4 portrait;
-      margin: 8mm;
+      margin: 6mm 8mm;
     }
 
-    body { 
+    body, html { 
       background: #ffffff !important; 
       color: #000000 !important; 
       padding: 0 !important; 
       margin: 0 !important; 
+      width: 100% !important;
     }
     
     body * { 
@@ -37,7 +38,7 @@
       margin: 0 !important;
     }
 
-    /* FORCE VERTICAL BLOCK STACKING (NO HORIZONTAL FLEX/GRID) */
+    /* PRINT CONTAINERS OVERRIDE */
     #printable-cp3, 
     #batch-print-container, 
     #batch-print-container > div {
@@ -49,7 +50,6 @@
       margin: 0 !important;
       border: none !important;
       box-shadow: none !important;
-      float: none !important;
     }
 
     #printable-cp3 *, #batch-print-container * {
@@ -64,59 +64,58 @@
       z-index: 9999 !important;
     }
 
-    /* FORCE EACH REPORT PAGE TO STAND ALONE ON FULL A4 PORTRAIT */
+    /* STRICT A4 PAGE LOCK (EXACTLY 280MM HEIGHT PER PAGE) */
     .cp3-print-page {
-      display: block !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
       width: 100% !important;
-      clear: both !important;
-      float: none !important;
+      height: 278mm !important;
+      max-height: 278mm !important;
       box-sizing: border-box !important;
-      padding: 0 !important;
+      padding: 2mm 0 !important;
       margin: 0 !important;
+      overflow: hidden !important; /* Prevents minor height overflow spilling to a 3rd page */
       page-break-before: auto !important;
       page-break-after: always !important;
       break-after: page !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
-      min-height: 270mm !important;
     }
 
-    .cp3-print-page:last-child {
-      page-break-after: avoid !important;
-      break-after: avoid !important;
-    }
-
-    /* INTERNAL 2-COLUMN LAYOUT FOR SECTION B TABLES */
+    /* SECTION B: SIDE-BY-SIDE EQUAL FLEX LAYOUT */
     .cp3-section-b-container {
-      display: table !important;
+      display: flex !important;
+      flex-direction: row !important;
       width: 100% !important;
-      table-layout: fixed !important;
+      gap: 8px !important;
+      align-items: stretch !important;
     }
 
     .cp3-section-b-left {
-      display: table-cell !important;
-      width: 50% !important;
-      padding-right: 4px !important;
-      vertical-align: top !important;
+      width: 52% !important;
+      shrink: 0 !important;
     }
 
     .cp3-section-b-right {
-      display: table-cell !important;
-      width: 50% !important;
-      padding-left: 4px !important;
-      vertical-align: top !important;
+      width: 48% !important;
+      shrink: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
     }
 
-    /* COMPACT PRINT TABLE STYLING */
+    /* ULTRA-COMPACT PRINT TABLES TO FIT PAGE 1 PERFECTLY */
     #printable-cp3 table, #batch-print-container table,
     #printable-cp3 th, #batch-print-container th,
     #printable-cp3 td, #batch-print-container td { 
       border-color: #000000 !important; 
       color: #000000 !important; 
       background: #ffffff !important;
-      font-size: 8.5px !important;
-      padding: 2px 3px !important;
-      line-height: 1.15 !important;
+      font-size: 7.5px !important;
+      padding: 1px 2px !important;
+      line-height: 1.1 !important;
+      word-break: break-word !important;
     }
 
     .cp3-header-banner {
@@ -3081,7 +3080,7 @@ function generateMonthlyBatchPdf() {
     return;
   }
 
-  const monthVal = document.getElementById('batch-month-select')?.value;
+  const monthVal = document.getElementById('batch-month-select')?.value; // Format: "YYYY-MM"
   if (!monthVal) {
     alert("Please select a valid Month and Year.");
     return;
@@ -3091,6 +3090,7 @@ function generateMonthlyBatchPdf() {
   const targetWard = (document.getElementById('batch-ward-select')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
   const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
+  // 1. Scan distinct working dates for selected ward and month
   const dateSet = new Set();
 
   interventionsData.forEach(item => {
@@ -3129,6 +3129,7 @@ function generateMonthlyBatchPdf() {
   batchContainer.innerHTML = '';
   showLoading(`Building monthly batch compilation (${sortedDates.length} working days)...`);
 
+  // 2. Loop through each active day, update template, clone, and stack
   setTimeout(() => {
     const originalShiftDate = document.getElementById('global-shift-date').value;
     const originalWard = document.getElementById('ward-name').value;
@@ -3144,7 +3145,7 @@ function generateMonthlyBatchPdf() {
       const clone = templateContainer.cloneNode(true);
       clone.removeAttribute('id');
       
-      // Wipe all layout classes on the container to prevent horizontal flex/grid alignment
+      // Remove preview card wrapper styles that interfere with A4 pages
       clone.className = 'w-full block';
       clone.querySelectorAll('.hidden').forEach(el => el.classList.remove('hidden'));
 
@@ -3159,9 +3160,12 @@ function generateMonthlyBatchPdf() {
 
     hideLoading();
 
+    // 3. Print stacked batch documents
     batchContainer.classList.remove('hidden');
+    
     window.print();
 
+    // Reset container after print dialog closes
     setTimeout(() => {
       batchContainer.classList.add('hidden');
       batchContainer.innerHTML = '';
