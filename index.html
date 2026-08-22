@@ -12,11 +12,11 @@
   .tab-active { border-bottom: 3px solid #38bdf8; color: #38bdf8; font-weight: 600; }
   input[type="date"] { cursor: pointer; color-scheme: dark; }
 
-/* OFFICIAL CP3 PRINT ENGINE - FIXED VERTICAL SPACING */
+/* OFFICIAL CP3 PRINT ENGINE - COMPACT BLOCK STACKING */
   @media print {
     @page {
       size: A4 portrait;
-      margin: 6mm 8mm;
+      margin: 8mm;
     }
 
     body, html { 
@@ -64,24 +64,30 @@
       z-index: 9999 !important;
     }
 
-    /* FIXED A4 PAGE CONTAINER - PACKS CONTENT TOP-TO-BOTTOM */
+    /* STRICT A4 PAGE CONTAINER - NATURAL VERTICAL FLOW */
     .cp3-print-page {
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: flex-start !important; /* FIXES VERTICAL GAPS */
-      gap: 10px !important; /* UNIFORM SPACING BETWEEN SECTIONS */
+      display: block !important;
       width: 100% !important;
-      height: 278mm !important;
-      max-height: 278mm !important;
+      height: auto !important;
       box-sizing: border-box !important;
       padding: 0 !important;
       margin: 0 !important;
-      overflow: hidden !important;
       page-break-before: auto !important;
       page-break-after: always !important;
       break-after: page !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
+    }
+
+    /* UNIFORM TIGHT MARGINS BETWEEN SECTIONS */
+    .cp3-print-page > * {
+      margin-top: 0 !important;
+      margin-bottom: 10px !important;
+      padding: 0 !important;
+    }
+
+    .cp3-print-page > *:last-child {
+      margin-bottom: 0 !important;
     }
 
     /* SECTION B: SIDE-BY-SIDE FLEX LAYOUT */
@@ -103,12 +109,7 @@
       flex-shrink: 0 !important;
       display: flex !important;
       flex-direction: column !important;
-      gap: 8px !important;
-    }
-
-    /* PUSHES SIGNATURE FOOTER TO BOTTOM OF PAGE 2 NATURALLY */
-    .cp3-print-page > div:last-child {
-      margin-top: auto !important;
+      gap: 6px !important;
     }
 
     /* COMPACT PRINT TABLES */
