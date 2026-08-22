@@ -32,7 +32,7 @@
       visibility: hidden !important;
     }
 
-    body, main, #view-admin, #view-checkin {
+    body, main {
       display: block !important;
       overflow: visible !important;
       margin: 0 !important;
@@ -41,12 +41,13 @@
 
     /* 2. PRINT CONTAINERS */
     #printable-cp3, #printable-cp3 *,
-    #batch-print-container, #batch-print-container * {
+    #batch-print-container, #batch-print-container *,
+    #printable-pf63b, #printable-pf63b * {
       visibility: visible !important;
       color: #000000 !important;
     }
 
-    #printable-cp3, #batch-print-container {
+    #printable-cp3, #batch-print-container, #printable-pf63b {
       position: absolute !important;
       left: 0 !important;
       top: 0 !important;
@@ -131,14 +132,14 @@
     }
 
     /* 5. PERFECTLY BALANCED ENLARGED TABLES */
-    #printable-cp3 table, #batch-print-container table,
-    #printable-cp3 th, #batch-print-container th,
-    #printable-cp3 td, #batch-print-container td {
+    #printable-cp3 table, #batch-print-container table, #printable-pf63b table,
+    #printable-cp3 th, #batch-print-container th, #printable-pf63b th,
+    #printable-cp3 td, #batch-print-container td, #printable-pf63b td {
       border-color: #000000 !important;
       color: #000000 !important;
       background: #ffffff !important;
-      font-size: 8.8px !important;       /* BALANCED FONT SIZE */
-      padding: 2.8px 4px !important;      /* ENLARGED ROWS THAT FIT 275MM HEIGHT EXACTLY */
+      font-size: 8.8px !important;
+      padding: 2.8px 4px !important;
       line-height: 1.2 !important;
       word-wrap: break-word !important;
     }
@@ -158,8 +159,8 @@
       color: #000000 !important;
     }
 
-    /* 6. HIDE NON-PRINT UI */
-    footer, .no-print, header, nav, main > *:not(#view-checkin):not(#view-admin) {
+    /* 6. HIDE ALL NON-PRINT UI AND INACTIVE TAB VIEWS STRICTLY */
+    footer, .no-print, header, nav, .hidden {
       display: none !important;
     }
   }
