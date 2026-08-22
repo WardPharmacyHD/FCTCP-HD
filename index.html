@@ -2744,7 +2744,8 @@ function renderInterventions() {
   const parentTab = document.getElementById('view-interventions');
   if (parentTab && parentTab.classList.contains('hidden')) {
     return;
-
+  }
+  
   listEl.innerHTML = '';
     
   if (filtered.length === 0) {
