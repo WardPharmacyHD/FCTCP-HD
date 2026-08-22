@@ -3587,8 +3587,9 @@ if (tbodyD) {
 
         staffLogs.forEach(log => {
           const codes = getCodesArray(log.code);
-          const isAccStr = String(log.accepted).toUpperCase().trim();
-          const isAccepted = log.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
+          
+          // CHECK IF LOGGED AS NEAR MISS (NM)
+          const isNM = (log.type === 'NM' || log.isNearMiss === true);
 
           codes.forEach(code => {
             tallies.total++;
@@ -3599,14 +3600,15 @@ if (tbodyD) {
             else if (code === "1.5") tallies.c15++;
             else if (code === "1.6") tallies.c16++;
 
-            else if (code === "2.1") { if(isAccepted) tallies.c21_po++; else tallies.c21_nm++; }
-            else if (code === "2.2") { if(isAccepted) tallies.c22_po++; else tallies.c22_nm++; }
-            else if (code === "2.3") { if(isAccepted) tallies.c23_po++; else tallies.c23_nm++; }
-            else if (code === "2.4") { if(isAccepted) tallies.c24_po++; else tallies.c24_nm++; }
-            else if (code === "2.5") { if(isAccepted) tallies.c25_po++; else tallies.c25_nm++; }
-            else if (code === "2.6") { if(isAccepted) tallies.c26_po++; else tallies.c26_nm++; }
-            else if (code === "2.7") { if(isAccepted) tallies.c27_po++; else tallies.c27_nm++; }
-            else if (code === "2.8") { if(isAccepted) tallies.c28_po++; else tallies.c28_nm++; }
+            // CATEGORY 2: ROUTE BASED ON TYPE (PO vs NM)
+            else if (code === "2.1") { if(isNM) tallies.c21_nm++; else tallies.c21_po++; }
+            else if (code === "2.2") { if(isNM) tallies.c22_nm++; else tallies.c22_po++; }
+            else if (code === "2.3") { if(isNM) tallies.c23_nm++; else tallies.c23_po++; }
+            else if (code === "2.4") { if(isNM) tallies.c24_nm++; else tallies.c24_po++; }
+            else if (code === "2.5") { if(isNM) tallies.c25_nm++; else tallies.c25_po++; }
+            else if (code === "2.6") { if(isNM) tallies.c26_nm++; else tallies.c26_po++; }
+            else if (code === "2.7") { if(isNM) tallies.c27_nm++; else tallies.c27_po++; }
+            else if (code === "2.8") { if(isNM) tallies.c28_nm++; else tallies.c28_po++; }
 
             else if (code === "3.1") tallies.c31++;
             else if (code === "3.2") tallies.c32++;
