@@ -1059,11 +1059,45 @@
             <textarea id="intervention-desc" required rows="3" placeholder="Describe clinical finding and doctor outcome..." class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
           </div>
 
-          <div class="flex items-center justify-between pt-2">
-            <label class="flex items-center text-sm font-medium text-slate-300 cursor-pointer">
-              <input type="checkbox" id="is-accepted" checked class="w-4 h-4 text-emerald-500 rounded me-2 bg-slate-900 border-slate-700">
-              <span class="text-emerald-400 font-semibold">Intervention Accepted by Physician</span>
-            </label>
+          <div class="flex flex-wrap items-center gap-4 py-2 px-3 bg-slate-900/60 border border-slate-700/80 rounded-lg">
+  
+  <!-- 1. ACCEPTED BY PHYSICIAN -->
+  <label class="flex items-center gap-2 cursor-pointer select-none">
+    <input 
+      type="checkbox" 
+      id="is-accepted" 
+      checked 
+      class="w-4 h-4 text-emerald-500 rounded border-slate-700 bg-slate-950 focus:ring-emerald-400 cursor-pointer"
+    />
+    <span class="text-xs font-semibold text-emerald-400">Accepted by Physician</span>
+  </label>
+
+  <div class="h-4 w-[1px] bg-slate-700 hidden sm:block"></div>
+
+  <!-- 2. PATIENT OPTIMIZATION (PO) - DEFAULT TICKED -->
+  <label class="flex items-center gap-2 cursor-pointer select-none">
+    <input 
+      type="checkbox" 
+      id="int-type-po" 
+      checked 
+      onchange="handleInterventionTypeToggle('PO')" 
+      class="w-4 h-4 text-sky-500 rounded border-slate-700 bg-slate-950 focus:ring-sky-400 cursor-pointer"
+    />
+    <span class="text-xs font-semibold text-sky-400">Patient Optimization (PO)</span>
+  </label>
+
+  <!-- 3. NEAR MISS (NM) -->
+  <label class="flex items-center gap-2 cursor-pointer select-none">
+    <input 
+      type="checkbox" 
+      id="int-type-nm" 
+      onchange="handleInterventionTypeToggle('NM')" 
+      class="w-4 h-4 text-amber-500 rounded border-slate-700 bg-slate-950 focus:ring-amber-400 cursor-pointer"
+    />
+    <span class="text-xs font-semibold text-amber-400">Near Miss (NM)</span>
+  </label>
+
+</div>
 
             <button type="submit" id="submit-btn" class="bg-sky-600 hover:bg-sky-500 text-white px-5 py-2.5 rounded-lg font-medium text-sm transition shadow flex items-center">
               <i class="fa-solid fa-plus me-2"></i> Add Entry to Daily Log
@@ -1448,7 +1482,7 @@
 
                 <th class="p-1 border-r border-slate-700">3.1 Salah Pesakit</th>
                 <th class="p-1 border-r border-slate-700">3.2 Tiada Formulari</th>
-                <th class="p-1 border-r border-slate-700">3.3 Ralat Pentadbiran</th>
+                <th class="p-1 border-r border-slate-700">3.3 Administr Error</th>
                 <th class="p-1 border-r border-slate-700">3.4 Tulisan Unclear</th>
                 <th class="p-1 border-r border-slate-700">3.5 Authenticity</th>
                 <th class="p-1 border-r border-slate-700">3.6 Vital/Lab</th>
@@ -2540,6 +2574,32 @@
       saveShiftSnapshot("DRAFT");
     }
 
+    function handleInterventionTypeToggle(changedType) {
+  const poBox = document.getElementById('int-type-po');
+  const nmBox = document.getElementById('int-type-nm');
+  if (!poBox || !nmBox) return;
+
+  if (changedType === 'NM') {
+    poBox.checked = !nmBox.checked;
+  } else {
+    nmBox.checked = !poBox.checked;
+  }
+}
+
+function handleEditInterventionTypeToggle(changedType) {
+  const poBox = document.getElementById('edit-int-type-po');
+  const nmBox = document.getElementById('edit-int-type-nm');
+  if (!poBox || !nmBox) return;
+
+  if (changedType === 'NM') {
+    poBox.checked = !nmBox.checked;
+  } else {
+    nmBox.checked = !poBox.checked;
+  }
+}
+
+async function handleInterventionSubmit(e) {
+  // ... existing code below ...
     async function handleInterventionSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('submit-btn');
@@ -2558,7 +2618,9 @@
         btn.disabled = false;
         return;
       }
-
+      
+      const isNM = document.getElementById('int-type-nm')?.checked || false;
+      
       const payload = {
         id: Date.now().toString(),
         date: document.getElementById('global-shift-date').value,
@@ -2568,6 +2630,7 @@
         code: selectedCodes.join(', '),
         desc: document.getElementById('intervention-desc').value,
         accepted: document.getElementById('is-accepted').checked ? "YES" : "NO",
+        type: isNM ? "NM" : "PO", // <-- ADD THIS FIELD (Defaults to "PO")
         recordedToPhis: "NO",
         user_name: currentUser ? currentUser.name : "Anonymous",
         user_ward: currentUser ? currentUser.ward : document.getElementById('ward-name').value
@@ -2597,6 +2660,9 @@
       document.querySelectorAll('input[name="cp3_codes"]:checked').forEach(cb => cb.checked = false);
       updateCp3SelectedBadge();
 
+      if (document.getElementById('int-type-po')) document.getElementById('int-type-po').checked = true;
+      if (document.getElementById('int-type-nm')) document.getElementById('int-type-nm').checked = false;
+      
       document.getElementById('patient-name').value = ptName;
       document.getElementById('rn-number').value = rnNum;
 
