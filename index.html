@@ -2740,8 +2740,13 @@ function renderInterventions() {
   
   document.getElementById('entry-count').innerText = filtered.length;
   const listEl = document.getElementById('interventions-list');
-  listEl.innerHTML = '';
+  
+  const parentTab = document.getElementById('view-interventions');
+  if (parentTab && parentTab.classList.contains('hidden')) {
+    return;
 
+  listEl.innerHTML = '';
+    
   if (filtered.length === 0) {
     listEl.innerHTML = `<div class="p-4 text-xs text-slate-400 italic">No interventions logged for ${activeWard} in the last 5 days.</div>`;
     return;
