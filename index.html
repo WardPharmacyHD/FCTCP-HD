@@ -13,10 +13,11 @@
   input[type="date"] { cursor: pointer; color-scheme: dark; }
 
  /* DUAL-PAGE & BATCH PRINT FIX FOR CP3 REPORT */
+ /* DUAL-PAGE & BATCH PRINT ENFORCEMENT */
   @media print {
     @page {
       size: A4 portrait;
-      margin: 8mm;
+      margin: 6mm;
     }
 
     body { 
@@ -29,11 +30,12 @@
     body * { 
       visibility: hidden !important; 
     }
-    
-    /* Ensure parent views don't block Admin batch printing */
-    body, main, #view-admin {
+
+    body, main, #view-admin, #view-checkin {
       display: block !important;
       overflow: visible !important;
+      padding: 0 !important;
+      margin: 0 !important;
     }
 
     #printable-cp3, #printable-cp3 * { 
@@ -53,7 +55,7 @@
       box-shadow: none !important;
     }
 
-    /* BATCH PRINT STACKING OVERRIDES */
+    /* BATCH PRINT STACK CONTAINER */
     #batch-print-container {
       display: block !important;
       position: absolute !important;
@@ -69,25 +71,30 @@
       color: #000000 !important;
     }
 
+    /* STRICT A4 PAGE BREAK FOR BOTH SINGLE AND BATCH PRINTING */
     .cp3-print-page {
+      page-break-before: always !important;
       page-break-after: always !important;
+      break-before: page !important;
       break-after: page !important;
       background: #ffffff !important;
       box-sizing: border-box !important;
       padding: 0 !important;
       margin: 0 !important;
-      min-height: auto !important;
-      height: auto !important;
-      overflow: visible !important;
+      height: 280mm !important;
+      max-height: 280mm !important;
+      overflow: hidden !important;
       display: block !important;
     }
 
-    .cp3-print-page:last-child {
-      page-break-after: avoid !important;
-      break-after: avoid !important;
+    /* Ensure first page doesn't print a leading blank page */
+    #batch-print-container > div:first-child > .cp3-print-page:first-child,
+    #printable-cp3 > .cp3-print-page:first-child {
+      page-break-before: avoid !important;
+      break-before: avoid !important;
     }
 
-    /* FORCED 2-COLUMN TABLE CONTAINER FOR PRINT */
+    /* FORCED 2-COLUMN TABLE LAYOUT FOR SECTION B (FIXES OVERLAP) */
     .cp3-section-b-container {
       display: table !important;
       width: 100% !important;
@@ -96,39 +103,40 @@
 
     .cp3-section-b-left {
       display: table-cell !important;
-      width: 53% !important;
-      padding-right: 4px !important;
+      width: 50% !important;
+      padding-right: 3px !important;
       vertical-align: top !important;
     }
 
     .cp3-section-b-right {
       display: table-cell !important;
-      width: 47% !important;
-      padding-left: 4px !important;
+      width: 50% !important;
+      padding-left: 3px !important;
       vertical-align: top !important;
     }
 
-    /* BORDER & FONT SIZES FOR OFFICIAL PRINT FORMAT */
-    #printable-cp3 table, 
-    #printable-cp3 th, 
-    #printable-cp3 td { 
+    /* COMPACT TABLE FONT SIZES & CELL PADDING TO FIT EXACTLY 1 PAGE */
+    #printable-cp3 table, #batch-print-container table,
+    #printable-cp3 th, #batch-print-container th,
+    #printable-cp3 td, #batch-print-container td { 
       border-color: #000000 !important; 
       color: #000000 !important; 
       background: #ffffff !important;
-      font-size: 8.5px !important;
-      padding: 2px 3px !important;
+      font-size: 8px !important;
+      padding: 1px 2px !important;
+      line-height: 1.1 !important;
     }
 
-    #printable-cp3 .cp3-header-banner {
+    .cp3-header-banner {
       background-color: #000000 !important;
       color: #ffffff !important;
     }
 
-    #printable-cp3 .cp3-header-banner * {
+    .cp3-header-banner * {
       color: #ffffff !important;
     }
 
-    #printable-cp3 .cp3-sub-header {
+    .cp3-sub-header {
       background-color: #e2e8f0 !important;
       color: #000000 !important;
     }
@@ -3070,6 +3078,7 @@ function renderDiLogs() {
         hideLoading();
       }
     }
+    
 // ==========================================
 // MONTHLY CP3 BATCH ARCHIVE EXPORTER (ADMIN)
 // ==========================================
@@ -3134,7 +3143,6 @@ function generateMonthlyBatchPdf() {
     const originalShiftDate = document.getElementById('global-shift-date').value;
     const originalWard = document.getElementById('ward-name').value;
 
-    // Temporarily set active ward in Section A controls to render correctly
     document.getElementById('ward-name').value = targetWard;
 
     sortedDates.forEach((dateIso) => {
@@ -3146,8 +3154,8 @@ function generateMonthlyBatchPdf() {
       const clone = templateContainer.cloneNode(true);
       clone.removeAttribute('id');
       
-      // Ensure no hidden utility classes prevent clone visibility in print
-      clone.classList.remove('hidden', 'no-print');
+      // Clean up classes for crisp page breaks
+      clone.classList.remove('hidden', 'no-print', 'space-y-8', 'p-4', 'sm:p-8', 'bg-slate-800', 'shadow-lg', 'border', 'rounded-xl');
       clone.querySelectorAll('.hidden').forEach(el => el.classList.remove('hidden'));
 
       batchContainer.appendChild(clone);
