@@ -3081,7 +3081,7 @@ function generateMonthlyBatchPdf() {
     return;
   }
 
-  const monthVal = document.getElementById('batch-month-select')?.value; // Format: "YYYY-MM"
+  const monthVal = document.getElementById('batch-month-select')?.value;
   if (!monthVal) {
     alert("Please select a valid Month and Year.");
     return;
@@ -3091,7 +3091,6 @@ function generateMonthlyBatchPdf() {
   const targetWard = (document.getElementById('batch-ward-select')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
   const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
-  // 1. Scan distinct working dates for selected ward and month
   const dateSet = new Set();
 
   interventionsData.forEach(item => {
@@ -3128,9 +3127,8 @@ function generateMonthlyBatchPdf() {
   if (!batchContainer || !templateContainer) return;
 
   batchContainer.innerHTML = '';
-  showLoading(`Building monthly batch compilation (${sortedDates.length} active days)...`);
+  showLoading(`Building monthly batch compilation (${sortedDates.length} working days)...`);
 
-  // 2. Loop through each active day, update template, clone, and unhide elements
   setTimeout(() => {
     const originalShiftDate = document.getElementById('global-shift-date').value;
     const originalWard = document.getElementById('ward-name').value;
@@ -3146,8 +3144,8 @@ function generateMonthlyBatchPdf() {
       const clone = templateContainer.cloneNode(true);
       clone.removeAttribute('id');
       
-      // Clean up classes for crisp page breaks
-      clone.classList.remove('hidden', 'no-print', 'space-y-8', 'p-4', 'sm:p-8', 'bg-slate-800', 'shadow-lg', 'border', 'rounded-xl');
+      // Wipe all layout classes on the container to prevent horizontal flex/grid alignment
+      clone.className = 'w-full block';
       clone.querySelectorAll('.hidden').forEach(el => el.classList.remove('hidden'));
 
       batchContainer.appendChild(clone);
@@ -3161,12 +3159,9 @@ function generateMonthlyBatchPdf() {
 
     hideLoading();
 
-    // 3. Print stacked batch documents
     batchContainer.classList.remove('hidden');
-    
     window.print();
 
-    // Reset container after print dialog closes
     setTimeout(() => {
       batchContainer.classList.add('hidden');
       batchContainer.innerHTML = '';
