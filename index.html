@@ -3147,8 +3147,43 @@ function renderDiLogs() {
   minDateObj.setDate(minDateObj.getDate() - 4);
   const minDateStr = minDateObj.toISOString().split('T')[0];
 
-  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
-
   const filtered = diLogsData.filter(item => {
     const itemDate = normalizeToISO(item.date).split('T')[0];
-    const dateMatch = itemDate >= minDateStr && itemSorry, something went wrong. Please try your request again.
+    return itemDate >= minDateStr && itemDate <= cleanTargetDate;
+  });
+
+  const listEl = document.getElementById('di-logs-list');
+  const countEl = document.getElementById('di-entry-count');
+  if (countEl) countEl.innerText = filtered.length;
+  if (!listEl) return;
+
+  listEl.innerHTML = '';
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<div class="p-4 text-xs text-slate-400 italic">No DI enquiries logged in the last 5 days.</div>`;
+    return;
+  }
+
+  filtered.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'p-4 hover:bg-slate-700/50 flex flex-col sm:flex-row items-start justify-between transition gap-3';
+    div.innerHTML = `
+      <div class="space-y-1.5 flex-grow">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="font-bold text-sm text-slate-100">${item.enquirer}</span>
+          <span class="text-xs bg-sky-950 text-sky-300 border border-sky-800 font-bold px-2 py-0.5 rounded">${item.category}</span>
+          <span class="text-xs bg-slate-900 text-slate-400 border border-slate-700 font-medium px-2 py-0.5 rounded">${formatDateDDMMYYYY(item.date)}</span>
+        </div>
+        <p class="text-xs text-slate-300"><strong>Q:</strong> ${item.question}</p>
+        <p class="text-xs text-slate-400"><strong>A:</strong> ${item.response}</p>
+      </div>
+      <button onclick="copyDi('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold transition shadow flex items-center space-x-1">
+        <i class="fa-solid fa-copy me-1"></i>
+        <span>Copy PCI</span>
+      </button>
+    `;
+    listEl.appendChild(div);
+  });
+}
+  </script>
+</body>
+</html>
