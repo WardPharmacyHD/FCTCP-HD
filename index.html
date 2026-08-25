@@ -2715,6 +2715,10 @@ async function copyPci(id) {
 }
     
 function renderInterventions() {
+  const listEl = document.getElementById('interventions-list');
+  // SAFEGUARD: Exit immediately if the container element does not exist or is currently hidden
+  if (!listEl || listEl.offsetParent === null) return;
+
   const targetDate = document.getElementById('global-shift-date').value;
   const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
   const target = new Date(cleanTargetDate);
@@ -2738,8 +2742,9 @@ function renderInterventions() {
 
   filtered.sort((a, b) => new Date(normalizeToISO(b.date)) - new Date(normalizeToISO(a.date)));
   
-  document.getElementById('entry-count').innerText = filtered.length;
-  const listEl = document.getElementById('interventions-list');
+  const entryCountEl = document.getElementById('entry-count');
+  if (entryCountEl) entryCountEl.innerText = filtered.length;
+
   listEl.innerHTML = '';
 
   if (filtered.length === 0) {
