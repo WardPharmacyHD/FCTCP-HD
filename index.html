@@ -495,21 +495,35 @@
     <!-- NAVIGATION TABS -->
     <div class="bg-slate-800 rounded-xl shadow-sm mb-6 border border-slate-700 no-print">
       <div class="flex border-b border-slate-700 overflow-x-auto items-center">
-        <button onclick="switchTab('checkin')" id="tab-checkin" class="tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap">
-          <i class="fa-solid fa-file-contract text-sky-400"></i>
-          <span>1. Live CP3 Dashboard & Finalize</span>
+        
+        <!-- TAB 1: ATTENDANCE (ACTIVE BY DEFAULT) -->
+        <button onclick="switchTab('attendance')" id="tab-attendance" class="tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-users text-emerald-400"></i>
+          <span>1. Daily Attendance Roster</span>
         </button>
+
+        <!-- TAB 2: LIVE CP3 DASHBOARD -->
+        <button onclick="switchTab('checkin')" id="tab-checkin" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
+          <i class="fa-solid fa-file-contract text-sky-400"></i>
+          <span>2. Live CP3 Dashboard & Finalize</span>
+        </button>
+
+        <!-- TAB 3: LOG INTERVENTIONS -->
         <button onclick="switchTab('interventions')" id="tab-interventions" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-user-doctor"></i>
-          <span>2. Log Interventions (Sections B-E)</span>
+          <span>3. Log Interventions (Sections B-E)</span>
         </button>
+
+        <!-- TAB 4: DRUG INFO ENQUIRIES -->
         <button onclick="switchTab('di')" id="tab-di" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-circle-info text-sky-400"></i>
-          <span>3. Drug Info Enquiries</span>
+          <span>4. Drug Info Enquiries</span>
         </button>
+
+        <!-- TAB 5: FOLLOW-UP REQUIRED -->
         <button onclick="switchTab('followup')" id="tab-followup" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-list-check text-amber-400"></i>
-          <span>4. Follow-Up Required</span>
+          <span>5. Follow-Up Required</span>
         </button>
       </div>
     </div>
@@ -1239,13 +1253,54 @@
       </div>
     </div>
 
-    <!-- TAB 5: ADMIN / SETTINGS PANEL (STRICTLY HIDDEN FROM NON-ADMIN USERS) -->
+<!-- TAB 5: TEAM ATTENDANCE ROSTER MATRIX -->
+    <div id="view-attendance" class="hidden space-y-6">
+      <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
+        
+        <!-- HEADER CONTROLS -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-4 gap-3">
+          <div>
+            <h2 class="text-sm font-bold text-slate-100 flex items-center">
+              <i class="fa-solid fa-users text-emerald-400 me-2"></i> Clinical Pharmacy Team Roster & Attendance Matrix
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Click any cell under your name to cycle statuses: P ➔ CR/DO ➔ K ➔ M ➔ EL ➔ Clear</p>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <input type="month" id="att-month-select" value="2026-08" onchange="renderTeamMasterMatrix()" class="bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
+            <button onclick="manualMarkTodayPresent()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center">
+              <i class="fa-solid fa-user-check me-1.5"></i> Mark Today Present
+            </button>
+          </div>
+        </div>
+
+        <!-- STATUS LEGEND BADGES -->
+        <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+          <span class="text-[10px] font-bold text-slate-400 uppercase me-1">Legend:</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">P - Present</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-950 text-sky-300 border border-sky-700">CR/DO - Cuti Rehat / Day Off</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-950 text-purple-300 border border-purple-700">K - Kursus</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-700">M - Meeting</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-950 text-rose-300 border border-rose-700">EL - Emergency Leave</span>
+        </div>
+
+        <!-- TEAM MASTER ROSTER MATRIX TABLE -->
+        <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-3">
+          <table class="w-full text-[11px] border-collapse text-center">
+            <thead>
+              <tr id="att-master-thead-tr" class="bg-slate-950 font-bold text-slate-300 border-b border-slate-700"></tr>
+            </thead>
+            <tbody id="att-master-tbody" class="divide-y divide-slate-800 font-mono"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+    
+    <!-- TAB 6: ADMIN / SETTINGS PANEL (STRICTLY HIDDEN FROM NON-ADMIN USERS) -->
     <div id="view-admin" class="hidden space-y-6">
       <div class="bg-amber-950/60 border border-amber-800/80 rounded-xl p-4 flex items-center space-x-3 text-amber-200 text-xs">
         <i class="fa-solid fa-shield-cat text-2xl text-amber-400"></i>
-        <div>
-          <p class="font-bold">Restricted Administration Environment</p>
-          <p class="text-amber-300/80 mt-0.5">You are authenticated as an Admin. Changes made here affect system privileges and registered users.</p>
         </div>
       </div>
 
@@ -1591,6 +1646,125 @@
       }
     });
 
+  function renderTeamMasterMatrix() {
+  const trHead = document.getElementById('att-master-thead-tr');
+  const tbody = document.getElementById('att-master-tbody');
+  const monthVal = document.getElementById('att-month-select')?.value || "2026-08";
+  if (!trHead || !tbody) return;
+
+  trHead.innerHTML = '';
+  tbody.innerHTML = '';
+
+  const [year, month] = monthVal.split('-').map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  // 1. Build Table Headers: Pharmacist Column + Days 1 to 31
+  let thHtml = `<th class="p-2.5 border-r border-slate-700 min-w-[160px] text-left">PHARMACIST PROFILE</th>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateObj = new Date(year, month - 1, d);
+    const isWeekend = dateObj.getDay() === 5 || dateObj.getDay() === 6; // Friday/Saturday (Terengganu weekend)
+    thHtml += `<th class="p-1 border-r border-slate-800 w-8 ${isWeekend ? 'bg-slate-900 text-amber-400' : ''}">${d}</th>`;
+  }
+  trHead.innerHTML = thHtml;
+
+  const staffKeys = Object.keys(PIN_DATABASE);
+  const activeUserNameUpper = currentUser ? String(currentUser.name).trim().toUpperCase() : "";
+
+  // 2. Build Table Row for Each Registered Pharmacist
+  staffKeys.forEach(key => {
+    const user = PIN_DATABASE[key];
+    const userNameUpper = String(user.name || '').trim().toUpperCase();
+    const isSelf = userNameUpper === activeUserNameUpper;
+
+    const tr = document.createElement('tr');
+    tr.className = isSelf ? 'bg-slate-800/90 font-bold text-slate-100' : 'hover:bg-slate-800/50 text-slate-300';
+
+    let rowHtml = `
+      <td class="p-2 border-r border-slate-700 text-left font-sans text-xs flex items-center justify-between">
+        <span class="${isSelf ? 'text-emerald-400 font-bold' : 'text-slate-200'}">${user.name}</span>
+        ${isSelf ? '<span class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-700 px-1 rounded ms-1">YOU</span>' : ''}
+      </td>
+    `;
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      const entry = attendanceData.find(a => 
+        a.date === dateStr && 
+        String(a.user_name).toUpperCase() === userNameUpper
+      );
+      const status = entry ? entry.status : "";
+
+      // Color badge logic
+      let badgeClass = "text-slate-600";
+      if (status === "P") badgeClass = "text-emerald-300 font-bold bg-emerald-950/80 border border-emerald-700/60";
+      else if (status === "CR/DO") badgeClass = "text-sky-300 font-bold bg-sky-950/80 border border-sky-700/60";
+      else if (status === "K") badgeClass = "text-purple-300 font-bold bg-purple-950/80 border border-purple-700/60";
+      else if (status === "M") badgeClass = "text-amber-300 font-bold bg-amber-950/80 border border-amber-700/60";
+      else if (status === "EL") badgeClass = "text-rose-300 font-bold bg-rose-950/80 border border-rose-700/60";
+
+      // Allow any logged-in user to click & edit any cell
+      const canEdit = !!currentUser;
+
+      rowHtml += `
+        <td onclick="${canEdit ? `cycleCellStatus('${dateStr}', '${user.name}', '${status}')` : ''}" 
+            class="p-1 border-r border-slate-800 text-[10px] ${badgeClass} ${canEdit ? 'cursor-pointer hover:border-slate-500' : 'cursor-not-allowed'} select-none">
+          ${status || '-'}
+        </td>
+      `;
+    }
+
+    tr.innerHTML = rowHtml;
+    tbody.appendChild(tr);
+  });
+}
+
+// 1. Cycle Cell Status on Click (P -> CR/DO -> K -> M -> EL -> Clear)
+function cycleCellStatus(dateStr, targetUserName, currentStatus) {
+  const currentIndex = STATUS_CYCLE.indexOf(currentStatus);
+  const nextStatus = STATUS_CYCLE[(currentIndex + 1) % STATUS_CYCLE.length];
+  saveAttendanceStatus(dateStr, targetUserName, nextStatus);
+}
+
+// 2. Save & Sync Attendance Record
+async function saveAttendanceStatus(dateStr, targetUserName, status, isSilent = false) {
+  const payload = {
+    id: `att-${dateStr}-${targetUserName.replace(/[^a-zA-Z0-9]/g, '_')}`,
+    date: dateStr,
+    ward: document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE"),
+    user_name: targetUserName,
+    status: status
+  };
+
+  const existingIdx = attendanceData.findIndex(a => a.id === payload.id);
+  if (existingIdx !== -1) {
+    attendanceData[existingIdx] = payload;
+  } else {
+    attendanceData.push(payload);
+  }
+  localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
+
+  if (document.getElementById('view-attendance') && !document.getElementById('view-attendance').classList.contains('hidden')) {
+    renderTeamMasterMatrix();
+  }
+
+  if (!isSilent) {
+    showToast(`Roster updated (${targetUserName} - ${dateStr}): ${status || 'Cleared'}`, 'success');
+  }
+
+  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+  if (activeUrl) {
+    try {
+      const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
+      fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ data: [payload] })
+      }).catch(err => console.warn('Offline attendance update saved locally.'));
+    } catch (err) {}
+  }
+}
+    
     function toggleAdminMenu(e) {
       if (e) e.stopPropagation();
       const dropdown = document.getElementById('admin-menu-dropdown');
@@ -2432,46 +2606,52 @@
       showLoginOverlay();
     }
 
-    function switchTab(tabName) {
-      const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
-      
-      if ((tabName === 'admin' || tabName === 'summary') && !isAdmin) {
-        alert('Access Denied: Admin Settings and PF 6.3b Summary are restricted to system administrators.');
-        return;
-      }
+function switchTab(tabName) {
+  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
 
-      document.getElementById('view-checkin').classList.add('hidden');
-      document.getElementById('view-interventions').classList.add('hidden');
-      document.getElementById('view-di').classList.add('hidden');
-      document.getElementById('view-followup').classList.add('hidden');
-      document.getElementById('view-admin').classList.add('hidden');
-      document.getElementById('view-summary').classList.add('hidden');
+  if ((tabName === 'admin' || tabName === 'summary') && !isAdmin) {
+    alert('Access Denied: Admin Settings and PF 6.3b Summary are restricted to system administrators.');
+    return;
+  }
 
-      document.getElementById('tab-checkin').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-interventions').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-di').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-followup').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+  // 1. HIDE ALL TAB VIEW SECTIONS (INCLUDING ATTENDANCE)
+  document.getElementById('view-attendance')?.classList.add('hidden');
+  document.getElementById('view-checkin')?.classList.add('hidden');
+  document.getElementById('view-interventions')?.classList.add('hidden');
+  document.getElementById('view-di')?.classList.add('hidden');
+  document.getElementById('view-followup')?.classList.add('hidden');
+  document.getElementById('view-admin')?.classList.add('hidden');
+  document.getElementById('view-summary')?.classList.add('hidden');
 
-      document.getElementById('view-' + tabName).classList.remove('hidden');
+  // 2. RESET ALL TAB BUTTON STYLES
+  ['attendance', 'checkin', 'interventions', 'di', 'followup'].forEach(t => {
+    const btn = document.getElementById('tab-' + t);
+    if (btn) btn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+  });
 
-      if (document.getElementById('tab-' + tabName)) {
-        document.getElementById('tab-' + tabName).className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
-      }
+  // 3. SHOW SELECTED VIEW & HIGHLIGHT ACTIVE BUTTON
+  const activeView = document.getElementById('view-' + tabName);
+  const activeTabBtn = document.getElementById('tab-' + tabName);
+  if (activeView) activeView.classList.remove('hidden');
+  if (activeTabBtn) activeTabBtn.className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
 
-      if (tabName === 'checkin') {
-        loadActiveShiftSnapshot();
-        updatePdfReport();
-      } else if (tabName === 'summary') {
-        renderPfSummaryReport();
-      } else if (tabName === 'di') {
-        renderDiLogs();
-      } else if (tabName === 'followup') {
-        renderFollowUpLogs();
-      } else if (tabName === 'interventions') {
-        renderInterventions();
-        populatePatientDatalists();
-      }
-    }
+  // 4. TRIGGER SPECIFIC TAB DATA RENDERERS
+  if (tabName === 'attendance') {
+    renderTeamMasterMatrix();
+  } else if (tabName === 'checkin') {
+    loadActiveShiftSnapshot();
+    updatePdfReport();
+  } else if (tabName === 'summary') {
+    renderPfSummaryReport();
+  } else if (tabName === 'di') {
+    renderDiLogs();
+  } else if (tabName === 'followup') {
+    renderFollowUpLogs();
+  } else if (tabName === 'interventions') {
+    renderInterventions();
+    populatePatientDatalists();
+  }
+}
 
     async function testApiConnection() {
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
