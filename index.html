@@ -3789,27 +3789,51 @@ if (tbodyD) {
 <!-- ========================================================= -->
 
 <script>
-  // 1. INJECT "1. DAILY ATTENDANCE ROSTER" BUTTON FIRST IN NAVIGATION BAR
+ // 1. INJECT "1. DAILY ATTENDANCE ROSTER" BUTTON FIRST IN NAVIGATION BAR
   window.addEventListener('DOMContentLoaded', () => {
     const navFlexContainer = document.querySelector('main > div.bg-slate-800 > div.flex');
     if (navFlexContainer && !document.getElementById('tab-attendance')) {
       const btn = document.createElement('button');
       btn.id = 'tab-attendance';
       btn.onclick = () => openAttendanceTabModule();
-      btn.className = 'tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap';
+      btn.className = 'py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap';
       btn.innerHTML = `<i class="fa-solid fa-users text-emerald-400"></i><span>1. Daily Attendance Roster</span>`;
       
       // Insert as the first tab in the bar
       navFlexContainer.insertBefore(btn, navFlexContainer.firstChild);
     }
 
-    // 2. RENUMBER AND DE-ACTIVATE EXISTING TAB 1 (CHECKIN) ON LOAD
+    // 2. RENUMBER EXISTING TAB 1 (CHECKIN) ON LOAD
     const checkinBtn = document.getElementById('tab-checkin');
     if (checkinBtn) {
-      checkinBtn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       const span = checkinBtn.querySelector('span');
       if (span) span.innerText = "2. Live CP3 Dashboard & Finalize";
     }
+
+    // 3. LISTEN TO ALL OTHER TAB CLICKS TO AUTOMATICALLY HIDE VIEW-ATTENDANCE
+    const otherTabs = ['tab-checkin', 'tab-interventions', 'tab-di', 'tab-followup', 'btn-admin-menu'];
+    otherTabs.forEach(tabId => {
+      const el = document.getElementById(tabId);
+      if (el) {
+        el.addEventListener('click', () => {
+          const attView = document.getElementById('view-attendance');
+          const attBtn = document.getElementById('tab-attendance');
+          if (attView) attView.classList.add('hidden');
+          if (attBtn) attBtn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+        });
+      }
+    });
+
+    // ALSO HANDLE DROPDOWN CLICKS INSIDE ADMIN MENU
+    const adminDropdownBtns = document.querySelectorAll('#admin-menu-dropdown button');
+    adminDropdownBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const attView = document.getElementById('view-attendance');
+        const attBtn = document.getElementById('tab-attendance');
+        if (attView) attView.classList.add('hidden');
+        if (attBtn) attBtn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+      });
+    });
 
     // 3. INJECT ATTENDANCE VIEW CONTAINER DIRECTLY INSIDE MAIN
     const mainEl = document.querySelector('main');
