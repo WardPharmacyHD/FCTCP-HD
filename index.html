@@ -2609,12 +2609,13 @@ async function saveAttendanceStatus(dateStr, targetUserName, status, isSilent = 
 function switchTab(tabName) {
   const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
 
+  // 1. RESTRICT ADMIN VIEWS
   if ((tabName === 'admin' || tabName === 'summary') && !isAdmin) {
     alert('Access Denied: Admin Settings and PF 6.3b Summary are restricted to system administrators.');
     return;
   }
 
-  // 1. HIDE ALL TAB VIEW SECTIONS (INCLUDING ATTENDANCE)
+  // 2. HIDE ALL TAB VIEW SECTIONS STRICTLY
   document.getElementById('view-attendance')?.classList.add('hidden');
   document.getElementById('view-checkin')?.classList.add('hidden');
   document.getElementById('view-interventions')?.classList.add('hidden');
@@ -2623,19 +2624,25 @@ function switchTab(tabName) {
   document.getElementById('view-admin')?.classList.add('hidden');
   document.getElementById('view-summary')?.classList.add('hidden');
 
-  // 2. RESET ALL TAB BUTTON STYLES
+  // 3. RESET MAIN TOP NAV TAB BUTTON STYLES
   ['attendance', 'checkin', 'interventions', 'di', 'followup'].forEach(t => {
     const btn = document.getElementById('tab-' + t);
     if (btn) btn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
   });
 
-  // 3. SHOW SELECTED VIEW & HIGHLIGHT ACTIVE BUTTON
+  // 4. REVEAL TARGET VIEW & HIGHLIGHT BUTTON (IF IT'S A MAIN NAV TAB)
   const activeView = document.getElementById('view-' + tabName);
   const activeTabBtn = document.getElementById('tab-' + tabName);
-  if (activeView) activeView.classList.remove('hidden');
-  if (activeTabBtn) activeTabBtn.className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
+  
+  if (activeView) {
+    activeView.classList.remove('hidden');
+  }
+  
+  if (activeTabBtn) {
+    activeTabBtn.className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
+  }
 
-  // 4. TRIGGER SPECIFIC TAB DATA RENDERERS
+  // 5. TRIGGER VIEW-SPECIFIC DATA RENDERERS
   if (tabName === 'attendance') {
     renderTeamMasterMatrix();
   } else if (tabName === 'checkin') {
@@ -2650,6 +2657,8 @@ function switchTab(tabName) {
   } else if (tabName === 'interventions') {
     renderInterventions();
     populatePatientDatalists();
+  } else if (tabName === 'admin') {
+    renderUserDirectoryTable(); // Renders Admin User Directory
   }
 }
 
