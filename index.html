@@ -4171,21 +4171,26 @@ if (tbodyD) {
     if (modal) modal.classList.add('hidden');
   }
 
-function renderAdminTeamMatrixPreview() {
+  function renderAdminTeamMatrixPreview() {
     const trHead = document.getElementById('admin-roster-thead-tr');
     const tbody = document.getElementById('admin-roster-tbody');
     const monthVal = document.getElementById('admin-roster-month-select')?.value || "2026-08";
     const monthLabel = document.getElementById('admin-roster-print-month-label');
+    const wardLabel = document.getElementById('admin-roster-print-ward-label');
 
     if (!trHead || !tbody) return;
 
-    // Convert YYYY-MM into MMM YYYY format (e.g., "2026-08" -> "AUG 2026")
     const monthsUpper = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
     const [year, month] = monthVal.split('-').map(Number);
-    
+    const wardVal = document.getElementById('admin-roster-ward-select')?.value || "ALL";
+
     if (monthLabel) {
       const monthName = monthsUpper[month - 1] || "AUG";
       monthLabel.innerText = `${monthName} ${year}`;
+    }
+
+    if (wardLabel) {
+      wardLabel.innerText = wardVal === "ALL" ? "ALL WARDS" : wardVal;
     }
 
     trHead.innerHTML = '';
@@ -4193,23 +4198,20 @@ function renderAdminTeamMatrixPreview() {
 
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    // 1. Build Table Headers (Staff Profile Column + Days 1 to 31)
     let thHtml = `<th class="p-2 border-r border-slate-700 min-w-[150px] text-left">PHARMACIST NAME</th>`;
     for (let d = 1; d <= daysInMonth; d++) {
       const dateObj = new Date(year, month - 1, d);
-      const isWeekend = dateObj.getDay() === 5 || dateObj.getDay() === 6; // Friday/Saturday (Terengganu)
+      const isWeekend = dateObj.getDay() === 5 || dateObj.getDay() === 6;
       thHtml += `<th class="p-1 border-r border-slate-800 w-7 ${isWeekend ? 'bg-slate-950 text-amber-400 font-bold' : ''}">${d}</th>`;
     }
     trHead.innerHTML = thHtml;
 
     const staffKeys = typeof PIN_DATABASE !== 'undefined' ? Object.keys(PIN_DATABASE) : [];
-    const wardVal = document.getElementById('admin-roster-ward-select')?.value || "ALL";
 
     staffKeys.forEach(key => {
       const user = PIN_DATABASE[key];
       const userNameUpper = String(user.name || '').trim().toUpperCase();
 
-      // Filter by ward if a specific ward is selected
       if (wardVal !== "ALL" && String(user.ward || '').trim().toUpperCase() !== String(wardVal).trim().toUpperCase()) {
         return;
       }
@@ -4248,11 +4250,10 @@ function renderAdminTeamMatrixPreview() {
         `;
       }
 
-tr.innerHTML = rowHtml;
+      tr.innerHTML = rowHtml;
       tbody.appendChild(tr);
     });
-  } // Closes renderAdminTeamMatrixPreview
-} // Closes window.addEventListener or module wrapper
+  }
 </script>
 
 <!-- STYLES FOR LANDSCAPE A4 PDF PRINTING OF ROSTER MATRIX -->
