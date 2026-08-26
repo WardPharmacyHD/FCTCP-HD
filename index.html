@@ -3784,7 +3784,7 @@ if (tbodyD) {
 </script>
 
 <!-- ========================================================= -->
-<!-- STANDALONE MODULE: PERSONAL MONTHLY CALENDAR ROSTER       -->
+<!-- STANDALONE MODULE: PERSONAL CALENDAR & ADMIN ROSTER MATRIX-->
 <!-- Paste this block right before the closing </body> tag     -->
 <!-- ========================================================= -->
 
@@ -3834,7 +3834,18 @@ if (tbodyD) {
       });
     });
 
-    // 4. INJECT PERSONAL CALENDAR VIEW CONTAINER
+    // 4. INJECT "PRINT MONTHLY TEAM ROSTER MATRIX" INTO ADMIN DROPDOWN MENU
+    const adminDropdown = document.getElementById('admin-menu-dropdown');
+    if (adminDropdown && !document.getElementById('btn-admin-print-roster')) {
+      const btn = document.createElement('button');
+      btn.id = 'btn-admin-print-roster';
+      btn.onclick = () => { hideAdminMenu(); openAdminRosterPrintModal(); };
+      btn.className = "w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition";
+      btn.innerHTML = `<i class="fa-solid fa-print text-emerald-400 w-4 text-center"></i><span class="font-medium">Monthly Team Roster Matrix (PDF)</span>`;
+      adminDropdown.appendChild(btn);
+    }
+
+    // 5. INJECT PERSONAL CALENDAR VIEW CONTAINER
     const mainEl = document.querySelector('main');
     const checkinView = document.getElementById('view-checkin');
 
@@ -3895,7 +3906,57 @@ if (tbodyD) {
       setTimeout(renderPersonalCalendarModule, 200);
     }
 
-    // 5. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
+    // 6. INJECT ADMIN PRINT MODAL INTO BODY
+    if (!document.getElementById('admin-roster-print-modal')) {
+      const modal = document.createElement('div');
+      modal.id = 'admin-roster-print-modal';
+      modal.className = 'hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[120] flex items-center justify-center p-4';
+      modal.innerHTML = `
+        <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-5xl w-full p-6 border border-slate-700 max-h-[90vh] flex flex-col">
+          <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+            <h3 class="font-bold text-slate-100 text-sm flex items-center">
+              <i class="fa-solid fa-users-viewfinder text-emerald-400 me-2"></i> Admin Monthly Team Roster Matrix Exporter
+            </h3>
+            <button onclick="closeAdminRosterPrintModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700 mb-4">
+            <div class="flex items-center space-x-2">
+              <label class="text-xs font-semibold text-slate-400 uppercase">Select Month & Year:</label>
+              <input type="month" id="admin-roster-month-select" value="2026-08" onchange="renderAdminTeamMatrixPreview()" class="bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
+            </div>
+
+            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition shadow flex items-center">
+              <i class="fa-solid fa-print me-1.5"></i> Print / Save PDF Matrix
+            </button>
+          </div>
+
+          <div class="overflow-auto rounded-xl border border-slate-700 bg-slate-900 p-4 flex-grow">
+            <div id="printable-admin-roster-matrix">
+              <div class="mb-3 text-center sm:text-left text-xs font-mono text-slate-200 border-b border-slate-700 pb-2 flex justify-between items-end">
+                <div>
+                  <h2 class="text-sm font-bold">CLINICAL PHARMACY TEAM MONTHLY ROSTER MATRIX</h2>
+                  <p class="text-[11px] text-slate-400 mt-0.5">Unit Farmakoterapi, Hospital Dungun | Terengganu</p>
+                </div>
+                <div class="text-right font-mono">
+                  <p><strong>MONTH:</strong> <span id="admin-roster-print-month-label">08/2026</span></p>
+                </div>
+              </div>
+
+              <table class="w-full text-[10px] border-collapse text-center border border-slate-700">
+                <thead>
+                  <tr id="admin-roster-thead-tr" class="bg-slate-950 font-bold text-slate-200 border-b border-slate-700"></tr>
+                </thead>
+                <tbody id="admin-roster-tbody" class="divide-y divide-slate-800 font-mono"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+
+    // 7. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
     const intForm = document.getElementById('intervention-form');
     if (intForm) {
       intForm.addEventListener('submit', () => {
@@ -3905,7 +3966,7 @@ if (tbodyD) {
   });
 
   // =========================================================
-  // PERSONAL CALENDAR RENDERING LOGIC (DROPDOWN UX)
+  // PERSONAL CALENDAR & ADMIN ROSTER MATRIX LOGIC
   // =========================================================
   let attendanceData = safeJsonParse('cp3_attendance_db', []);
 
@@ -3949,7 +4010,6 @@ if (tbodyD) {
     grid.innerHTML = '';
     const [year, month] = monthVal.split('-').map(Number);
 
-    // Day Headers (Sun - Sat)
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     days.forEach(d => {
       const th = document.createElement('div');
@@ -3961,7 +4021,6 @@ if (tbodyD) {
     const firstDayIndex = new Date(year, month - 1, 1).getDay();
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    // Blank Padding Tiles
     for (let i = 0; i < firstDayIndex; i++) {
       const blank = document.createElement('div');
       blank.className = 'bg-slate-950/40 rounded-lg min-h-[72px]';
@@ -3970,7 +4029,6 @@ if (tbodyD) {
 
     const activeUser = currentUser ? currentUser.name : "Anonymous";
 
-    // Build Day Tiles with Select Dropdowns
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       
@@ -4077,7 +4135,120 @@ if (tbodyD) {
       } catch (err) {}
     }
   }
+
+  // =========================================================
+  // ADMIN ACCUMULATED ROSTER PREVIEW & PRINT LOGIC
+  // =========================================================
+  function openAdminRosterPrintModal() {
+    const modal = document.getElementById('admin-roster-print-modal');
+    if (modal) modal.classList.remove('hidden');
+    renderAdminTeamMatrixPreview();
+  }
+
+  function closeAdminRosterPrintModal() {
+    const modal = document.getElementById('admin-roster-print-modal');
+    if (modal) modal.classList.add('hidden');
+  }
+
+  function renderAdminTeamMatrixPreview() {
+    const trHead = document.getElementById('admin-roster-thead-tr');
+    const tbody = document.getElementById('admin-roster-tbody');
+    const monthVal = document.getElementById('admin-roster-month-select')?.value || "2026-08";
+    const monthLabel = document.getElementById('admin-roster-print-month-label');
+
+    if (!trHead || !tbody) return;
+
+    if (monthLabel) monthLabel.innerText = monthVal;
+
+    trHead.innerHTML = '';
+    tbody.innerHTML = '';
+
+    const [year, month] = monthVal.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    let thHtml = `<th class="p-2 border-r border-slate-700 min-w-[150px] text-left">PHARMACIST NAME</th>`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dateObj = new Date(year, month - 1, d);
+      const isWeekend = dateObj.getDay() === 5 || dateObj.getDay() === 6;
+      thHtml += `<th class="p-1 border-r border-slate-800 w-7 ${isWeekend ? 'bg-slate-950 text-amber-400 font-bold' : ''}">${d}</th>`;
+    }
+    trHead.innerHTML = thHtml;
+
+    const staffKeys = typeof PIN_DATABASE !== 'undefined' ? Object.keys(PIN_DATABASE) : [];
+
+    staffKeys.forEach(key => {
+      const user = PIN_DATABASE[key];
+      const userNameUpper = String(user.name || '').trim().toUpperCase();
+
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-800/50 text-slate-200 border-b border-slate-800';
+
+      let rowHtml = `
+        <td class="p-1.5 border-r border-slate-700 text-left font-sans text-xs font-semibold text-slate-200">
+          ${user.name}
+        </td>
+      `;
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        const entry = attendanceData.find(a => 
+          a.date === dateStr && 
+          String(a.user_name).toUpperCase() === userNameUpper
+        );
+        const status = entry ? entry.status : "";
+
+        let badgeClass = "text-slate-600";
+        if (status === "P") badgeClass = "text-emerald-300 font-bold bg-emerald-950/80 border border-emerald-700/60";
+        else if (status === "CR/DO") badgeClass = "text-sky-300 font-bold bg-sky-950/80 border border-sky-700/60";
+        else if (status === "K") badgeClass = "text-purple-300 font-bold bg-purple-950/80 border border-purple-700/60";
+        else if (status === "M") badgeClass = "text-amber-300 font-bold bg-amber-950/80 border border-amber-700/60";
+        else if (status === "EL") badgeClass = "text-rose-300 font-bold bg-rose-950/80 border border-rose-700/60";
+        else if (status === "PH") badgeClass = "text-teal-300 font-bold bg-teal-950/80 border border-teal-700/60";
+        else if (status === "MTC") badgeClass = "text-indigo-300 font-bold bg-indigo-950/80 border border-indigo-700/60";
+
+        rowHtml += `
+          <td class="p-1 border-r border-slate-800 text-[10px] ${badgeClass}">
+            ${status || '-'}
+          </td>
+        `;
+      }
+
+      tr.innerHTML = rowHtml;
+      tbody.appendChild(tr);
+    });
+  }
 </script>
+
+<!-- STYLES FOR LANDSCAPE A4 PDF PRINTING OF ROSTER MATRIX -->
+<style>
+  @media print {
+    #admin-roster-print-modal {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+      height: auto !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+      padding: 0 !important;
+      display: block !important;
+    }
+
+    #printable-admin-roster-matrix,
+    #printable-admin-roster-matrix * {
+      visibility: visible !important;
+      color: #000000 !important;
+      background: #ffffff !important;
+      border-color: #000000 !important;
+    }
+
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
+    }
+  }
+</style>
   
     </body>
 </html>
