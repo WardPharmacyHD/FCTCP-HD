@@ -3784,33 +3784,33 @@ if (tbodyD) {
 </script>
 
 <!-- ========================================================= -->
-<!-- STANDALONE MODULE: DAILY ATTENDANCE & TEAM ROSTER MATRIX  -->
-<!-- Paste this block right before the closing </body> tag    -->
+<!-- STANDALONE MODULE: PERSONAL MONTHLY CALENDAR ROSTER       -->
+<!-- Paste this block right before the closing </body> tag     -->
 <!-- ========================================================= -->
 
 <script>
- // 1. INJECT "1. DAILY ATTENDANCE ROSTER" BUTTON FIRST IN NAVIGATION BAR
+  // 1. INJECT "1. DAILY ATTENDANCE ROSTER" BUTTON IN NAVIGATION BAR
   window.addEventListener('DOMContentLoaded', () => {
     const navFlexContainer = document.querySelector('main > div.bg-slate-800 > div.flex');
     if (navFlexContainer && !document.getElementById('tab-attendance')) {
       const btn = document.createElement('button');
       btn.id = 'tab-attendance';
       btn.onclick = () => openAttendanceTabModule();
-      btn.className = 'py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap';
-      btn.innerHTML = `<i class="fa-solid fa-users text-emerald-400"></i><span>1. Daily Attendance Roster</span>`;
+      btn.className = 'tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap';
+      btn.innerHTML = `<i class="fa-solid fa-calendar-days text-emerald-400"></i><span>1. Daily Attendance Roster</span>`;
       
-      // Insert as the first tab in the bar
       navFlexContainer.insertBefore(btn, navFlexContainer.firstChild);
     }
 
     // 2. RENUMBER EXISTING TAB 1 (CHECKIN) ON LOAD
     const checkinBtn = document.getElementById('tab-checkin');
     if (checkinBtn) {
+      checkinBtn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       const span = checkinBtn.querySelector('span');
       if (span) span.innerText = "2. Live CP3 Dashboard & Finalize";
     }
 
-    // 3. LISTEN TO ALL OTHER TAB CLICKS TO AUTOMATICALLY HIDE VIEW-ATTENDANCE
+    // 3. LISTEN TO OTHER TAB CLICKS TO AUTOMATICALLY HIDE ATTENDANCE VIEW
     const otherTabs = ['tab-checkin', 'tab-interventions', 'tab-di', 'tab-followup', 'btn-admin-menu'];
     otherTabs.forEach(tabId => {
       const el = document.getElementById(tabId);
@@ -3824,7 +3824,6 @@ if (tbodyD) {
       }
     });
 
-    // ALSO HANDLE DROPDOWN CLICKS INSIDE ADMIN MENU
     const adminDropdownBtns = document.querySelectorAll('#admin-menu-dropdown button');
     adminDropdownBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -3835,29 +3834,30 @@ if (tbodyD) {
       });
     });
 
-    // 3. INJECT ATTENDANCE VIEW CONTAINER DIRECTLY INSIDE MAIN
+    // 4. INJECT PERSONAL CALENDAR VIEW CONTAINER
     const mainEl = document.querySelector('main');
     const checkinView = document.getElementById('view-checkin');
 
     if (mainEl && !document.getElementById('view-attendance')) {
       const viewDiv = document.createElement('div');
       viewDiv.id = 'view-attendance';
-      viewDiv.className = 'space-y-6';
+      viewDiv.className = 'space-y-6'; // Visible on load
       viewDiv.innerHTML = `
         <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
           
-          <!-- HEADER CONTROLS -->
+          <!-- HEADER CONTROLS WITH INLINE BUTTON & CALENDAR -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-4 gap-3">
             <div>
               <h2 class="text-sm font-bold text-slate-100 flex items-center">
-                <i class="fa-solid fa-users text-emerald-400 me-2"></i> Clinical Pharmacy Team Roster & Attendance Matrix
+                <i class="fa-solid fa-calendar-days text-emerald-400 me-2"></i> My Duty Roster & Attendance Calendar
               </h2>
-              <p class="text-xs text-slate-400 mt-0.5">Click any cell under your name to cycle statuses: P ➔ CR/DO ➔ K ➔ M ➔ EL ➔ Clear</p>
+              <p class="text-xs text-slate-400 mt-0.5">Select status from the dropdown in each date tile</p>
             </div>
 
+            <!-- CALENDAR SELECTOR & MARK PRESENT BUTTON SIDE-BY-SIDE -->
             <div class="flex items-center space-x-2">
-              <input type="month" id="att-month-select" value="2026-08" onchange="renderTeamMasterMatrixModule()" class="bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
-              <button onclick="manualMarkTodayPresentModule()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center">
+              <input type="month" id="att-month-select" value="2026-08" onchange="renderPersonalCalendarModule()" class="bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
+              <button onclick="manualMarkTodayPresentModule()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0">
                 <i class="fa-solid fa-user-check me-1.5"></i> Mark Today Present
               </button>
             </div>
@@ -3867,38 +3867,35 @@ if (tbodyD) {
           <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-900/60 p-3 rounded-xl border border-slate-700">
             <span class="text-[10px] font-bold text-slate-400 uppercase me-1">Legend:</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">P - Present</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-950 text-sky-300 border border-sky-700">CR/DO - Cuti Rehat / Day Off</span>
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-950 text-sky-300 border border-sky-700">CR/DO - Leave/Off</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-950 text-purple-300 border border-purple-700">K - Kursus</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-700">M - Meeting</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-950 text-rose-300 border border-rose-700">EL - Emergency Leave</span>
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-teal-950 text-teal-300 border border-teal-700">PH - Public Holiday</span>
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-700">MTC - MTAC</span>
           </div>
 
-          <!-- TEAM MASTER ROSTER MATRIX TABLE -->
+          <!-- 7-COLUMN MONTHLY CALENDAR GRID -->
           <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-3">
-            <table class="w-full text-[11px] border-collapse text-center">
-              <thead>
-                <tr id="att-master-thead-tr" class="bg-slate-950 font-bold text-slate-300 border-b border-slate-700"></tr>
-              </thead>
-              <tbody id="att-master-tbody" class="divide-y divide-slate-800 font-mono"></tbody>
-            </table>
+            <div id="att-calendar-grid" class="grid grid-cols-7 gap-1.5 min-w-[600px] text-center">
+              <!-- Rendered Dynamically -->
+            </div>
           </div>
 
         </div>
       `;
 
-      // Insert Attendance view before view-checkin
       if (checkinView) {
-        checkinView.classList.add('hidden'); // Hide checkin on initial load
+        checkinView.classList.add('hidden');
         mainEl.insertBefore(viewDiv, checkinView);
       } else {
         mainEl.appendChild(viewDiv);
       }
 
-      // Initial render of matrix
-      setTimeout(renderTeamMasterMatrixModule, 200);
+      setTimeout(renderPersonalCalendarModule, 200);
     }
 
-    // 4. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
+    // 5. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
     const intForm = document.getElementById('intervention-form');
     if (intForm) {
       intForm.addEventListener('submit', () => {
@@ -3908,112 +3905,121 @@ if (tbodyD) {
   });
 
   // =========================================================
-  // ATTENDANCE DATA & MATRIX RENDERING LOGIC
+  // PERSONAL CALENDAR RENDERING LOGIC (DROPDOWN UX)
   // =========================================================
   let attendanceData = safeJsonParse('cp3_attendance_db', []);
-  const ATT_STATUS_CYCLE = ["", "P", "CR/DO", "K", "MTC", "PH", "M", "EL"];
+
+  const ATT_STATUS_STYLES = {
+    "P": "bg-emerald-950 text-emerald-300 border-emerald-700 font-bold",
+    "CR/DO": "bg-sky-950 text-sky-300 border-sky-700 font-bold",
+    "K": "bg-purple-950 text-purple-300 border-purple-700 font-bold",
+    "M": "bg-amber-950 text-amber-300 border-amber-700 font-bold",
+    "EL": "bg-rose-950 text-rose-300 border-rose-700 font-bold",
+    "PH": "bg-teal-950 text-teal-300 border-teal-700 font-bold",
+    "MTC": "bg-indigo-950 text-indigo-300 border-indigo-700 font-bold"
+  };
 
   function openAttendanceTabModule() {
-    // Hide all view elements cleanly
     const views = ['checkin', 'interventions', 'di', 'followup', 'admin', 'summary'];
     views.forEach(v => {
       const el = document.getElementById('view-' + v);
       if (el) el.classList.add('hidden');
     });
 
-    // Reset standard tab buttons
     const tabs = ['checkin', 'interventions', 'di', 'followup'];
     tabs.forEach(t => {
       const el = document.getElementById('tab-' + t);
       if (el) el.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
     });
 
-    // Activate Attendance view and tab
     const attView = document.getElementById('view-attendance');
     const attBtn = document.getElementById('tab-attendance');
 
     if (attView) attView.classList.remove('hidden');
     if (attBtn) attBtn.className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
 
-    renderTeamMasterMatrixModule();
+    renderPersonalCalendarModule();
   }
 
-  function renderTeamMasterMatrixModule() {
-    const trHead = document.getElementById('att-master-thead-tr');
-    const tbody = document.getElementById('att-master-tbody');
+  function renderPersonalCalendarModule() {
+    const grid = document.getElementById('att-calendar-grid');
     const monthVal = document.getElementById('att-month-select')?.value || "2026-08";
-    if (!trHead || !tbody) return;
+    if (!grid) return;
 
-    trHead.innerHTML = '';
-    tbody.innerHTML = '';
-
+    grid.innerHTML = '';
     const [year, month] = monthVal.split('-').map(Number);
+
+    // Day Headers (Sun - Sat)
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    days.forEach(d => {
+      const th = document.createElement('div');
+      th.className = 'py-2 font-bold text-xs text-slate-400 uppercase tracking-wider bg-slate-950 rounded';
+      th.innerText = d;
+      grid.appendChild(th);
+    });
+
+    const firstDayIndex = new Date(year, month - 1, 1).getDay();
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    // 1. Build Table Headers: Pharmacist Column + Days 1 to 31
-    let thHtml = `<th class="p-2.5 border-r border-slate-700 min-w-[160px] text-left">PHARMACIST PROFILE</th>`;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateObj = new Date(year, month - 1, d);
-      const isWeekend = dateObj.getDay() === 5 || dateObj.getDay() === 6; // Fri/Sat weekend (Terengganu)
-      thHtml += `<th class="p-1 border-r border-slate-800 w-8 ${isWeekend ? 'bg-slate-900 text-amber-400' : ''}">${d}</th>`;
+    // Blank Padding Tiles
+    for (let i = 0; i < firstDayIndex; i++) {
+      const blank = document.createElement('div');
+      blank.className = 'bg-slate-950/40 rounded-lg min-h-[72px]';
+      grid.appendChild(blank);
     }
-    trHead.innerHTML = thHtml;
 
-    const staffKeys = typeof PIN_DATABASE !== 'undefined' ? Object.keys(PIN_DATABASE) : [];
-    const activeUserNameUpper = currentUser ? String(currentUser.name).trim().toUpperCase() : "";
+    const activeUser = currentUser ? currentUser.name : "Anonymous";
 
-    // 2. Build Table Row for Each Registered Pharmacist
-    staffKeys.forEach(key => {
-      const user = PIN_DATABASE[key];
-      const userNameUpper = String(user.name || '').trim().toUpperCase();
-      const isSelf = userNameUpper === activeUserNameUpper;
+    // Build Day Tiles with Select Dropdowns
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      
+      const entry = attendanceData.find(a => 
+        a.date === dateStr && 
+        String(a.user_name).toUpperCase() === String(activeUser).toUpperCase()
+      );
+      const status = entry ? entry.status : "";
 
-      const tr = document.createElement('tr');
-      tr.className = isSelf ? 'bg-slate-800/90 font-bold text-slate-100' : 'hover:bg-slate-800/50 text-slate-300';
+      const cell = document.createElement('div');
+      cell.className = `p-2 rounded-lg border min-h-[72px] flex flex-col justify-between select-none bg-slate-800/80 border-slate-700/80`;
 
-      let rowHtml = `
-        <td class="p-2 border-r border-slate-700 text-left font-sans text-xs flex items-center justify-between">
-          <span class="${isSelf ? 'text-emerald-400 font-bold' : 'text-slate-200'}">${user.name}</span>
-          ${isSelf ? '<span class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-700 px-1 rounded ms-1">YOU</span>' : ''}
-        </td>
-      `;
+      const dateHeader = document.createElement('span');
+      dateHeader.className = `text-xs font-mono font-bold ${status ? 'text-slate-200' : 'text-slate-400'}`;
+      dateHeader.innerText = day;
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
-        const entry = attendanceData.find(a => 
-          a.date === dateStr && 
-          String(a.user_name).toUpperCase() === userNameUpper
-        );
-        const status = entry ? entry.status : "";
+      const select = document.createElement('select');
+      select.className = `text-[10px] py-1 px-1 rounded border text-center font-bold mt-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500 [color-scheme:dark] ${
+        ATT_STATUS_STYLES[status] || 'bg-slate-900 text-slate-400 border-slate-700'
+      }`;
 
-        // Color badge styling
-        let badgeClass = "text-slate-600";
-        if (status === "P") badgeClass = "text-emerald-300 font-bold bg-emerald-950/80 border border-emerald-700/60";
-        else if (status === "CR/DO") badgeClass = "text-sky-300 font-bold bg-sky-950/80 border border-sky-700/60";
-        else if (status === "K") badgeClass = "text-purple-300 font-bold bg-purple-950/80 border border-purple-700/60";
-        else if (status === "M") badgeClass = "text-amber-300 font-bold bg-amber-950/80 border border-amber-700/60";
-        else if (status === "EL") badgeClass = "text-rose-300 font-bold bg-rose-950/80 border border-rose-700/60";
+      const options = [
+        { val: "", label: "- Clear -" },
+        { val: "P", label: "P - Present" },
+        { val: "CR/DO", label: "CR/DO - Leave/Off" },
+        { val: "K", label: "K - Kursus" },
+        { val: "M", label: "M - Meeting" },
+        { val: "EL", label: "EL - Emergency" },
+        { val: "PH", label: "PH - Holiday" },
+        { val: "MTC", label: "MTC - MTAC" }
+      ];
 
-        const canEdit = !!currentUser;
+      options.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt.val;
+        o.innerText = opt.label;
+        if (opt.val === status) o.selected = true;
+        select.appendChild(o);
+      });
 
-        rowHtml += `
-          <td onclick="${canEdit ? `cycleCellStatusModule('${dateStr}', '${user.name}', '${status}')` : ''}" 
-              class="p-1 border-r border-slate-800 text-[10px] ${badgeClass} ${canEdit ? 'cursor-pointer hover:border-slate-500' : 'cursor-not-allowed'} select-none">
-            ${status || '-'}
-          </td>
-        `;
-      }
+      select.onchange = (e) => {
+        e.stopPropagation();
+        saveAttendanceStatusModule(dateStr, activeUser, e.target.value);
+      };
 
-      tr.innerHTML = rowHtml;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function cycleCellStatusModule(dateStr, targetUserName, currentStatus) {
-    const currentIndex = ATT_STATUS_CYCLE.indexOf(currentStatus);
-    const nextStatus = ATT_STATUS_CYCLE[(currentIndex + 1) % ATT_STATUS_CYCLE.length];
-    saveAttendanceStatusModule(dateStr, targetUserName, nextStatus);
+      cell.appendChild(dateHeader);
+      cell.appendChild(select);
+      grid.appendChild(cell);
+    }
   }
 
   function autoMarkPresentOnInterventionModule() {
@@ -4027,7 +4033,7 @@ if (tbodyD) {
     );
 
     if (!existing || !existing.status) {
-      saveAttendanceStatusModule(targetDate, currentUser.name, "P", true);
+      saveAttendanceStatusModule(targetDate, currentUser.name, "P");
     }
   }
 
@@ -4038,7 +4044,7 @@ if (tbodyD) {
     saveAttendanceStatusModule(todayStr, currentUser.name, "P");
   }
 
-  async function saveAttendanceStatusModule(dateStr, targetUserName, status, isSilent = false) {
+  async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
     const payload = {
       id: `att-${dateStr}-${targetUserName.replace(/[^a-zA-Z0-9]/g, '_')}`,
       date: dateStr,
@@ -4056,11 +4062,7 @@ if (tbodyD) {
     localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
 
     if (document.getElementById('view-attendance') && !document.getElementById('view-attendance').classList.contains('hidden')) {
-      renderTeamMasterMatrixModule();
-    }
-
-    if (!isSilent && typeof showToast === 'function') {
-      showToast(`Roster updated (${targetUserName} - ${dateStr}): ${status || 'Cleared'}`, 'success');
+      renderPersonalCalendarModule();
     }
 
     const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) ? sheetDbApiUrl : (typeof defaultSheetDbUrl !== 'undefined' ? defaultSheetDbUrl : "");
