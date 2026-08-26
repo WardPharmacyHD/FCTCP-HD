@@ -4259,7 +4259,19 @@ if (tbodyD) {
 <!-- STYLES FOR LANDSCAPE A4 PDF PRINTING OF ROSTER MATRIX -->
 <style>
   @media print {
-    #admin-roster-print-modal {
+    /* 1. WHEN PRINTING THE ADMIN ROSTER MODAL, HIDE EVERYTHING ELSE */
+    body.printing-roster-matrix #printable-cp3,
+    body.printing-roster-matrix #batch-print-container,
+    body.printing-roster-matrix #printable-pf63b,
+    body.printing-roster-matrix main,
+    body.printing-roster-matrix header,
+    body.printing-roster-matrix footer {
+      display: none !important;
+      visibility: hidden !important;
+    }
+
+    /* 2. MAKE ROSTER MODAL FULLSCREEN LANDSCAPE */
+    body.printing-roster-matrix #admin-roster-print-modal {
       position: absolute !important;
       left: 0 !important;
       top: 0 !important;
@@ -4268,11 +4280,13 @@ if (tbodyD) {
       background: #ffffff !important;
       color: #000000 !important;
       padding: 0 !important;
+      margin: 0 !important;
       display: block !important;
+      visibility: visible !important;
     }
 
-    #printable-admin-roster-matrix,
-    #printable-admin-roster-matrix * {
+    body.printing-roster-matrix #printable-admin-roster-matrix,
+    body.printing-roster-matrix #printable-admin-roster-matrix * {
       visibility: visible !important;
       color: #000000 !important;
       background: #ffffff !important;
