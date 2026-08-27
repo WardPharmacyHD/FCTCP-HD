@@ -3784,7 +3784,7 @@ if (tbodyD) {
 </script>
 
 <!-- ========================================================= -->
-<!-- STANDALONE MODULE: PERSONAL CALENDAR & MULTI-MONTH BATCH  -->
+<!-- STANDALONE MODULE: PERSONAL CALENDAR & EXCEL/PDF BATCH    -->
 <!-- Paste this block right before the closing </body> tag     -->
 <!-- ========================================================= -->
 
@@ -3841,11 +3841,24 @@ if (tbodyD) {
       btn.id = 'btn-admin-print-roster';
       btn.onclick = () => { hideAdminMenu(); openAdminRosterPrintModal(); };
       btn.className = "w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition";
-      btn.innerHTML = `<i class="fa-solid fa-boxes-packing text-emerald-400 w-4 text-center"></i><span class="font-medium">Multi-Month Roster Batch (PDF)</span>`;
+      btn.innerHTML = `<i class="fa-solid fa-boxes-packing text-emerald-400 w-4 text-center"></i><span class="font-medium">Multi-Month Roster Batch (PDF/Excel)</span>`;
       adminDropdown.appendChild(btn);
     }
 
-    // 5. INJECT PERSONAL CALENDAR VIEW CONTAINER
+    // 5. INJECT EXPORT TO EXCEL BUTTON ON ADMIN CP3 BATCH CARD
+    const batchCardControls = document.querySelector('#view-admin .grid.grid-cols-1.md\\:grid-cols-3');
+    if (batchCardControls && !document.getElementById('btn-export-cp3-excel')) {
+      const div = document.createElement('div');
+      div.className = 'mt-2 md:mt-0';
+      div.innerHTML = `
+        <button id="btn-export-cp3-excel" onclick="exportMonthlyCp3BatchExcel()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
+          <i class="fa-solid fa-file-excel me-1.5"></i> Export CP3 Batch to Excel (.csv)
+        </button>
+      `;
+      batchCardControls.appendChild(div);
+    }
+
+    // 6. INJECT PERSONAL CALENDAR VIEW CONTAINER
     const mainEl = document.querySelector('main');
     const checkinView = document.getElementById('view-checkin');
 
@@ -3878,8 +3891,7 @@ if (tbodyD) {
             <span class="text-[10px] font-bold text-slate-400 uppercase me-1">Legend:</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">P - Present</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-950 text-sky-300 border border-sky-700">CR/DO - Leave/Off</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-950 text-purple-300 border border-purple-700">K - Kursus</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-700">M - Meeting</span>
+            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-950 text-purple-300 border border-purple-700">K/M/Adt - Kursus/Meeting/Audit</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-950 text-rose-300 border border-rose-700">EL - Emergency Leave</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-orange-950 text-orange-300 border border-orange-700">PH - Public Holiday</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-700">MTC - MTAC</span>
@@ -3905,7 +3917,7 @@ if (tbodyD) {
       setTimeout(renderPersonalCalendarModule, 200);
     }
 
-    // 6. INJECT BATCH MULTI-MONTH ROSTER PRINT MODAL INTO BODY
+    // 7. INJECT BATCH MULTI-MONTH ROSTER PRINT MODAL INTO BODY
     if (!document.getElementById('admin-roster-print-modal')) {
       const modal = document.createElement('div');
       modal.id = 'admin-roster-print-modal';
@@ -3920,7 +3932,7 @@ if (tbodyD) {
           </div>
 
           <!-- MULTI-MONTH BATCH RANGE CONTROLS -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700 mb-4 items-end">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700 mb-4 items-end">
             <div>
               <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Start Month & Year</label>
               <input type="month" id="admin-roster-start-month" value="2026-01" onchange="renderMultiMonthBatchPreview()" class="w-full bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
@@ -3932,8 +3944,14 @@ if (tbodyD) {
             </div>
 
             <div>
+              <button onclick="exportBatchRosterMatrixExcel()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
+                <i class="fa-solid fa-file-excel me-1.5"></i> Export Excel (.csv)
+              </button>
+            </div>
+
+            <div>
               <button onclick="printAdminRosterMatrix()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
-                <i class="fa-solid fa-print me-1.5"></i> Batch Print PDF Matrix
+                <i class="fa-solid fa-print me-1.5"></i> Print PDF Matrix
               </button>
             </div>
           </div>
@@ -3949,7 +3967,7 @@ if (tbodyD) {
       document.body.appendChild(modal);
     }
 
-    // 7. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
+    // 8. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
     const intForm = document.getElementById('intervention-form');
     if (intForm) {
       intForm.addEventListener('submit', () => {
@@ -3959,6 +3977,35 @@ if (tbodyD) {
   });
 
   // =========================================================
+  // OFFICIAL TERENGGANU PUBLIC HOLIDAY GAZETTE (2026)
+  // =========================================================
+  const MY_PUBLIC_HOLIDAYS = {
+    "2026-01-17": "Hari Israk dan Mikraj",
+    "2026-01-18": "Hari Kelepasan Am Negeri",
+    "2026-02-17": "Tahun Baru Cina",
+    "2026-02-18": "Tahun Baru Cina Hari Ke-2",
+    "2026-03-04": "Ulang Tahun Pertabalan Sultan Terengganu",
+    "2026-03-07": "Hari Nuzul Quran",
+    "2026-03-08": "Hari Kelepasan Am Negeri",
+    "2026-03-21": "Hari Raya Puasa",
+    "2026-03-22": "Hari Raya Puasa Hari Ke-2",
+    "2026-03-23": "Hari Kelepasan Am Negeri",
+    "2026-04-26": "Hari Keputeraan Sultan Terengganu",
+    "2026-05-01": "Hari Pekerja",
+    "2026-05-26": "Hari Arafah",
+    "2026-05-27": "Hari Raya Haji",
+    "2026-05-28": "Hari Raya Haji Hari Ke-2",
+    "2026-05-31": "Hari Wesak",
+    "2026-06-01": "Hari Keputeraan YDP Agong",
+    "2026-06-17": "Awal Muharam",
+    "2026-08-25": "Hari Keputeraan Nabi Muhammad (s.a.w)",
+    "2026-08-31": "Hari Kebangsaan",
+    "2026-09-16": "Hari Malaysia",
+    "2026-11-08": "Hari Deepavali",
+    "2026-12-25": "Hari Krismas"
+  };
+
+  // =========================================================
   // PERSONAL CALENDAR & ATTENDANCE LOGIC
   // =========================================================
   let attendanceData = safeJsonParse('cp3_attendance_db', []);
@@ -3966,8 +4013,7 @@ if (tbodyD) {
   const ATT_STATUS_STYLES = {
     "P": "bg-emerald-950 text-emerald-300 border-emerald-700 font-bold",
     "CR/DO": "bg-sky-950 text-sky-300 border-sky-700 font-bold",
-    "K": "bg-purple-950 text-purple-300 border-purple-700 font-bold",
-    "M": "bg-amber-950 text-amber-300 border-amber-700 font-bold",
+    "K/M/Adt": "bg-purple-950 text-purple-300 border-purple-700 font-bold",
     "EL": "bg-rose-950 text-rose-300 border-rose-700 font-bold",
     "PH": "bg-orange-950 text-orange-300 border-orange-700 font-bold",
     "MTC": "bg-indigo-950 text-indigo-300 border-indigo-700 font-bold"
@@ -4024,19 +4070,34 @@ if (tbodyD) {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      
+      const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
+
       const entry = attendanceData.find(a => 
         a.date === dateStr && 
         String(a.user_name).toUpperCase() === String(activeUser).toUpperCase()
       );
-      const status = entry ? entry.status : "";
+      
+      let status = entry ? entry.status : (holidayName ? "PH" : "");
+      if (status === "K" || status === "M") status = "K/M/Adt";
 
       const cell = document.createElement('div');
       cell.className = `p-2 rounded-lg border min-h-[72px] flex flex-col justify-between select-none bg-slate-800/80 border-slate-700/80`;
 
+      const dateHeaderContainer = document.createElement('div');
+      dateHeaderContainer.className = "flex flex-col items-center";
+
       const dateHeader = document.createElement('span');
       dateHeader.className = `text-xs font-mono font-bold ${status ? 'text-slate-200' : 'text-slate-400'}`;
       dateHeader.innerText = day;
+      dateHeaderContainer.appendChild(dateHeader);
+
+      if (holidayName) {
+        const holLabel = document.createElement('span');
+        holLabel.className = "text-[9px] font-bold text-orange-400 leading-tight truncate max-w-[70px] mt-0.5";
+        holLabel.title = holidayName;
+        holLabel.innerText = holidayName;
+        dateHeaderContainer.appendChild(holLabel);
+      }
 
       const select = document.createElement('select');
       select.className = `text-[10px] py-1 px-1 rounded border text-center font-bold mt-1 cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500 [color-scheme:dark] ${
@@ -4047,8 +4108,7 @@ if (tbodyD) {
         { val: "", label: "- Clear -" },
         { val: "P", label: "P - Present" },
         { val: "CR/DO", label: "CR/DO - Leave/Off" },
-        { val: "K", label: "K - Kursus" },
-        { val: "M", label: "M - Meeting" },
+        { val: "K/M/Adt", label: "K/M/Adt - Kursus/Mtg/Audit" },
         { val: "EL", label: "EL - Emergency" },
         { val: "PH", label: "PH - Holiday" },
         { val: "MTC", label: "MTC - MTAC" }
@@ -4067,7 +4127,7 @@ if (tbodyD) {
         saveAttendanceStatusModule(dateStr, activeUser, e.target.value);
       };
 
-      cell.appendChild(dateHeader);
+      cell.appendChild(dateHeaderContainer);
       cell.appendChild(select);
       grid.appendChild(cell);
     }
@@ -4130,6 +4190,125 @@ if (tbodyD) {
   }
 
   // =========================================================
+  // EXCEL CSV EXPORTER LOGIC (ROSTER & CP3 BATCH)
+  // =========================================================
+
+  function exportBatchRosterMatrixExcel() {
+    const startVal = document.getElementById('admin-roster-start-month')?.value || "2026-01";
+    const endVal = document.getElementById('admin-roster-end-month')?.value || "2026-08";
+
+    const monthsUpper = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+    let [startYear, startMonth] = startVal.split('-').map(Number);
+    let [endYear, endMonth] = endVal.split('-').map(Number);
+
+    let currentDate = new Date(startYear, startMonth - 1, 1);
+    let endDate = new Date(endYear, endMonth - 1, 1);
+
+    const staffKeys = typeof PIN_DATABASE !== 'undefined' ? Object.keys(PIN_DATABASE) : [];
+    let csvRows = [];
+
+    while (currentDate <= endDate) {
+      const year = currentDate.getFullYear();
+      const monthIndex = currentDate.getMonth();
+      const monthNum = monthIndex + 1;
+      const monthName = monthsUpper[monthIndex];
+      const daysInMonth = new Date(year, monthNum, 0).getDate();
+
+      csvRows.push([`"CLINICAL PHARMACY TEAM MONTHLY ROSTER MATRIX - ${monthName} ${year}"`]);
+      csvRows.push([`"Unit Farmakoterapi, Hospital Dungun | Terengganu"`]);
+
+      let headerRow = ['"PHARMACIST NAME"'];
+      for (let d = 1; d <= daysInMonth; d++) {
+        headerRow.push(`"${d}"`);
+      }
+      csvRows.push(headerRow.join(','));
+
+      staffKeys.forEach(key => {
+        const user = PIN_DATABASE[key];
+        const userNameUpper = String(user.name || '').trim().toUpperCase();
+
+        let row = [`"${user.name.replace(/"/g, '""')}"`];
+        for (let day = 1; day <= daysInMonth; day++) {
+          const dateStr = `${year}-${String(monthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
+          
+          const entry = attendanceData.find(a => 
+            a.date === dateStr && 
+            String(a.user_name).toUpperCase() === userNameUpper
+          );
+          
+          let st = entry ? entry.status : (holidayName ? "PH" : "");
+          if (st === "K" || st === "M") st = "K/M/Adt";
+
+          row.push(`"${st || '-'}"`);
+        }
+        csvRows.push(row.join(','));
+      });
+
+      csvRows.push([]);
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+
+    downloadCsvContent(csvRows.join('\n'), `Team_Roster_Batch_${startVal}_to_${endVal}.csv`);
+  }
+
+  function exportMonthlyCp3BatchExcel() {
+    const monthVal = document.getElementById('batch-month-select')?.value;
+    const targetWard = (document.getElementById('batch-ward-select')?.value || "WARD 1 - MEDICAL MALE").trim().toUpperCase();
+    const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+
+    if (!monthVal) {
+      alert("Please select a month and year first.");
+      return;
+    }
+
+    const filteredInterventions = interventionsData.filter(item => {
+      const isoDate = normalizeToISO(item.date).split('T')[0];
+      return isoDate.startsWith(monthVal) && cleanStr(item.ward) === cleanStr(targetWard);
+    });
+
+    if (filteredInterventions.length === 0) {
+      alert(`No intervention records found for ${targetWard} in ${monthVal}.`);
+      return;
+    }
+
+    let csvRows = [
+      [`"MONTHLY CP3 INTERVENTIONS BATCH REPORT - ${monthVal}"`],
+      [`"Ward: ${targetWard.replace(/"/g, '""')}"`],
+      [],
+      ['"Date"', '"Patient Name"', '"RN/MRN"', '"CP3 Category"', '"Type (PO/NM)"', '"Description/Recommendation"', '"Accepted"', '"PhIS Synced"', '"Pharmacist"']
+    ];
+
+    filteredInterventions.forEach(item => {
+      csvRows.push([
+        `"${formatDateDDMMYYYY(item.date)}"`,
+        `"${(item.patient || '').replace(/"/g, '""')}"`,
+        `"${(item.rn || '').replace(/"/g, '""')}"`,
+        `"${(item.code || '').replace(/"/g, '""')}"`,
+        `"${item.type || 'PO'}"`,
+        `"${(item.desc || '').replace(/"/g, '""')}"`,
+        `"${item.accepted || 'NO'}"`,
+        `"${item.recordedToPhis || 'NO'}"`,
+        `"${(item.user_name || '').replace(/"/g, '""')}"`
+      ].join(','));
+    });
+
+    downloadCsvContent(csvRows.join('\n'), `CP3_Interventions_Batch_${targetWard.replace(/[^a-zA-Z0-9]/g, '_')}_${monthVal}.csv`);
+  }
+
+  function downloadCsvContent(csvContent, filename) {
+    const blob = new Blob(["\ufeff" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // =========================================================
   // MULTI-MONTH BATCH ROSTER PRINT & EXPORTER LOGIC
   // =========================================================
   function openAdminRosterPrintModal() {
@@ -4170,19 +4349,16 @@ if (tbodyD) {
 
     const staffKeys = typeof PIN_DATABASE !== 'undefined' ? Object.keys(PIN_DATABASE) : [];
 
-    // Loop through each month in the range
     while (currentDate <= endDate) {
       const year = currentDate.getFullYear();
-      const monthIndex = currentDate.getMonth(); // 0 - 11
+      const monthIndex = currentDate.getMonth();
       const monthNum = monthIndex + 1;
       const monthName = monthsUpper[monthIndex];
       const daysInMonth = new Date(year, monthNum, 0).getDate();
 
-      // Create Page Container for Current Month
       const pageDiv = document.createElement('div');
       pageDiv.className = 'roster-month-page space-y-3';
 
-      // Header Banner
       let pageHtml = `
         <div class="mb-3 text-center sm:text-left text-xs font-mono text-slate-200 border-b border-slate-700 pb-2 flex justify-between items-end">
           <div>
@@ -4202,13 +4378,12 @@ if (tbodyD) {
 
       for (let d = 1; d <= daysInMonth; d++) {
         const dateObj = new Date(year, monthIndex, d);
-        const isWeekend = dateObj.getDay() === 5 || dateObj.getDay() === 6; // Fri/Sat weekend (Terengganu)
+        const isWeekend = dateObj.getDay() === 5 || dateObj.getDay() === 6;
         pageHtml += `<th class="p-1 border-r border-slate-800 w-7 ${isWeekend ? 'bg-slate-950 text-amber-400 font-bold' : ''}">${d}</th>`;
       }
 
       pageHtml += `</tr></thead><tbody class="divide-y divide-slate-800 font-mono">`;
 
-      // Rows for Staff Members
       staffKeys.forEach(key => {
         const user = PIN_DATABASE[key];
         const userNameUpper = String(user.name || '').trim().toUpperCase();
@@ -4222,18 +4397,20 @@ if (tbodyD) {
 
         for (let day = 1; day <= daysInMonth; day++) {
           const dateStr = `${year}-${String(monthNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-          
+          const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
+
           const entry = attendanceData.find(a => 
             a.date === dateStr && 
             String(a.user_name).toUpperCase() === userNameUpper
           );
-          const status = entry ? entry.status : "";
+          
+          let status = entry ? entry.status : (holidayName ? "PH" : "");
+          if (status === "K" || status === "M") status = "K/M/Adt";
 
           let badgeClass = "text-slate-600";
           if (status === "P") badgeClass = "text-emerald-300 font-bold bg-emerald-950/80 border border-emerald-700/60";
           else if (status === "CR/DO") badgeClass = "text-sky-300 font-bold bg-sky-950/80 border border-sky-700/60";
-          else if (status === "K") badgeClass = "text-purple-300 font-bold bg-purple-950/80 border border-purple-700/60";
-          else if (status === "M") badgeClass = "text-amber-300 font-bold bg-amber-950/80 border border-amber-700/60";
+          else if (status === "K/M/Adt") badgeClass = "text-purple-300 font-bold bg-purple-950/80 border border-purple-700/60";
           else if (status === "EL") badgeClass = "text-rose-300 font-bold bg-rose-950/80 border border-rose-700/60";
           else if (status === "PH") badgeClass = "text-orange-300 font-bold bg-orange-950/80 border border-orange-700/60";
           else if (status === "MTC") badgeClass = "text-indigo-300 font-bold bg-indigo-950/80 border border-indigo-700/60";
@@ -4252,7 +4429,6 @@ if (tbodyD) {
       pageDiv.innerHTML = pageHtml;
       container.appendChild(pageDiv);
 
-      // Increment Month
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
   }
@@ -4272,7 +4448,7 @@ if (tbodyD) {
       visibility: hidden !important;
     }
 
-    /* 2. DISPLAY ROSTER MATRIX FULLSCREEN LANDSCAPE */
+    /* 2. RESET MODAL WRAPPER POSITIONING & ELIMINATE TOP GAP */
     body.printing-roster-matrix #admin-roster-print-modal {
       position: absolute !important;
       left: 0 !important;
@@ -4287,6 +4463,23 @@ if (tbodyD) {
       visibility: visible !important;
     }
 
+    /* RESET INNER MODAL CARD CONTAINER */
+    body.printing-roster-matrix #admin-roster-print-modal > div {
+      padding: 0 !important;
+      margin: 0 !important;
+      background: #ffffff !important;
+      border: none !important;
+      box-shadow: none !important;
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+
+    /* HIDE MODAL CONTROL UI (TITLE BAR & INPUT CONTROLS) DURING PRINT */
+    body.printing-roster-matrix #admin-roster-print-modal > div > div:first-child,
+    body.printing-roster-matrix #admin-roster-print-modal .grid {
+      display: none !important;
+    }
+
     body.printing-roster-matrix #printable-admin-roster-matrix,
     body.printing-roster-matrix #printable-admin-roster-matrix * {
       visibility: visible !important;
@@ -4295,14 +4488,15 @@ if (tbodyD) {
       border-color: #000000 !important;
     }
 
-    /* 3. STRICT PAGE BREAK FOR EACH MONTH IN BATCH */
+    /* 3. STRICT PAGE BREAK & TOP ALIGNMENT FOR EACH MONTH IN BATCH */
     .roster-month-page {
       page-break-after: always !important;
       break-after: page !important;
       page-break-inside: avoid !important;
       break-inside: avoid !important;
       display: block !important;
-      margin-bottom: 20px !important;
+      margin: 0 !important;
+      padding-top: 0 !important;
     }
 
     .roster-month-page:last-child {
@@ -4312,7 +4506,7 @@ if (tbodyD) {
 
     @page {
       size: A4 landscape;
-      margin: 8mm;
+      margin: 6mm 8mm;
     }
   }
 </style>
