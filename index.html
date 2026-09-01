@@ -495,7 +495,7 @@
     <!-- NAVIGATION TABS -->
     <div class="bg-slate-800 rounded-xl shadow-sm mb-6 border border-slate-700 no-print">
       <div class="flex border-b border-slate-700 overflow-x-auto items-center">
-        <button onclick="switchTab('checkin')" id="tab-checkin" class="tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap">
+        " id="tab-checkin" class="tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-file-contract text-sky-400"></i>
           <span>1. Live CP3 Dashboard & Finalize</span>
         </button>
@@ -3810,7 +3810,7 @@ if (tbodyD) {
       navFlexContainer.insertBefore(btn, navFlexContainer.firstChild);
     }
 
-    // 2. RENUMBER EXISTING TAB 1 (CHECKIN) ON LOAD
+    // 2. RENUMBER EXISTING TAB 1 (CHECKIN) ON LOAD & STRIP ACTIVE CLASS
     const checkinBtn = document.getElementById('tab-checkin');
     if (checkinBtn) {
       checkinBtn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
@@ -3818,7 +3818,7 @@ if (tbodyD) {
       if (span) span.innerText = "2. Live CP3 Dashboard & Finalize";
     }
 
-    // 3. LISTEN ONLY TO MAIN NAVIGATION TABS TO HIDE ATTENDANCE VIEW (EXCLUDING ADMIN MENU DROPDOWN)
+    // 3. LISTEN ONLY TO MAIN NAVIGATION TABS TO HIDE ATTENDANCE VIEW
     const otherMainTabs = ['tab-checkin', 'tab-interventions', 'tab-di', 'tab-followup'];
     otherMainTabs.forEach(tabId => {
       const el = document.getElementById(tabId);
@@ -3915,13 +3915,13 @@ if (tbodyD) {
       `;
 
       if (checkinView) {
-        checkinView.classList.add('hidden');
         mainEl.insertBefore(viewDiv, checkinView);
       } else {
         mainEl.appendChild(viewDiv);
       }
 
-      setTimeout(renderPersonalCalendarModule, 200);
+      // Force Tab 1 Landing Isolation
+      setTimeout(openAttendanceTabModule, 100);
     }
 
     // 7. INJECT BATCH MULTI-MONTH ROSTER PRINT MODAL INTO BODY
