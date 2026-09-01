@@ -492,24 +492,24 @@
   <!-- MAIN CONTAINER -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
-    <!-- NAVIGATION TABS -->
+<!-- NAVIGATION TABS -->
     <div class="bg-slate-800 rounded-xl shadow-sm mb-6 border border-slate-700 no-print">
       <div class="flex border-b border-slate-700 overflow-x-auto items-center">
-        " id="tab-checkin" class="tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap">
+        <button onclick="switchTab('checkin')" id="tab-checkin" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-file-contract text-sky-400"></i>
-          <span>1. Live CP3 Dashboard & Finalize</span>
+          <span>2. Live CP3 Dashboard & Finalize</span>
         </button>
         <button onclick="switchTab('interventions')" id="tab-interventions" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-user-doctor"></i>
-          <span>2. Log Interventions (Sections B-E)</span>
+          <span>3. Log Interventions (Sections B-E)</span>
         </button>
         <button onclick="switchTab('di')" id="tab-di" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-circle-info text-sky-400"></i>
-          <span>3. Drug Info Enquiries</span>
+          <span>4. Drug Info Enquiries</span>
         </button>
         <button onclick="switchTab('followup')" id="tab-followup" class="py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap">
           <i class="fa-solid fa-list-check text-amber-400"></i>
-          <span>4. Follow-Up Required</span>
+          <span>5. Follow-Up Required</span>
         </button>
       </div>
     </div>
