@@ -3740,40 +3740,48 @@ function exportSummaryExcel() {
   const table = document.querySelector("#printable-pf63b table");
   if (!table) return;
 
+  // 1. Determine Year & Month for Filename Prefix (YYMM)
   const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
-  const fileName = `Laporan_PF_6.3b_${monthFilter}_${Date.now()}.xlsx`;
+  let yymm = "";
+  if (monthFilter !== "ALL") {
+    const yearShort = new Date().getFullYear().toString().slice(-2);
+    yymm = `${yearShort}${monthFilter}_`;
+  } else {
+    const now = new Date();
+    const yearShort = now.getFullYear().toString().slice(-2);
+    const monthShort = String(now.getMonth() + 1).padStart(2, '0');
+    yymm = `${yearShort}${monthShort}_`;
+  }
 
-  // 1. Convert DOM Table to SheetJS Worksheet (preserves merged cells & structure)
+  const fileName = `${yymm}PF6.3b_HD.xlsx`;
+
+  // 2. Convert DOM Table to SheetJS Worksheet
   const worksheet = XLSX.utils.table_to_sheet(table, { raw: false });
 
-  // 2. Create Workbook and append worksheet
+  // 3. Append Printed Date Row at the Top
+  const today = new Date();
+  const formattedDate = `${String(today.getDate()).padStart(2, '0')}/${String(today.getMonth() + 1).padStart(2, '0')}/${today.getFullYear()}`;
+  const printedDateText = `PRINTED DATE: ${formattedDate}`;
+
+  // Insert date at Cell A1 and shift table content down
+  XLSX.utils.sheet_add_aoa(worksheet, [[printedDateText]], { origin: "A1" });
+
+  // 4. Apply Bold and Red Formatting to the Printed Date Cell (A1)
+  if (worksheet["A1"]) {
+    worksheet["A1"].s = {
+      font: {
+        bold: true,
+        color: { rgb: "FF0000" } // Red Color Code
+      }
+    };
+  }
+
+  // 5. Build Workbook & Trigger Export
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan PF 6.3b");
 
-  // 3. Trigger native .xlsx file download
   XLSX.writeFile(workbook, fileName);
 }
-  </script>
-<!-- Paste Service Worker Script Right Before Closing </body> Tag -->
-      <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js', { scope: './' })
-        .then(reg => {
-          console.log('PWA Service Worker registered:', reg.scope);
-          // Auto-reload PWA when a new sw.js cache is detected
-          reg.onupdatefound = () => {
-            const worker = reg.installing;
-            worker.onstatechange = () => {
-              if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-                window.location.reload();
-              }
-            };
-          };
-        })
-        .catch(err => console.error('Service Worker registration failed:', err));
-    });
-  }
 </script>
 
 <!-- ========================================================= -->
