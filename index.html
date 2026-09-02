@@ -1425,9 +1425,9 @@
               </select>
             </div>
 
-            <button onclick="exportSummaryCSV()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow flex items-center space-x-1.5 mt-4">
+          <button onclick="exportSummaryExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow flex items-center space-x-1.5 mt-4">
               <i class="fa-solid fa-file-excel"></i>
-              <span>Export CSV</span>
+              <span>Export Excel</span>
             </button>
             <button onclick="window.print()" class="bg-rose-600 hover:bg-rose-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow flex items-center space-x-1.5 mt-4">
               <i class="fa-solid fa-print"></i>
@@ -3735,31 +3735,76 @@ if (tbodyD) {
       return names[numStr] || "OGOS";
     }
 
-    function exportSummaryCSV() {
-      const table = document.querySelector("#printable-pf63b table");
-      if (!table) return;
+function exportSummaryExcel() {
+  const table = document.querySelector("#printable-pf63b table");
+  if (!table) return;
 
-      let csv = [];
-      const rows = table.querySelectorAll("tr");
+  const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
+  const fileName = `Laporan_PF_6.3b_${monthFilter}_${Date.now()}.xls`;
 
-      for (let i = 0; i < rows.length; i++) {
-        let row = [], cols = rows[i].querySelectorAll("td, th");
-        for (let j = 0; j < cols.length; j++) {
-          let text = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, " ").replace(/"/g, '""');
-          row.push('"' + text + '"');
-        }
-        csv.push(row.join(","));
-      }
+  // Clone the table element to add explicit Excel inline styles without altering the UI
+  const tableClone = table.cloneNode(true);
 
-      const csvString = csv.join("\n");
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
-      downloadAnchor.target = '_blank';
-      downloadAnchor.download = `Laporan_PF_6.3b_${Date.now()}.csv`;
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
+  // Styling category sections in Excel
+  const styleHeader = (selector, bgHex, textHex) => {
+    tableClone.querySelectorAll(selector).forEach(el => {
+      el.style.backgroundColor = bgHex;
+      el.style.color = textHex;
+      el.style.fontWeight = 'bold';
+    });
+  };
+
+  // Inject Excel-compatible inline styles
+  styleHeader('.bg-purple-950\\/80', '#3b0764', '#f3e8ff'); // Preskripsi Tidak Lengkap (Purple)
+  styleHeader('.bg-sky-950\\/80', '#082f49', '#e0f2fe');    // Regimen Tidak Sesuai (Sky Blue)
+  styleHeader('.bg-emerald-950\\/80', '#022c22', '#d1fae5'); // Lain-lain (Emerald Green)
+  styleHeader('.bg-amber-950', '#451a03', '#fef3c7');       // Total Columns (Amber)
+
+  const template = `
+    <html xmlns:o="urn:schemas-microsoft-microsoft-com:office:office" 
+          xmlns:x="urn:schemas-microsoft-microsoft-com:office:excel" 
+          xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+      <meta charset="UTF-8">
+      <!--[if gte mso 9]>
+      <xml>
+        <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+              <x:Name>Laporan PF 6.3b</x:Name>
+              <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml>
+      <![endif]-->
+      <style>
+        table { border-collapse: collapse; width: 100%; font-family: Calibri, Arial, sans-serif; }
+        th, td { border: 0.5pt solid #000000; text-align: center; font-size: 9pt; padding: 4px; }
+        tr.bg-slate-950, tr.bg-slate-900 { background-color: #0f172a; color: #ffffff; }
+      </style>
+    </head>
+    <body>
+      <h3 style="font-family: Calibri, sans-serif;">PF 6.3(b): AKTIVITI INTERVENSI PRESKRIPSI PESAKIT DALAM - CP3</h3>
+      <p style="font-family: Calibri, sans-serif;"><b>NEGERI / HKL / INSTITUSI:</b> TERENGGANU | <b>TAHUN:</b> 2026</p>
+      ${tableClone.outerHTML}
+    </body>
+    </html>
+  `;
+
+  const blob = new Blob([template], { type: 'application/vnd.ms-excel;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const downloadAnchor = document.createElement('a');
+  
+  downloadAnchor.href = url;
+  downloadAnchor.download = fileName;
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  document.body.removeChild(downloadAnchor);
+  URL.revokeObjectURL(url);
+}
   </script>
 <!-- Paste Service Worker Script Right Before Closing </body> Tag -->
       <script>
