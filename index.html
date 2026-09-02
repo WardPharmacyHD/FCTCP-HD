@@ -6,6 +6,7 @@
   <title>WARD PHARMACY PORTAL HD - Borang CP3 Pin 2/24</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
   body { font-family: 'Inter', sans-serif; }
@@ -3740,70 +3741,17 @@ function exportSummaryExcel() {
   if (!table) return;
 
   const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
-  const fileName = `Laporan_PF_6.3b_${monthFilter}_${Date.now()}.xls`;
+  const fileName = `Laporan_PF_6.3b_${monthFilter}_${Date.now()}.xlsx`;
 
-  // Clone the table element to add explicit Excel inline styles without altering the UI
-  const tableClone = table.cloneNode(true);
+  // 1. Convert DOM Table to SheetJS Worksheet (preserves merged cells & structure)
+  const worksheet = XLSX.utils.table_to_sheet(table, { raw: false });
 
-  // Styling category sections in Excel
-  const styleHeader = (selector, bgHex, textHex) => {
-    tableClone.querySelectorAll(selector).forEach(el => {
-      el.style.backgroundColor = bgHex;
-      el.style.color = textHex;
-      el.style.fontWeight = 'bold';
-    });
-  };
+  // 2. Create Workbook and append worksheet
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan PF 6.3b");
 
-  // Inject Excel-compatible inline styles
-  styleHeader('.bg-purple-950\\/80', '#3b0764', '#f3e8ff'); // Preskripsi Tidak Lengkap (Purple)
-  styleHeader('.bg-sky-950\\/80', '#082f49', '#e0f2fe');    // Regimen Tidak Sesuai (Sky Blue)
-  styleHeader('.bg-emerald-950\\/80', '#022c22', '#d1fae5'); // Lain-lain (Emerald Green)
-  styleHeader('.bg-amber-950', '#451a03', '#fef3c7');       // Total Columns (Amber)
-
-  const template = `
-    <html xmlns:o="urn:schemas-microsoft-microsoft-com:office:office" 
-          xmlns:x="urn:schemas-microsoft-microsoft-com:office:excel" 
-          xmlns="http://www.w3.org/TR/REC-html40">
-    <head>
-      <meta charset="UTF-8">
-      <!--[if gte mso 9]>
-      <xml>
-        <x:ExcelWorkbook>
-          <x:ExcelWorksheets>
-            <x:ExcelWorksheet>
-              <x:Name>Laporan PF 6.3b</x:Name>
-              <x:WorksheetOptions>
-                <x:DisplayGridlines/>
-              </x:WorksheetOptions>
-            </x:ExcelWorksheet>
-          </x:ExcelWorksheets>
-        </x:ExcelWorkbook>
-      </xml>
-      <![endif]-->
-      <style>
-        table { border-collapse: collapse; width: 100%; font-family: Calibri, Arial, sans-serif; }
-        th, td { border: 0.5pt solid #000000; text-align: center; font-size: 9pt; padding: 4px; }
-        tr.bg-slate-950, tr.bg-slate-900 { background-color: #0f172a; color: #ffffff; }
-      </style>
-    </head>
-    <body>
-      <h3 style="font-family: Calibri, sans-serif;">PF 6.3(b): AKTIVITI INTERVENSI PRESKRIPSI PESAKIT DALAM - CP3</h3>
-      <p style="font-family: Calibri, sans-serif;"><b>NEGERI / HKL / INSTITUSI:</b> TERENGGANU | <b>TAHUN:</b> 2026</p>
-      ${tableClone.outerHTML}
-    </body>
-    </html>
-  `;
-
-  const blob = new Blob([template], { type: 'application/vnd.ms-excel;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const downloadAnchor = document.createElement('a');
-  
-  downloadAnchor.href = url;
-  downloadAnchor.download = fileName;
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  document.body.removeChild(downloadAnchor);
-  URL.revokeObjectURL(url);
+  // 3. Trigger native .xlsx file download
+  XLSX.writeFile(workbook, fileName);
 }
   </script>
 <!-- Paste Service Worker Script Right Before Closing </body> Tag -->
