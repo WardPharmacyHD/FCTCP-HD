@@ -4202,71 +4202,79 @@ function exportSummaryExcel() {
     }
   }
 
-  function autoMarkPresentOnInterventionModule() {
-    if (!currentUser || !currentUser.name) return;
-    const rawShiftDate = document.getElementById('global-shift-date')?.value;
-    const targetDate = rawShiftDate ? normalizeToISO(rawShiftDate).split('T')[0] : new Date().toISOString().split('T')[0];
+ function autoMarkPresentOnInterventionModule() {
+  if (!currentUser || !currentUser.name) return;
 
-    const existing = attendanceData.find(a => 
-      a.date === targetDate && 
-      String(a.user_name).toUpperCase() === String(currentUser.name).toUpperCase()
-    );
+  const rawShiftDate = document.getElementById('global-shift-date')?.value;
+  const targetDate = rawShiftDate 
+    ? normalizeToISO(rawShiftDate).split('T')[0] 
+    : new Date().toISOString().split('T')[0];
 
-    if (!existing || !existing.status) {
-      saveAttendanceStatusModule(targetDate, currentUser.name, "P");
-    }
+  const currentUserName = String(currentUser.name).trim().toUpperCase();
+
+  const existing = attendanceData.find(a => 
+    a.date === targetDate && 
+    String(a.user_name || '').trim().toUpperCase() === currentUserName
+  );
+
+  if (!existing || !existing.status || existing.status === "") {
+    saveAttendanceStatusModule(targetDate, currentUser.name, "P");
+  }
+}
+
+async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
+  const monthVal = dateStr.substring(0, 7);
+  const cleanUserName = String(targetUserName).trim();
+  const userKey = cleanUserName.replace(/[^a-zA-Z0-9]/g, '_');
+  const lockKey = `${monthVal}_${userKey}`;
+
+  if (rosterLocksData[lockKey] === true) {
+    console.warn("Cannot edit attendance: Roster data for this month is locked.");
+    renderPersonalCalendarModule();
+    return;
   }
 
-  function manualMarkTodayPresentModule() {
-    if (!currentUser || !currentUser.name) return;
-    const rawShiftDate = document.getElementById('global-shift-date')?.value;
-    const todayStr = rawShiftDate ? normalizeToISO(rawShiftDate).split('T')[0] : new Date().toISOString().split('T')[0];
-    saveAttendanceStatusModule(todayStr, currentUser.name, "P");
+  const payload = {
+    id: `att-${dateStr}-${userKey}`,
+    date: dateStr,
+    ward: document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE"),
+    user_name: cleanUserName,
+    status: status
+  };
+
+  const existingIdx = attendanceData.findIndex(a => 
+    a.date === dateStr && 
+    String(a.user_name || '').trim().toUpperCase() === cleanUserName.toUpperCase()
+  );
+
+  if (existingIdx !== -1) {
+    attendanceData[existingIdx] = payload;
+  } else {
+    attendanceData.push(payload);
   }
+  localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
 
-  async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
-    const monthVal = dateStr.substring(0, 7);
-    const lockKey = `${monthVal}_${targetUserName.replace(/[^a-zA-Z0-9]/g, '_')}`;
-    if (rosterLocksData[lockKey] === true) {
-      alert("Cannot edit attendance: Roster data for this month is locked.");
-      renderPersonalCalendarModule();
-      return;
-    }
+  // Instantly re-render the attendance calendar grid
+  renderPersonalCalendarModule();
 
-    const payload = {
-      id: `att-${dateStr}-${targetUserName.replace(/[^a-zA-Z0-9]/g, '_')}`,
-      date: dateStr,
-      ward: document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE"),
-      user_name: targetUserName,
-      status: status
-    };
+  const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) 
+    ? sheetDbApiUrl 
+    : (typeof defaultSheetDbUrl !== 'undefined' ? defaultSheetDbUrl : "");
 
-    const existingIdx = attendanceData.findIndex(a => a.id === payload.id);
-    if (existingIdx !== -1) {
-      attendanceData[existingIdx] = payload;
-    } else {
-      attendanceData.push(payload);
-    }
-    localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
+  if (activeUrl) {
+    try {
+      const targetUrl = activeUrl.includes('?') 
+        ? `${activeUrl}&sheet=Attendance` 
+        : `${activeUrl}?sheet=Attendance`;
 
-    // Force Auto-Re-Render immediately if attendance view is active
-    const attView = document.getElementById('view-attendance');
-    if (attView && !attView.classList.contains('hidden')) {
-      renderPersonalCalendarModule();
-    }
-
-    const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) ? sheetDbApiUrl : (typeof defaultSheetDbUrl !== 'undefined' ? defaultSheetDbUrl : "");
-    if (activeUrl) {
-      try {
-        const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
-        fetch(targetUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ data: [payload] })
-        }).catch(err => console.warn('Offline attendance update saved locally.'));
-      } catch (err) {}
-    }
+      fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ data: [payload] })
+      }).catch(err => console.warn('Offline attendance update saved locally.'));
+    } catch (err) {}
   }
+}
 
   // =========================================================
   // EXCEL CSV EXPORTER LOGIC (ROSTER & CP3 BATCH)
