@@ -431,17 +431,17 @@
     <!-- USER INFO, ACTIVE SHIFT DATE & ACCOUNT SETTINGS -->
     <div class="flex items-center space-x-2 sm:space-x-4 text-sm ms-auto sm:ms-0">
       
-      <!-- SHIFT DATE BOX -->
-      <div class="flex items-center space-x-2 bg-rose-950/90 border-2 border-rose-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg shadow-rose-950/50">
-        <i class="fa-regular fa-calendar-check text-rose-400 text-xs sm:text-sm animate-pulse"></i>
-        <div class="flex flex-col">
-          <span class="text-[9px] font-bold text-rose-300 uppercase tracking-wider leading-none">Shift Date:</span>
-          <div class="flex items-center space-x-1 mt-0.5">
-            <span id="global-shift-date-display" class="text-rose-100 font-mono font-black text-xs sm:text-sm">05/08/2026</span>
-            <input type="date" id="global-shift-date" value="2026-08-05" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-rose-300 w-4 text-xs font-black focus:outline-none cursor-pointer [color-scheme:dark]">
-          </div>
-        </div>
-      </div>
+<!-- SHIFT DATE BOX -->
+<div class="flex items-center space-x-2 bg-rose-950/90 border-2 border-rose-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl shadow-lg shadow-rose-950/50">
+  <i class="fa-regular fa-calendar-check text-rose-400 text-xs sm:text-sm animate-pulse"></i>
+  <div class="flex flex-col">
+    <span class="text-[9px] font-bold text-rose-300 uppercase tracking-wider leading-none">Shift Date:</span>
+    <div class="flex items-center space-x-1 mt-0.5">
+      <span id="global-shift-date-display" class="text-rose-100 font-mono font-black text-xs sm:text-sm">--/--/----</span>
+      <input type="date" id="global-shift-date" value="" onclick="try{this.showPicker()}catch(e){}" onchange="syncShiftDate()" class="bg-transparent text-rose-300 w-4 text-xs font-black focus:outline-none cursor-pointer [color-scheme:dark]">
+    </div>
+  </div>
+</div>
       
       <!-- USER AVATAR & ACCOUNT DETAILS -->
       <div class="flex items-center space-x-2 sm:space-x-3 border-l border-slate-800 pl-2 sm:pl-3">
