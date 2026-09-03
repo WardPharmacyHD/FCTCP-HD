@@ -4187,10 +4187,14 @@ function exportSummaryExcel() {
         select.appendChild(o);
       });
 
-      select.onchange = (e) => {
-        e.stopPropagation();
-        saveAttendanceStatusModule(dateStr, activeUser, e.target.value);
+     const handleSelectChange = (e) => {
+      e.stopPropagation();
+      const val = e.target.value;
+      saveAttendanceStatusModule(dateStr, activeUser, val);
       };
+
+      select.onchange = handleSelectChange;
+      select.oninput = handleSelectChange;
 
       cell.appendChild(dateHeaderContainer);
       cell.appendChild(select);
@@ -4548,6 +4552,36 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
       currentDate.setMonth(currentDate.getMonth() + 1);
     }
   }
+  
+  // PWA SERVICE WORKER AUTO-UPDATE & CONTROLLER CHANGE
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
+        .then(reg => {
+          reg.update(); // Force immediate update check on mobile
+          reg.onupdatefound = () => {
+            const worker = reg.installing;
+            if (worker) {
+              worker.onstatechange = () => {
+                if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                  window.location.reload();
+                }
+              };
+            }
+          };
+        })
+        .catch(err => console.error('Service Worker registration failed:', err));
+    });
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+  }
+  
 </script>
 
 <!-- STYLES FOR LANDSCAPE A4 PDF PRINTING OF BATCH ROSTER MATRIX -->
