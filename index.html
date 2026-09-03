@@ -1564,20 +1564,36 @@
     let followUpData = safeJsonParse('cp3_followup_db', []);
 
     // PORTAL INITIALIZER
-    function initPortal() {
-      populateUserLoginDropdown();
-      renderUserDirectoryTable();
-      checkStoredAuthSession();
-      updateApiStatusDisplay();
-      loadActiveShiftSnapshot();
-      loadLastPatientData();
-      syncShiftDate();
-      setupPatientAutofill();
-      renderInterventions();
-      renderDiLogs();
-      renderFollowUpLogs();
-      fetchCloudData();
+   function initPortal() {
+  // Restore saved shift date or fallback to Today's date
+  const savedDate = localStorage.getItem('cp3_active_shift_date');
+  const shiftDateInput = document.getElementById('global-shift-date');
+
+  if (shiftDateInput) {
+    if (savedDate) {
+      shiftDateInput.value = savedDate;
+    } else {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = String(today.getMonth() + 1).padStart(2, '0');
+      const d = String(today.getDate()).padStart(2, '0');
+      shiftDateInput.value = `${y}-${m}-${d}`;
     }
+  }
+
+  populateUserLoginDropdown();
+  renderUserDirectoryTable();
+  checkStoredAuthSession();
+  updateApiStatusDisplay();
+  loadActiveShiftSnapshot();
+  loadLastPatientData();
+  syncShiftDate();
+  setupPatientAutofill();
+  renderInterventions();
+  renderDiLogs();
+  renderFollowUpLogs();
+  fetchCloudData();
+}
 
     if (document.readyState === 'loading') {
       window.addEventListener('DOMContentLoaded', initPortal);
@@ -2541,23 +2557,28 @@
     }
   }
 }
-    function syncShiftDate() {
-      const rawDate = document.getElementById('global-shift-date').value;
-      const formatted = formatDateDDMMYYYY(rawDate);
-      
-      const mainDisplay = document.getElementById('global-shift-date-display');
-      const fuDateInput = document.getElementById('followup-date-display');
-      
-      if (mainDisplay) mainDisplay.innerText = formatted;
-      if (fuDateInput) fuDateInput.value = formatDateShortMonth(rawDate);
 
-      loadActiveShiftSnapshot();
-      renderInterventions();
-      renderDiLogs();
-      renderFollowUpLogs();
-      updatePdfReport();
-      renderPfSummaryReport();
-    }
+  function syncShiftDate() {
+  const rawDate = document.getElementById('global-shift-date').value;
+  if (!rawDate) return;
+
+  // Save selected shift date after rawDate is fetched
+  localStorage.setItem('cp3_active_shift_date', rawDate);
+
+  const formatted = formatDateDDMMYYYY(rawDate);
+  const mainDisplay = document.getElementById('global-shift-date-display');
+  const fuDateInput = document.getElementById('followup-date-display');
+
+  if (mainDisplay) mainDisplay.innerText = formatted;
+  if (fuDateInput) fuDateInput.value = formatDateShortMonth(rawDate);
+
+  loadActiveShiftSnapshot();
+  renderInterventions();
+  renderDiLogs();
+  renderFollowUpLogs();
+  updatePdfReport();
+  renderPfSummaryReport();
+}
 
     function updateCounter(id, delta) {
       const el = document.getElementById(id);
