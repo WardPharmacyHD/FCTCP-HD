@@ -4235,16 +4235,8 @@ function exportSummaryExcel() {
     ? normalizeToISO(rawShiftDate).split('T')[0] 
     : new Date().toISOString().split('T')[0];
 
-  const currentUserName = String(currentUser.name).trim().toUpperCase();
-
-  const existing = attendanceData.find(a => 
-    a.date === targetDate && 
-    String(a.user_name || '').trim().toUpperCase() === currentUserName
-  );
-
-  if (!existing || !existing.status || existing.status === "") {
-    saveAttendanceStatusModule(targetDate, currentUser.name, "P");
-  }
+  // Unconditionally mark status as Present "P" for the logging user
+  saveAttendanceStatusModule(targetDate, currentUser.name, "P");
 }
 
 async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
