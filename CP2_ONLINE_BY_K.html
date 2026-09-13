@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PHARMACOTHERAPY REVIEW (CP2)</title>
+<!-- html2pdf Library for Custom PDF Naming -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
     :root {
         --bg-body: #1e293b;
@@ -47,14 +49,14 @@
         color: var(--text-color);
         border: 1px solid var(--border-color);
         border-bottom: none;
-        padding: 6px 14px;
+        padding: 6px 12px;
         border-radius: 4px 4px 0 0;
         cursor: pointer;
         font-weight: bold;
         font-size: 11px;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
         white-space: nowrap;
     }
     .tab-btn.active {
@@ -62,10 +64,19 @@
         color: #fff;
         border-top: 2px solid #38bdf8;
     }
-    .tab-close {
-        color: #ef4444;
+    .tab-delete-btn {
+        background-color: #ef4444;
+        color: #ffffff;
+        font-size: 9px;
         font-weight: bold;
+        padding: 2px 5px;
+        border-radius: 3px;
         cursor: pointer;
+        border: none;
+        letter-spacing: 0.5px;
+    }
+    .tab-delete-btn:hover {
+        background-color: #dc2626;
     }
     .add-tab-btn {
         background: #22c55e;
@@ -121,7 +132,7 @@
         font-size: 10px;
     }
     
-    input[type="text"], input[type="date"], select, textarea { 
+    input[type="text"], select, textarea { 
         width: 100%; 
         border: none; 
         font-family: inherit; 
@@ -138,16 +149,11 @@
         font-weight: bold;
     }
     
-    /* Auto-expanding textarea styling */
     textarea { 
         resize: none; 
         display: block;
         overflow: hidden;
         min-height: 18px;
-    }
-
-    input[type="date"]::-webkit-calendar-picker-indicator {
-        filter: invert(1);
     }
 
     .center { text-align: center; }
@@ -160,7 +166,7 @@
 
     @media screen and (max-width: 768px) {
         body { padding: 6px; }
-        input[type="text"], input[type="date"], select, textarea { font-size: 12px; }
+        input[type="text"], select, textarea { font-size: 12px; }
         .tab-btn { padding: 8px 10px; font-size: 12px; }
     }
 
@@ -195,26 +201,37 @@
             border-color: #000 !important;
             -webkit-print-color-adjust: exact; 
         }
-        input[type="text"], input[type="date"], select, textarea { 
+        input[type="text"], select, textarea { 
             color: #000 !important;
             font-size: 9.5px;
         }
         select option { color: #000 !important; background: #fff !important; }
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: none; }
     }
 </style>
 </head>
 <body>
 
+<datalist id="sample-sources">
+    <option value="Blood">
+    <option value="Urine">
+    <option value="Sputum">
+    <option value="ETT">
+    <option value="Blood - Catheter">
+    <option value="Stool">
+    <option value="CSF">
+    <option value="Others">
+</datalist>
+
 <div class="form-container">
-    <div class="no-print" style="margin-bottom: 10px; text-align: right;">
+    <div class="no-print" style="margin-bottom: 10px; text-align: right; display: flex; gap: 8px; justify-content: flex-end;">
+        <button onclick="downloadCustomPDF()" style="background: #0284c7; color: white; border: none; padding: 7px 14px; cursor: pointer; border-radius: 4px; font-weight: bold;">Save as PDF (Custom Name)</button>
         <button onclick="window.print()" style="background: var(--secondary-accent); color: white; border: 1px solid var(--border-color); padding: 7px 14px; cursor: pointer; border-radius: 4px; font-weight: bold;">Print Active Form</button>
     </div>
 
     <div class="tab-bar no-print" id="tabBar">
         <button class="tab-btn active" onclick="switchTab(1)" id="tab-btn-1">
             <span id="tab-title-1">Patient 1</span>
-            <span class="tab-close" onclick="removeTab(event, 1)">×</span>
+            <button class="tab-delete-btn" onclick="removeTab(event, 1)">DELETE</button>
         </button>
         <button class="add-tab-btn" onclick="addNewTab()">+ New Patient</button>
     </div>
@@ -223,10 +240,10 @@
         <!-- Patient Tab 1 -->
         <div class="patient-tab-content active" id="tab-content-1">
             
-            <!-- PAGE 1 (Includes A, B, and C) -->
+            <!-- PAGE 1 -->
             <div>
                 <h3>PHARMACOTHERAPY REVIEW (CP2)</h3>
-                <p class="center">Pharmacy Department, Hospital ____________________</p>
+                <p class="center">Pharmacy Department, Hospital Dungun</p>
 
                 <!-- SECTION A -->
                 <div class="section-header">A. DEMOGRAPHIC DATA</div>
@@ -234,10 +251,10 @@
                     <tr>
                         <td colspan="2" style="width: 70%;">
                             <b>Name & RN / IC:</b> 
-                            <textarea rows="1" oninput="updateTabName(1, this.value); autoGrow(this);"></textarea>
+                            <textarea rows="1" id="name-ic-1" oninput="updateTabName(1, this.value); autoDetectMyKad(1, this.value); autoGrow(this);" placeholder="Paste / enter Name & IC..."></textarea>
                         </td>
                         <td style="width: 15%;"><b>Bed:</b> <input type="text"></td>
-                        <td style="width: 15%;"><b>Ward:</b> <input type="text"></td>
+                        <td style="width: 15%;"><b>Ward:</b> <input type="text" id="ward-1"></td>
                     </tr>
                     <tr>
                         <td rowspan="2" style="width: 40%;">
@@ -247,9 +264,9 @@
                             <label><input type="checkbox"> NKFA</label> 
                             Symptom(s): <input type="text" style="width: 55%;">
                         </td>
-                        <td style="width: 30%;"><b>Age:</b> <input type="text"></td>
+                        <td style="width: 30%;"><b>Age:</b> <input type="text" id="age-1" placeholder="Auto / free text"></td>
                         <td><b>Gender:</b> 
-                            <select><option></option><option>M</option><option>F</option></select>
+                            <select id="gender-1"><option></option><option value="M">M</option><option value="F">F</option></select>
                         </td>
                         <td><b>Race:</b> <input type="text" placeholder="M/C/I/Others"></td>
                     </tr>
@@ -259,8 +276,8 @@
                         <td><b>STORIMAP:</b> <input type="text"></td>
                     </tr>
                     <tr>
-                        <td colspan="2"><b>DOA:</b> <input type="date"></td>
-                        <td colspan="2"><b>DOD:</b> <input type="date"></td>
+                        <td colspan="2"><b>DOA:</b> <input type="text" placeholder="DD/MM/YYYY"></td>
+                        <td colspan="2"><b>DOD:</b> <input type="text" placeholder="DD/MM/YYYY"></td>
                     </tr>
                     <tr>
                         <td colspan="4"><b>Chief Complaint:</b> <textarea rows="1" oninput="autoGrow(this)"></textarea></td>
@@ -301,27 +318,26 @@
                     </tr>
                 </table>
 
-                <!-- SECTION C (Moved to Page 1, 6 rows total, Source dropdown menu) -->
+                <!-- SECTION C -->
                 <div class="section-header">C. MICROBIOLOGY / RADIOLOGY FINDINGS</div>
                 <table class="section-table">
                     <thead>
                         <tr>
                             <th style="width: 12%;">Date (Samp)</th>
                             <th style="width: 12%;">Date (Res)</th>
-                            <th style="width: 20%;">Source / Sample</th>
-                            <th style="width: 20%;">Microorganism</th>
+                            <th style="width: 22%;">Source / Sample</th>
+                            <th style="width: 18%;">Microorganism</th>
                             <th style="width: 18%;">Sensitivity</th>
                             <th style="width: 18%;">Resistance</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- 6 Rows -->
-                        <tr><td><input type="date"></td><td><input type="date"></td><td><select><option></option><option>Blood</option><option>Urine</option><option>Sputum</option><option>ETT</option><option>Blood - Catheter</option><option>Stool</option><option>CSF</option></select></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                        <tr><td><input type="date"></td><td><input type="date"></td><td><select><option></option><option>Blood</option><option>Urine</option><option>Sputum</option><option>ETT</option><option>Blood - Catheter</option><option>Stool</option><option>CSF</option></select></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                        <tr><td><input type="date"></td><td><input type="date"></td><td><select><option></option><option>Blood</option><option>Urine</option><option>Sputum</option><option>ETT</option><option>Blood - Catheter</option><option>Stool</option><option>CSF</option></select></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                        <tr><td><input type="date"></td><td><input type="date"></td><td><select><option></option><option>Blood</option><option>Urine</option><option>Sputum</option><option>ETT</option><option>Blood - Catheter</option><option>Stool</option><option>CSF</option></select></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                        <tr><td><input type="date"></td><td><input type="date"></td><td><select><option></option><option>Blood</option><option>Urine</option><option>Sputum</option><option>ETT</option><option>Blood - Catheter</option><option>Stool</option><option>CSF</option></select></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                        <tr><td><input type="date"></td><td><input type="date"></td><td><select><option></option><option>Blood</option><option>Urine</option><option>Sputum</option><option>ETT</option><option>Blood - Catheter</option><option>Stool</option><option>CSF</option></select></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" list="sample-sources" placeholder="Select or type custom..."></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" list="sample-sources" placeholder="Select or type custom..."></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" list="sample-sources" placeholder="Select or type custom..."></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" list="sample-sources" placeholder="Select or type custom..."></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" list="sample-sources" placeholder="Select or type custom..."></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text" list="sample-sources" placeholder="Select or type custom..."></td><td><input type="text"></td><td><input type="text"></td><td><input type="text"></td></tr>
                     </tbody>
                 </table>
 
@@ -334,15 +350,15 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td><input type="date"></td><td><input type="text"></td><td><input type="text"></td></tr>
-                        <tr><td><input type="date"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text"></td><td><input type="text"></td></tr>
+                        <tr><td><input type="text" placeholder="DD/MM/YYYY"></td><td><input type="text"></td><td><input type="text"></td></tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- PAGE 2 (Part D & E) -->
+            <!-- PAGE 2 -->
             <div class="page-break">
-                <!-- SECTION D: 12 Rows Total -->
+                <!-- SECTION D -->
                 <div class="section-header" style="margin-top: 0;">D. WARD MEDICATION</div>
                 <table class="section-table">
                     <thead>
@@ -355,30 +371,28 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Master Row -->
                         <tr>
                             <td><textarea rows="1" oninput="autoGrow(this)"></textarea></td>
-                            <td><input type="date" id="start-master-1" onchange="autoCopyDates(1, 'start-master-1', 'start-date-col-1')"></td>
-                            <td><input type="date" id="stop-master-1" onchange="autoCopyDates(1, 'stop-master-1', 'stop-date-col-1')"></td>
+                            <td><input type="text" placeholder="DD/MM/YYYY" id="start-master-1" onchange="autoCopyDates(1, 'start-master-1', 'start-date-col-1')" onkeyup="autoCopyDates(1, 'start-master-1', 'start-date-col-1')"></td>
+                            <td><input type="text" placeholder="DD/MM/YYYY" id="stop-master-1" onchange="autoCopyDates(1, 'stop-master-1', 'stop-date-col-1')" onkeyup="autoCopyDates(1, 'stop-master-1', 'stop-date-col-1')"></td>
                             <td><textarea rows="1" oninput="autoGrow(this)"></textarea></td>
                             <td><textarea rows="1" oninput="autoGrow(this)"></textarea></td>
                         </tr>
-                        <!-- 11 Sub Rows -->
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
-                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="date" class="start-date-col-1"></td><td><input type="date" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
+                        <tr><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><input type="text" placeholder="DD/MM/YYYY" class="start-date-col-1"></td><td><input type="text" placeholder="DD/MM/YYYY" class="stop-date-col-1"></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td><td><textarea rows="1" oninput="autoGrow(this)"></textarea></td></tr>
                     </tbody>
                 </table>
 
-                <!-- SECTION E: Date is Free Text Input -->
+                <!-- SECTION E -->
                 <div class="section-header">E. PHARMACEUTICAL CARE PLAN</div>
                 <table class="section-table">
                     <thead>
@@ -391,7 +405,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><textarea rows="6" oninput="autoGrow(this)" placeholder="e.g. 12/05/2026"></textarea></td>
+                            <td><textarea rows="6" oninput="autoGrow(this)" placeholder="DD/MM/YYYY"></textarea></td>
                             <td><textarea rows="6" oninput="autoGrow(this)" placeholder="Describe issues..."></textarea></td>
                             <td><textarea rows="6" oninput="autoGrow(this)" placeholder="Describe plan..."></textarea></td>
                             <td><textarea rows="6" oninput="autoGrow(this)" placeholder="Record outcomes..."></textarea></td>
@@ -402,7 +416,7 @@
                 <br style="margin-bottom: 5px;">
                 <table class="header-table">
                     <tr>
-                        <td style="width: 50%;"><b>Pharmacist's Sign & Stamp:</b><br><br><br></td>
+                        <td style="width: 50%;"><b>Pharmacist's Sign & Stamp:</b><br><textarea rows="1" id="pharmacist-1" placeholder="Pharmacist Name..."></textarea></td>
                         <td style="width: 50%;"><b>Reviewed by:</b><br><br><br></td>
                     </tr>
                 </table>
@@ -413,8 +427,8 @@
 
 <script>
     let tabCount = 1;
+    let activeTabId = 1;
 
-    // Auto-expand text areas to grow taller when typed in
     function autoGrow(element) {
         element.style.height = "auto";
         element.style.height = (element.scrollHeight) + "px";
@@ -431,6 +445,39 @@
         });
     }
 
+    function autoDetectMyKad(tabId, text) {
+        const match = text.match(/\b(\d{2})(\d{2})(\d{2})-?\d{2}-?\d{3}(\d)\b/);
+        if (match) {
+            const yy = parseInt(match[1], 10);
+            const mm = parseInt(match[2], 10) - 1;
+            const dd = parseInt(match[3], 10);
+            const genderDigit = parseInt(match[4], 10);
+
+            const currentYear = new Date().getFullYear();
+            const fullYear = (yy > (currentYear % 100)) ? (1900 + yy) : (2000 + yy);
+            
+            const birthDate = new Date(fullYear, mm, dd);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (!isNaN(age) && age >= 0 && age < 120) {
+                document.getElementById(`age-${tabId}`).value = age + " yrs";
+            }
+
+            const genderSelect = document.getElementById(`gender-${tabId}`);
+            if (genderDigit % 2 !== 0) {
+                genderSelect.value = "M";
+            } else {
+                genderSelect.value = "F";
+            }
+        }
+    }
+
     function updateTabName(tabId, text) {
         const titleSpan = document.getElementById(`tab-title-${tabId}`);
         const firstLine = text.trim().split('\n')[0];
@@ -438,6 +485,7 @@
     }
 
     function switchTab(tabId) {
+        activeTabId = tabId;
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.querySelectorAll('.patient-tab-content').forEach(content => content.classList.remove('active'));
         
@@ -454,7 +502,7 @@
         newBtn.id = `tab-btn-${newTabId}`;
         newBtn.onclick = () => switchTab(newTabId);
         newBtn.innerHTML = `<span id="tab-title-${newTabId}">Patient ${newTabId}</span>
-            <span class="tab-close" onclick="removeTab(event, ${newTabId})">×</span>`;
+            <button class="tab-delete-btn" onclick="removeTab(event, ${newTabId})">DELETE</button>`;
 
         const addBtn = document.querySelector('.add-tab-btn');
         document.getElementById('tabBar').insertBefore(newBtn, addBtn);
@@ -471,21 +519,33 @@
         newContent.querySelectorAll('textarea').forEach(t => t.value = '');
         newContent.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
 
+        newContent.querySelector('#name-ic-1').id = `name-ic-${newTabId}`;
+        newContent.querySelector('#ward-1').id = `ward-${newTabId}`;
+        newContent.querySelector('#age-1').id = `age-${newTabId}`;
+        newContent.querySelector('#gender-1').id = `gender-${newTabId}`;
+        newContent.querySelector('#pharmacist-1').id = `pharmacist-${newTabId}`;
+
         const startMaster = newContent.querySelector('#start-master-1');
         const stopMaster = newContent.querySelector('#stop-master-1');
         
         startMaster.id = `start-master-${newTabId}`;
         stopMaster.id = `stop-master-${newTabId}`;
         
-        startMaster.onchange = () => autoCopyDates(newTabId, `start-master-${newTabId}`, `start-date-col-${newTabId}`);
-        stopMaster.onchange = () => autoCopyDates(newTabId, `stop-master-${newTabId}`, `stop-date-col-${newTabId}`);
+        const autoCopyStartHandler = () => autoCopyDates(newTabId, `start-master-${newTabId}`, `start-date-col-${newTabId}`);
+        const autoCopyStopHandler = () => autoCopyDates(newTabId, `stop-master-${newTabId}`, `stop-date-col-${newTabId}`);
+
+        startMaster.onchange = autoCopyStartHandler;
+        startMaster.onkeyup = autoCopyStartHandler;
+        stopMaster.onchange = autoCopyStopHandler;
+        stopMaster.onkeyup = autoCopyStopHandler;
 
         newContent.querySelectorAll('.start-date-col-1').forEach(el => el.className = `start-date-col-${newTabId}`);
         newContent.querySelectorAll('.stop-date-col-1').forEach(el => el.className = `stop-date-col-${newTabId}`);
 
-        const nameTextarea = newContent.querySelector('textarea');
+        const nameTextarea = newContent.querySelector(`#name-ic-${newTabId}`);
         nameTextarea.oninput = function() { 
             updateTabName(newTabId, this.value); 
+            autoDetectMyKad(newTabId, this.value);
             autoGrow(this);
         };
 
@@ -506,6 +566,37 @@
             const firstId = remainingTab.id.replace('tab-btn-', '');
             switchTab(firstId);
         }
+    }
+
+    // Custom PDF Naming Function: BCP_CP2_YYMMDD_PatientName_Ward_PharmacistName.pdf
+    function downloadCustomPDF() {
+        const today = new Date();
+        const yy = String(today.getFullYear()).slice(-2);
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const dateStr = `${yy}${mm}${dd}`;
+
+        const rawName = document.getElementById(`name-ic-${activeTabId}`)?.value.split('\n')[0] || "Patient";
+        const patientName = rawName.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase() || "PATIENT";
+        
+        const rawWard = document.getElementById(`ward-${activeTabId}`)?.value || "WARD";
+        const ward = rawWard.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase() || "WARD";
+
+        const rawPharm = document.getElementById(`pharmacist-${activeTabId}`)?.value || "PHARMACIST";
+        const pharmacist = rawPharm.replace(/[^a-zA-Z0-9 ]/g, "").trim().toUpperCase() || "PHARMACIST";
+
+        const fileName = `BCP_CP2_${dateStr}_${patientName}_${ward}_${pharmacist}.pdf`;
+
+        const element = document.getElementById(`tab-content-${activeTabId}`);
+        const opt = {
+            margin:       [8, 10, 8, 10],
+            filename:     fileName,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
     }
 </script>
 
