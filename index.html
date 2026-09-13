@@ -1523,7 +1523,7 @@
       <h2 class="text-sm font-bold text-slate-100 flex items-center">
         <i class="fa-solid fa-notes-medical text-sky-400 me-2"></i> LAPORAN CP1, CP2 & KAUNSELING PESAKIT (BULANAN)
       </h2>
-      <p class="text-xs text-slate-400 mt-0.5">Ringkasan Aktiviti Pendokumentasian mengikut Profil Pegawai Farmasi</p>
+      <p class="text-xs text-slate-400 mt-0.5">Ringkasan Aktiviti CP Portal mengikut Profil Pegawai Farmasi</p>
     </div>
     <button onclick="exportClinicalSummaryExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow flex items-center space-x-1.5">
       <i class="fa-solid fa-file-excel"></i>
@@ -1557,6 +1557,44 @@
       </thead>
       <tbody id="clinical-summary-tbody" class="divide-y divide-slate-800 font-mono">
         <!-- Dynamically Rendered -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MONTHLY RETEN WARD SUMMARY MATRIX CARD -->
+<div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4 mt-6 no-print">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-3 gap-3">
+    <div>
+      <h2 class="text-sm font-bold text-slate-100 flex items-center">
+        <i class="fa-solid fa-chart-pie text-amber-400 me-2"></i> MONTHLY RETEN SUMMARY BY WARD
+      </h2>
+      <p class="text-xs text-slate-400 mt-0.5">Aggregated monthly totals for CP1, CP2, and Bedside Dispensing across all wards</p>
+    </div>
+
+    <div class="flex items-center space-x-2">
+      <label class="text-[10px] font-bold text-slate-400 uppercase">Select Month:</label>
+      <input type="month" id="summary-reten-month-filter" onchange="renderMonthlyWardRetenSummary()" class="bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
+      <button onclick="exportWardRetenSummaryExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow flex items-center space-x-1.5 shrink-0">
+        <i class="fa-solid fa-file-excel"></i>
+        <span>Export Excel (.xlsx)</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-2">
+    <table class="w-full text-[10px] text-center border-collapse border border-slate-700">
+      <thead>
+        <tr class="bg-slate-950 text-slate-200 border-b border-slate-700 font-bold">
+          <th class="p-2 border-r border-slate-700 text-left">WARD / LOCATION</th>
+          <th class="p-2 border-r border-slate-700 w-28 bg-sky-950/80 text-sky-200">CP1 (SEJARAH UBAT)</th>
+          <th class="p-2 border-r border-slate-700 w-28 bg-purple-950/80 text-purple-200">CP2 (KES CLERKD)</th>
+          <th class="p-2 border-r border-slate-700 w-32 bg-amber-950/80 text-amber-200">BEDSIDE DISPENSE (BD)</th>
+          <th class="p-2 w-32 bg-emerald-950/80 text-emerald-200 font-bold">JUMLAH KESELURUHAN</th>
+        </tr>
+      </thead>
+      <tbody id="ward-reten-summary-tbody" class="divide-y divide-slate-800 font-mono">
+        <!-- Rendered Dynamically -->
       </tbody>
     </table>
   </div>
@@ -4803,6 +4841,101 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
     document.body.removeChild(link);
   }
 
+  function renderMonthlyWardRetenSummary() {
+  const tbody = document.getElementById('ward-reten-summary-tbody');
+  const monthPicker = document.getElementById('summary-reten-month-filter');
+  if (!tbody) return;
+
+  // Set default month to current YYYY-MM if unselected
+  if (monthPicker && !monthPicker.value) {
+    monthPicker.value = typeof getCurrentYearMonthISO === 'function' 
+      ? getCurrentYearMonthISO() 
+      : new Date().toISOString().slice(0, 7);
+  }
+
+  const selectedMonth = monthPicker?.value || "";
+
+  // 1. Fetch manual entries database
+  const retenDb = typeof safeJsonParse === 'function' 
+    ? safeJsonParse('cp3_reten_input_db', []) 
+    : JSON.parse(localStorage.getItem('cp3_reten_input_db') || '[]');
+
+  // Standard Ward Roster List
+  const allWards = [
+    "WARD 1 - MEDICAL MALE",
+    "WARD 2 - MEDICAL FEMALE",
+    "WARD 3 - SURGICAL & ORTHO",
+    "ICU",
+    "PAEDIATRIC",
+    "MATERNITY / O&G"
+  ];
+
+  tbody.innerHTML = '';
+
+  const grandTotals = { cp1: 0, cp2: 0, bd: 0, grand: 0 };
+
+  // 2. Aggregate per ward for the selected month
+  allWards.forEach(wardName => {
+    const wardEntries = retenDb.filter(item => 
+      item.month === selectedMonth && 
+      String(item.ward || '').trim().toUpperCase() === wardName.toUpperCase()
+    );
+
+    let wardCp1 = 0, wardCp2 = 0, wardBd = 0;
+
+    wardEntries.forEach(entry => {
+      wardCp1 += parseInt(entry.cp1 || 0, 10);
+      wardCp2 += parseInt(entry.cp2 || 0, 10);
+      wardBd += parseInt(entry.bd || 0, 10);
+    });
+
+    const wardTotal = wardCp1 + wardCp2 + wardBd;
+
+    grandTotals.cp1 += wardCp1;
+    grandTotals.cp2 += wardCp2;
+    grandTotals.bd += wardBd;
+    grandTotals.grand += wardTotal;
+
+    const tr = document.createElement('tr');
+    tr.className = "hover:bg-slate-800 text-slate-200";
+    tr.innerHTML = `
+      <td class="p-2 border-r border-slate-700 font-bold text-left text-emerald-400">${wardName}</td>
+      <td class="p-2 border-r border-slate-700 font-bold text-sky-400 bg-sky-950/20">${wardCp1}</td>
+      <td class="p-2 border-r border-slate-700 font-bold text-purple-300 bg-purple-950/20">${wardCp2}</td>
+      <td class="p-2 border-r border-slate-700 font-bold text-amber-300 bg-amber-950/20">${wardBd}</td>
+      <td class="p-2 font-bold text-emerald-300 bg-emerald-950/30">${wardTotal}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // 3. Append Grand Total Row Across All Wards
+  const totalTr = document.createElement('tr');
+  totalTr.className = "bg-slate-950 font-bold text-amber-300 border-t-2 border-slate-600";
+  totalTr.innerHTML = `
+    <td class="p-2 border-r border-slate-700 text-left">ALL WARDS COMBINED (TOTAL)</td>
+    <td class="p-2 border-r border-slate-700 text-sky-300">${grandTotals.cp1}</td>
+    <td class="p-2 border-r border-slate-700 text-purple-300">${grandTotals.cp2}</td>
+    <td class="p-2 border-r border-slate-700 text-amber-300">${grandTotals.bd}</td>
+    <td class="p-2 bg-emerald-950 text-emerald-200">${grandTotals.grand}</td>
+  `;
+  tbody.appendChild(totalTr);
+}
+
+function exportWardRetenSummaryExcel() {
+  const table = document.querySelector("#ward-reten-summary-tbody")?.closest("table");
+  const monthVal = document.getElementById('summary-reten-month-filter')?.value || "ALL";
+  if (!table) return;
+
+  const fileName = `Reten_Summary_By_Ward_${monthVal}.xlsx`;
+
+  if (typeof XLSX !== 'undefined') {
+    const worksheet = XLSX.utils.table_to_sheet(table, { raw: false });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Monthly Ward Summary");
+    XLSX.writeFile(workbook, fileName);
+  }
+}
+  
   // =========================================================
   // MULTI-MONTH BATCH ROSTER PRINT & EXPORTER LOGIC
   // =========================================================
