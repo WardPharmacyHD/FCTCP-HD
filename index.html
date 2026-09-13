@@ -1511,6 +1511,53 @@
         </div>
 
       </div>
+
+<!-- MONTHLY CP1, CP2 & COUNSELLING SUMMARY MATRIX CARD -->
+<div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4 mt-6 no-print">
+  <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-700 pb-3 gap-3">
+    <div>
+      <h2 class="text-sm font-bold text-slate-100 flex items-center">
+        <i class="fa-solid fa-notes-medical text-sky-400 me-2"></i> LAPORAN CP1, CP2 & KAUNSELING PESAKIT (BULANAN)
+      </h2>
+      <p class="text-xs text-slate-400 mt-0.5">Ringkasan Aktiviti Pendokumentasian mengikut Profil Pegawai Farmasi</p>
+    </div>
+    <button onclick="exportClinicalSummaryExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg text-xs font-semibold transition shadow flex items-center space-x-1.5">
+      <i class="fa-solid fa-file-excel"></i>
+      <span>Export Excel (.xlsx)</span>
+    </button>
+  </div>
+
+  <div class="overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-2">
+    <table class="w-full text-[10px] text-center border-collapse border border-slate-700">
+      <thead>
+        <tr class="bg-slate-950 text-slate-200 border-b border-slate-700 font-bold">
+          <th rowspan="2" class="p-1.5 border-r border-slate-700 w-16">BULAN</th>
+          <th rowspan="2" class="p-1.5 border-r border-slate-700 min-w-[140px] text-left">PEGAWAI FARMASI (PF)</th>
+          <th rowspan="2" class="p-1.5 border-r border-slate-700 w-24 bg-sky-950/80 text-sky-200">CP1 (Sejarah Ubat)</th>
+          <th rowspan="2" class="p-1.5 border-r border-slate-700 w-24 bg-purple-950/80 text-purple-200">CP2 (Kes Clerked)</th>
+          <th colspan="2" class="p-1.5 border-r border-slate-700 bg-slate-800 text-slate-200">KAUNSELING KATIL (BEDSIDE)</th>
+          <th colspan="2" class="p-1.5 border-r border-slate-700 bg-slate-800 text-slate-200">KAUNSELING DISCAS (DISCHARGE)</th>
+          <th colspan="2" class="p-1.5 border-r border-slate-700 bg-slate-800 text-slate-200">KAUNSELING KUMPULAN (GROUP)</th>
+          <th colspan="2" class="p-1.5 bg-amber-950 text-amber-200 font-bold">JUMLAH KESELURUHAN KAUNSELING</th>
+        </tr>
+        <tr class="bg-slate-900 text-slate-300 border-b border-slate-700 font-semibold text-[9px]">
+          <th class="p-1 border-r border-slate-800">Sesi</th>
+          <th class="p-1 border-r border-slate-700">Pesakit</th>
+          <th class="p-1 border-r border-slate-800">Sesi</th>
+          <th class="p-1 border-r border-slate-700">Pesakit</th>
+          <th class="p-1 border-r border-slate-800">Sesi</th>
+          <th class="p-1 border-r border-slate-700">Pesakit</th>
+          <th class="p-1 border-r border-slate-800 bg-amber-950/60 text-amber-300">Total Sesi</th>
+          <th class="p-1 bg-amber-950/60 text-amber-300">Total Pesakit</th>
+        </tr>
+      </thead>
+      <tbody id="clinical-summary-tbody" class="divide-y divide-slate-800 font-mono">
+        <!-- Dynamically Rendered -->
+      </tbody>
+    </table>
+  </div>
+</div>
+      
     </div>
 
   </main>
@@ -3584,6 +3631,141 @@ if (tbodyD) {
       }
     }
 
+function renderClinicalActivitySummary() {
+  const tbody = document.getElementById('clinical-summary-tbody');
+  if (!tbody) return;
+
+  const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
+
+  const filteredCheckins = checkinsData.filter(item => {
+    const cleanDate = typeof normalizeToISO === 'function' 
+      ? normalizeToISO(item.date).split('T')[0] 
+      : String(item.date || '').split('T')[0];
+    if (!cleanDate) return false;
+    if (monthFilter === "ALL") return true;
+    const month = cleanDate.split('-')[1];
+    return month === monthFilter;
+  });
+
+  const staffKeys = typeof PIN_DATABASE !== 'undefined' ? Object.keys(PIN_DATABASE) : [];
+  tbody.innerHTML = '';
+
+  const grandTotals = {
+    cp1: 0, cp2: 0,
+    bSess: 0, bPts: 0,
+    dSess: 0, dPts: 0,
+    gSess: 0, gPts: 0,
+    totSess: 0, totPts: 0
+  };
+
+  const monthLabel = monthFilter === "ALL" ? "JAN-DIS" : getMonthNameUpper(monthFilter);
+
+  staffKeys.forEach(key => {
+    const user = PIN_DATABASE[key];
+    const staffNameUpper = String(user.name || '').trim().toUpperCase();
+
+    const staffCheckins = filteredCheckins.filter(item => {
+      const itemUser = String(item.user_name || '').trim().toUpperCase();
+      return itemUser === staffNameUpper ||
+             itemUser.includes(staffNameUpper) ||
+             staffNameUpper.includes(itemUser) ||
+             itemUser === String(key).trim().toUpperCase();
+    });
+
+    const tallies = {
+      cp1: 0, cp2: 0,
+      bSess: 0, bPts: 0,
+      dSess: 0, dPts: 0,
+      gSess: 0, gPts: 0
+    };
+
+    staffCheckins.forEach(snap => {
+      tallies.cp1 += parseInt(snap.cp1, 10) || 0;
+      tallies.cp2 += parseInt(snap.cp2, 10) || 0;
+      tallies.bSess += parseInt(snap.counselBedsideSessions, 10) || 0;
+      tallies.bPts += parseInt(snap.counselBedsidePts, 10) || 0;
+      tallies.dSess += parseInt(snap.counselDischargeSessions, 10) || 0;
+      tallies.dPts += parseInt(snap.counselDischargePts, 10) || 0;
+      tallies.gSess += parseInt(snap.counselGroupSessions, 10) || 0;
+      tallies.gPts += parseInt(snap.counselGroupPts, 10) || 0;
+    });
+
+    const totalStaffSess = tallies.bSess + tallies.dSess + tallies.gSess;
+    const totalStaffPts = tallies.bPts + tallies.dPts + tallies.gPts;
+
+    grandTotals.cp1 += tallies.cp1;
+    grandTotals.cp2 += tallies.cp2;
+    grandTotals.bSess += tallies.bSess;
+    grandTotals.bPts += tallies.bPts;
+    grandTotals.dSess += tallies.dSess;
+    grandTotals.dPts += tallies.dPts;
+    grandTotals.gSess += tallies.gSess;
+    grandTotals.gPts += tallies.gPts;
+    grandTotals.totSess += totalStaffSess;
+    grandTotals.totPts += totalStaffPts;
+
+    const tr = document.createElement('tr');
+    tr.className = "hover:bg-slate-800 text-slate-200";
+    tr.innerHTML = `
+      <td class="p-1.5 border-r border-slate-700 font-bold text-slate-400">${monthLabel}</td>
+      <td class="p-1.5 border-r border-slate-700 font-bold text-left text-sky-300">${user.name.toUpperCase()}</td>
+      <td class="p-1.5 border-r border-slate-700 font-bold text-sky-400 bg-sky-950/30">${tallies.cp1}</td>
+      <td class="p-1.5 border-r border-slate-700 font-bold text-purple-300 bg-purple-950/30">${tallies.cp2}</td>
+      <td class="p-1.5 border-r border-slate-800">${tallies.bSess}</td>
+      <td class="p-1.5 border-r border-slate-700">${tallies.bPts}</td>
+      <td class="p-1.5 border-r border-slate-800">${tallies.dSess}</td>
+      <td class="p-1.5 border-r border-slate-700">${tallies.dPts}</td>
+      <td class="p-1.5 border-r border-slate-800">${tallies.gSess}</td>
+      <td class="p-1.5 border-r border-slate-700">${tallies.gPts}</td>
+      <td class="p-1.5 border-r border-slate-800 font-bold text-amber-300 bg-amber-950/30">${totalStaffSess}</td>
+      <td class="p-1.5 font-bold text-amber-300 bg-amber-950/30">${totalStaffPts}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  const totalTr = document.createElement('tr');
+  totalTr.className = "bg-slate-950 font-bold text-amber-300 border-t-2 border-slate-600";
+  totalTr.innerHTML = `
+    <td class="p-1.5 border-r border-slate-700">TOTAL</td>
+    <td class="p-1.5 border-r border-slate-700 text-left">ALL STAFF COMBINED</td>
+    <td class="p-1.5 border-r border-slate-700 text-sky-300">${grandTotals.cp1}</td>
+    <td class="p-1.5 border-r border-slate-700 text-purple-300">${grandTotals.cp2}</td>
+    <td class="p-1.5 border-r border-slate-800">${grandTotals.bSess}</td>
+    <td class="p-1.5 border-r border-slate-700">${grandTotals.bPts}</td>
+    <td class="p-1.5 border-r border-slate-800">${grandTotals.dSess}</td>
+    <td class="p-1.5 border-r border-slate-700">${grandTotals.dPts}</td>
+    <td class="p-1.5 border-r border-slate-800">${grandTotals.gSess}</td>
+    <td class="p-1.5 border-r border-slate-700">${grandTotals.gPts}</td>
+    <td class="p-1.5 border-r border-slate-800 bg-amber-950 text-amber-200">${grandTotals.totSess}</td>
+    <td class="p-1.5 bg-amber-950 text-amber-200">${grandTotals.totPts}</td>
+  `;
+  tbody.appendChild(totalTr);
+}
+
+function exportClinicalSummaryExcel() {
+  const table = document.querySelector("#clinical-summary-tbody")?.closest("table");
+  if (!table) return;
+
+  const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
+  let yymm = "";
+  if (monthFilter !== "ALL") {
+    const yearShort = new Date().getFullYear().toString().slice(-2);
+    yymm = `${yearShort}${monthFilter}_`;
+  } else {
+    const now = new Date();
+    yymm = `${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}_`;
+  }
+
+  const fileName = `${yymm}CP1_CP2_Kaunseling_HD.xlsx`;
+
+  if (typeof XLSX !== 'undefined') {
+    const worksheet = XLSX.utils.table_to_sheet(table, { raw: false });
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "CP1 CP2 Kaunseling");
+    XLSX.writeFile(workbook, fileName);
+  }
+}
+    
     function renderPfSummaryReport() {
       const tbody = document.getElementById('summary-matrix-tbody');
       if (!tbody) return;
@@ -3804,6 +3986,8 @@ function exportSummaryExcel() {
   XLSX.writeFile(workbook, fileName);
 }
 </script>
+
+
 
 <!-- ========================================================= -->
 <!-- STANDALONE MODULE: PERSONAL CALENDAR & EXCEL/PDF BATCH    -->
