@@ -3635,12 +3635,19 @@ function renderClinicalActivitySummary() {
   const tbody = document.getElementById('clinical-summary-tbody');
   if (!tbody) return;
 
+  // 1. Load shift checkins data from memory or localStorage
+  const checkins = (typeof checkinsData !== 'undefined' && Array.isArray(checkinsData) && checkinsData.length > 0)
+    ? checkinsData
+    : (typeof safeJsonParse === 'function' ? safeJsonParse('cp3_checkins_db', []) : JSON.parse(localStorage.getItem('cp3_checkins_db') || '[]'));
+
   const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
 
-  const filteredCheckins = checkinsData.filter(item => {
+  // 2. Filter daily shift snapshots by selected month
+  const filteredCheckins = checkins.filter(item => {
+    if (!item || !item.date) return false;
     const cleanDate = typeof normalizeToISO === 'function' 
       ? normalizeToISO(item.date).split('T')[0] 
-      : String(item.date || '').split('T')[0];
+      : String(item.date).split('T')[0];
     if (!cleanDate) return false;
     if (monthFilter === "ALL") return true;
     const month = cleanDate.split('-')[1];
@@ -3658,14 +3665,15 @@ function renderClinicalActivitySummary() {
     totSess: 0, totPts: 0
   };
 
-  const monthLabel = monthFilter === "ALL" ? "JAN-DIS" : getMonthNameUpper(monthFilter);
+  const monthLabel = monthFilter === "ALL" ? "JAN-DIS" : (typeof getMonthNameUpper === 'function' ? getMonthNameUpper(monthFilter) : monthFilter);
 
+  // 3. Aggregate totals per Pharmacist
   staffKeys.forEach(key => {
     const user = PIN_DATABASE[key];
     const staffNameUpper = String(user.name || '').trim().toUpperCase();
 
     const staffCheckins = filteredCheckins.filter(item => {
-      const itemUser = String(item.user_name || '').trim().toUpperCase();
+      const itemUser = String(item.user_name || item.pharmacist_name || item.user || '').trim().toUpperCase();
       return itemUser === staffNameUpper ||
              itemUser.includes(staffNameUpper) ||
              staffNameUpper.includes(itemUser) ||
@@ -3680,14 +3688,14 @@ function renderClinicalActivitySummary() {
     };
 
     staffCheckins.forEach(snap => {
-      tallies.cp1 += parseInt(snap.cp1, 10) || 0;
-      tallies.cp2 += parseInt(snap.cp2, 10) || 0;
-      tallies.bSess += parseInt(snap.counselBedsideSessions, 10) || 0;
-      tallies.bPts += parseInt(snap.counselBedsidePts, 10) || 0;
-      tallies.dSess += parseInt(snap.counselDischargeSessions, 10) || 0;
-      tallies.dPts += parseInt(snap.counselDischargePts, 10) || 0;
-      tallies.gSess += parseInt(snap.counselGroupSessions, 10) || 0;
-      tallies.gPts += parseInt(snap.counselGroupPts, 10) || 0;
+      tallies.cp1 += parseInt(snap.cp1 || snap.cp1_count || 0, 10) || 0;
+      tallies.cp2 += parseInt(snap.cp2 || snap.cp2_count || 0, 10) || 0;
+      tallies.bSess += parseInt(snap.counselBedsideSessions || snap.bedside_sessions || 0, 10) || 0;
+      tallies.bPts += parseInt(snap.counselBedsidePts || snap.bedside_patients || 0, 10) || 0;
+      tallies.dSess += parseInt(snap.counselDischargeSessions || snap.discharge_sessions || 0, 10) || 0;
+      tallies.dPts += parseInt(snap.counselDischargePts || snap.discharge_patients || 0, 10) || 0;
+      tallies.gSess += parseInt(snap.counselGroupSessions || snap.group_sessions || 0, 10) || 0;
+      tallies.gPts += parseInt(snap.counselGroupPts || snap.group_patients || 0, 10) || 0;
     });
 
     const totalStaffSess = tallies.bSess + tallies.dSess + tallies.gSess;
@@ -3723,6 +3731,7 @@ function renderClinicalActivitySummary() {
     tbody.appendChild(tr);
   });
 
+  // 4. Render Grand Totals Row
   const totalTr = document.createElement('tr');
   totalTr.className = "bg-slate-950 font-bold text-amber-300 border-t-2 border-slate-600";
   totalTr.innerHTML = `
@@ -3740,30 +3749,6 @@ function renderClinicalActivitySummary() {
     <td class="p-1.5 bg-amber-950 text-amber-200">${grandTotals.totPts}</td>
   `;
   tbody.appendChild(totalTr);
-}
-
-function exportClinicalSummaryExcel() {
-  const table = document.querySelector("#clinical-summary-tbody")?.closest("table");
-  if (!table) return;
-
-  const monthFilter = document.getElementById('summary-month-filter')?.value || "ALL";
-  let yymm = "";
-  if (monthFilter !== "ALL") {
-    const yearShort = new Date().getFullYear().toString().slice(-2);
-    yymm = `${yearShort}${monthFilter}_`;
-  } else {
-    const now = new Date();
-    yymm = `${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}_`;
-  }
-
-  const fileName = `${yymm}CP1_CP2_Kaunseling_HD.xlsx`;
-
-  if (typeof XLSX !== 'undefined') {
-    const worksheet = XLSX.utils.table_to_sheet(table, { raw: false });
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "CP1 CP2 Kaunseling");
-    XLSX.writeFile(workbook, fileName);
-  }
 }
     
     function renderPfSummaryReport() {
