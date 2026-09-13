@@ -459,11 +459,11 @@
         <!-- ADMIN DROPDOWN & CONTROL BUTTONS -->
         <div class="flex items-center space-x-1.5 ml-1">
           <div id="admin-menu-container" class="hidden relative">
-            <button onclick="toggleAdminMenu()" id="btn-admin-menu" class="text-amber-300 hover:text-white text-xs px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900/90 rounded-lg border border-amber-600/80 transition flex items-center space-x-1.5 shadow">
-              <i class="fa-solid fa-shield-halved text-amber-400"></i>
-              <span class="font-bold text-[11px] hidden sm:inline">Admin Menu</span>
-              <i class="fa-solid fa-chevron-down text-[9px] ms-0.5 opacity-80"></i>
-            </button>
+           <button onclick="toggleAdminMenu()" id="btn-admin-menu" class="text-amber-300 hover:text-white text-xs px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900/90 rounded-lg border border-amber-600/80 transition flex items-center space-x-1.5 shadow">
+  <i class="fa-solid fa-screwdriver-wrench text-amber-400"></i>
+  <span class="font-bold text-[11px] hidden sm:inline">TOOLS</span>
+  <i class="fa-solid fa-chevron-down text-[9px] ms-0.5 opacity-80"></i>
+</button>
 
             <div id="admin-menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-[150] overflow-hidden py-1">
               <button onclick="switchTab('admin'); hideAdminMenu();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 transition">
@@ -474,6 +474,10 @@
                 <i class="fa-solid fa-table-list text-emerald-400 w-4 text-center"></i>
                 <span class="font-medium">Laporan PF 6.3(b) Generator</span>
               </button>
+              <button id="btn-open-reten-input" onclick="hideAdminMenu(); openRetenInputTabModule();" class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition">
+  <i class="fa-solid fa-pen-to-square text-emerald-400 w-4 text-center"></i>
+  <span class="font-medium">Monthly Reten Input (CP1, CP2, BD)</span>
+</button>
             </div>
           </div>
 
@@ -1560,6 +1564,83 @@
       
     </div>
 
+<!-- VIEW: DEDICATED MONTHLY RETEN INPUT MODULE -->
+<div id="view-reten-input" class="hidden space-y-6">
+  <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
+    
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-3 gap-3">
+      <div>
+        <h2 class="text-sm font-bold text-slate-100 flex items-center">
+          <i class="fa-solid fa-pen-to-square text-emerald-400 me-2"></i> MONTHLY RETEN INPUT
+        </h2>
+        <p class="text-xs text-slate-400 mt-0.5">Manual monthly data entry for CP1, CP2, and Bedside Dispensing (BD) by Ward</p>
+      </div>
+    </div>
+
+    <!-- ENTRY FORM -->
+    <form id="form-monthly-reten" onsubmit="event.preventDefault(); saveMonthlyRetenModule();" class="grid grid-cols-1 sm:grid-cols-6 gap-3 bg-slate-900/60 p-4 rounded-xl border border-slate-700 items-end">
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Month & Year</label>
+        <input type="month" id="reten-month" required class="w-full bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Ward Selection</label>
+        <select id="reten-ward" required class="w-full bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none [color-scheme:dark]">
+          <option value="WARD 1 - MEDICAL MALE">WARD 1 - MEDICAL MALE</option>
+          <option value="WARD 2 - MEDICAL FEMALE">WARD 2 - MEDICAL FEMALE</option>
+          <option value="WARD 3 - SURGICAL & ORTHO">WARD 3 - SURGICAL & ORTHO</option>
+          <option value="ICU">ICU</option>
+          <option value="PAEDIATRIC">PAEDIATRIC</option>
+          <option value="MATERNITY / O&G">MATERNITY / O&G</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CP1 Count</label>
+        <input type="number" id="reten-cp1" min="0" placeholder="0" required class="w-full bg-slate-950 border border-slate-700 text-sky-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">CP2 Count</label>
+        <input type="number" id="reten-cp2" min="0" placeholder="0" required class="w-full bg-slate-950 border border-slate-700 text-purple-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+      </div>
+
+      <div>
+        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Bedside Dispense (BD)</label>
+        <input type="number" id="reten-bd" min="0" placeholder="0" required class="w-full bg-slate-950 border border-slate-700 text-amber-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+      </div>
+
+      <div>
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
+          <i class="fa-solid fa-floppy-disk me-1.5"></i> Save Reten Entry
+        </button>
+      </div>
+    </form>
+
+    <!-- SAVED ENTRIES TABLE -->
+    <div class="overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-2">
+      <table class="w-full text-[10px] text-center border-collapse border border-slate-700">
+        <thead>
+          <tr class="bg-slate-950 text-slate-200 border-b border-slate-700 font-bold">
+            <th class="p-2 border-r border-slate-700 w-24">BULAN</th>
+            <th class="p-2 border-r border-slate-700 text-left">PEGAWAI FARMASI</th>
+            <th class="p-2 border-r border-slate-700 text-left">WARD</th>
+            <th class="p-2 border-r border-slate-700 w-24 bg-sky-950/80 text-sky-200">CP1</th>
+            <th class="p-2 border-r border-slate-700 w-24 bg-purple-950/80 text-purple-200">CP2</th>
+            <th class="p-2 border-r border-slate-700 w-28 bg-amber-950/80 text-amber-200">BEDSIDE DISPENSE (BD)</th>
+            <th class="p-2 w-20">ACTION</th>
+          </tr>
+        </thead>
+        <tbody id="reten-input-tbody" class="divide-y divide-slate-800 font-mono">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+    
   </main>
 
   <!-- HIDDEN CONTAINER FOR BATCH PRINT STACKING -->
@@ -3971,6 +4052,141 @@ function exportSummaryExcel() {
 
   XLSX.writeFile(workbook, fileName);
 }
+
+// RETEN INPUT MENU
+    
+function openRetenInputTabModule() {
+  // Hide all standard view panels
+  const views = ['checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'attendance', 'reten-input'];
+  views.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.classList.add('hidden');
+  });
+
+  // Activate Reten Input View
+  const retenView = document.getElementById('view-reten-input');
+  if (retenView) retenView.classList.remove('hidden');
+
+  // Pre-fill default month
+  const monthInput = document.getElementById('reten-month');
+  if (monthInput && !monthInput.value) {
+    monthInput.value = getCurrentYearMonthISO();
+  }
+
+  renderMonthlyRetenTable();
+}
+
+function saveMonthlyRetenModule() {
+  const activeUserName = currentUser ? currentUser.name : null;
+  if (!activeUserName) {
+    alert("Please log in to submit monthly reten figures.");
+    return;
+  }
+
+  const monthVal = document.getElementById('reten-month')?.value;
+  const wardVal = document.getElementById('reten-ward')?.value;
+  const cp1Val = parseInt(document.getElementById('reten-cp1')?.value || '0', 10);
+  const cp2Val = parseInt(document.getElementById('reten-cp2')?.value || '0', 10);
+  const bdVal = parseInt(document.getElementById('reten-bd')?.value || '0', 10);
+
+  if (!monthVal || !wardVal) {
+    alert("Please fill in both Month and Ward selection.");
+    return;
+  }
+
+  const cleanUserName = String(activeUserName).trim();
+  const userKey = cleanUserName.replace(/[^a-zA-Z0-9]/g, '_');
+  const wardKey = wardVal.replace(/[^a-zA-Z0-9]/g, '_');
+  const recordId = `reten-${monthVal}-${wardKey}-${userKey}`;
+
+  let retenDb = typeof safeJsonParse === 'function' 
+    ? safeJsonParse('cp3_reten_input_db', []) 
+    : JSON.parse(localStorage.getItem('cp3_reten_input_db') || '[]');
+
+  const payload = {
+    id: recordId,
+    month: monthVal,
+    ward: wardVal,
+    user_name: cleanUserName,
+    cp1: cp1Val,
+    cp2: cp2Val,
+    bd: bdVal,
+    updatedAt: new Date().toISOString()
+  };
+
+  const existingIdx = retenDb.findIndex(item => item.id === recordId);
+  if (existingIdx !== -1) {
+    retenDb[existingIdx] = payload;
+  } else {
+    retenDb.push(payload);
+  }
+
+  localStorage.setItem('cp3_reten_input_db', JSON.stringify(retenDb));
+
+  if (typeof showToast === 'function') {
+    showToast(`Saved monthly reten for ${wardVal} (${monthVal})`, 'success');
+  }
+
+  // Clear numeric inputs
+  document.getElementById('reten-cp1').value = '';
+  document.getElementById('reten-cp2').value = '';
+  document.getElementById('reten-bd').value = '';
+
+  renderMonthlyRetenTable();
+}
+
+function renderMonthlyRetenTable() {
+  const tbody = document.getElementById('reten-input-tbody');
+  if (!tbody) return;
+
+  const retenDb = typeof safeJsonParse === 'function' 
+    ? safeJsonParse('cp3_reten_input_db', []) 
+    : JSON.parse(localStorage.getItem('cp3_reten_input_db') || '[]');
+
+  const activeUserName = currentUser ? String(currentUser.name).trim().toUpperCase() : "";
+
+  tbody.innerHTML = '';
+
+  if (retenDb.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="p-3 text-slate-500 italic">No monthly reten entries recorded yet.</td></tr>`;
+    return;
+  }
+
+  // Sort by month descending
+  retenDb.sort((a, b) => b.month.localeCompare(a.month));
+
+  retenDb.forEach(item => {
+    const isOwner = activeUserName && String(item.user_name).trim().toUpperCase() === activeUserName;
+    const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+
+    const tr = document.createElement('tr');
+    tr.className = "hover:bg-slate-800 text-slate-200";
+    tr.innerHTML = `
+      <td class="p-2 border-r border-slate-700 font-bold text-slate-400">${item.month}</td>
+      <td class="p-2 border-r border-slate-700 font-bold text-left text-sky-300">${item.user_name}</td>
+      <td class="p-2 border-r border-slate-700 font-bold text-left text-emerald-400">${item.ward}</td>
+      <td class="p-2 border-r border-slate-700 font-bold text-sky-400 bg-sky-950/30">${item.cp1}</td>
+      <td class="p-2 border-r border-slate-700 font-bold text-purple-300 bg-purple-950/30">${item.cp2}</td>
+      <td class="p-2 border-r border-slate-700 font-bold text-amber-300 bg-amber-950/30">${item.bd}</td>
+      <td class="p-2">
+        ${(isOwner || isAdmin) ? `<button onclick="deleteRetenRecord('${item.id}')" class="text-rose-400 hover:text-rose-300 font-bold px-2 py-0.5 rounded bg-rose-950 border border-rose-800 text-[9px]"><i class="fa-solid fa-trash me-1"></i>Delete</button>` : '-'}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deleteRetenRecord(id) {
+  if (!confirm("Are you sure you want to delete this reten record?")) return;
+  let retenDb = typeof safeJsonParse === 'function' 
+    ? safeJsonParse('cp3_reten_input_db', []) 
+    : JSON.parse(localStorage.getItem('cp3_reten_input_db') || '[]');
+
+  retenDb = retenDb.filter(item => item.id !== id);
+  localStorage.setItem('cp3_reten_input_db', JSON.stringify(retenDb));
+  renderMonthlyRetenTable();
+}
+    
 </script>
 
 
