@@ -3914,6 +3914,7 @@ function renderClinicalActivitySummary() {
         <td class="p-1 font-bold text-amber-300 bg-amber-950">${grandTotals.total}</td>
       `;
       tbody.appendChild(totalTr);
+      renderClinicalActivitySummary();
     }
 
     function getMonthNameUpper(numStr) {
