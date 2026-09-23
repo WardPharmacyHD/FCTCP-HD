@@ -1112,18 +1112,29 @@
       </div>
 
       <!-- LOGGED INTERVENTIONS LIST -->
-      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
-        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex justify-between items-center">
+        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h3 class="font-bold text-slate-100 text-sm">Logged Interventions (Last 5 Days) (<span id="entry-count">0</span>)</h3>
+            <h3 class="font-bold text-slate-100 text-sm">Logged Interventions (<span id="entry-count">0</span>)</h3>
             <p class="text-[11px] text-slate-400">Showing entries for your active ward location</p>
           </div>
-          <span class="text-xs text-slate-400 font-medium">Auto-tallied into Section B totals</span>
+          <div class="flex items-center space-x-2 text-xs">
+            <select id="int-time-filter" onchange="renderInterventions()" class="bg-slate-800 border border-slate-600 text-slate-200 rounded p-1.5 focus:ring-sky-500 focus:outline-none">
+              <option value="all" selected>All time</option>
+              <option value="1">24 Hours</option>
+              <option value="7">7 Days</option>
+              <option value="14">14 Days</option>
+              <option value="28">28 Days</option>
+              <option value="365">1 Year</option>
+            </select>
+            <select id="int-limit-filter" onchange="renderInterventions()" class="bg-slate-800 border border-slate-600 text-slate-200 rounded p-1.5 focus:ring-sky-500 focus:outline-none">
+              <option value="20">20 Items</option>
+              <option value="40">40 Items</option>
+              <option value="60">60 Items</option>
+              <option value="80">80 Items</option>
+              <option value="all">All Items</option>
+            </select>
+          </div>
         </div>
-
-        <div id="interventions-list" class="divide-y divide-slate-700/80"></div>
-      </div>
-    </div>
 
     <!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG -->
     <div id="view-di" class="hidden space-y-6">
@@ -1179,18 +1190,29 @@
       </div>
 
       <!-- LOGGED DRUG INFO ENQUIRIES LIST -->
-      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
-        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex justify-between items-center">
+        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h3 class="font-bold text-slate-100 text-sm">Logged DI Enquiries (Last 5 Days) (<span id="di-entry-count">0</span>)</h3>
-            <p class="text-[11px] text-slate-400">Showing DI requests logged for your profile</p>
+            <h3 class="font-bold text-slate-100 text-sm">My DI Enquiries (<span id="di-entry-count">0</span>)</h3>
+            <p class="text-[11px] text-sky-400">Strictly filtered to your personal user profile</p>
           </div>
-          <span class="text-xs text-sky-400 font-medium"><i class="fa-solid fa-clock-rotate-left me-1"></i> User Log History</span>
+          <div class="flex items-center space-x-2 text-xs">
+            <select id="di-time-filter" onchange="renderDiLogs()" class="bg-slate-800 border border-slate-600 text-slate-200 rounded p-1.5 focus:ring-sky-500 focus:outline-none">
+              <option value="all" selected>All time</option>
+              <option value="1">24 Hours</option>
+              <option value="7">7 Days</option>
+              <option value="14">14 Days</option>
+              <option value="28">28 Days</option>
+              <option value="365">1 Year</option>
+            </select>
+            <select id="di-limit-filter" onchange="renderDiLogs()" class="bg-slate-800 border border-slate-600 text-slate-200 rounded p-1.5 focus:ring-sky-500 focus:outline-none">
+              <option value="20">20 Items</option>
+              <option value="40">40 Items</option>
+              <option value="60">60 Items</option>
+              <option value="80">80 Items</option>
+              <option value="all">All Items</option>
+            </select>
+          </div>
         </div>
-
-        <div id="di-logs-list" class="divide-y divide-slate-700/80"></div>
-      </div>
-    </div>
 
     <!-- TAB 4: FOLLOW-UP REQUIRED SPREADSHEET CHECKLIST (EDITABLE) -->
     <div id="view-followup" class="hidden space-y-6">
@@ -2619,46 +2641,57 @@
       showLoginOverlay();
     }
 
-    function switchTab(tabName) {
-      const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
-      
-      if ((tabName === 'admin' || tabName === 'summary') && !isAdmin) {
-        alert('Access Denied: Admin Settings and PF 6.3b Summary are restricted to system administrators.');
-        return;
-      }
+function switchTab(tabName) {
+  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+  
+  if ((tabName === 'admin' || tabName === 'summary') && !isAdmin) {
+    alert('Access Denied: Admin Settings and PF 6.3b Summary are restricted to system administrators.');
+    return;
+  }
 
-      document.getElementById('view-checkin').classList.add('hidden');
-      document.getElementById('view-interventions').classList.add('hidden');
-      document.getElementById('view-di').classList.add('hidden');
-      document.getElementById('view-followup').classList.add('hidden');
-      document.getElementById('view-admin').classList.add('hidden');
-      document.getElementById('view-summary').classList.add('hidden');
+  // 1. Hide ALL view panels completely
+  const allViews = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input'];
+  allViews.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.classList.add('hidden');
+  });
 
-      document.getElementById('tab-checkin').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-interventions').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-di').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-      document.getElementById('tab-followup').className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+  // 2. Reset ALL top tab button styling
+  const allTabs = ['attendance', 'checkin', 'interventions', 'di', 'followup'];
+  allTabs.forEach(t => {
+    const el = document.getElementById('tab-' + t);
+    if (el) el.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
+  });
 
-      document.getElementById('view-' + tabName).classList.remove('hidden');
+  // 3. Show target view panel
+  const targetView = document.getElementById('view-' + tabName);
+  if (targetView) targetView.classList.remove('hidden');
 
-      if (document.getElementById('tab-' + tabName)) {
-        document.getElementById('tab-' + tabName).className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
-      }
+  // 4. Highlight active navigation tab
+  const targetTab = document.getElementById('tab-' + tabName);
+  if (targetTab) {
+    targetTab.className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
+  }
 
-      if (tabName === 'checkin') {
-        loadActiveShiftSnapshot();
-        updatePdfReport();
-      } else if (tabName === 'summary') {
-        renderPfSummaryReport();
-      } else if (tabName === 'di') {
-        renderDiLogs();
-      } else if (tabName === 'followup') {
-        renderFollowUpLogs();
-      } else if (tabName === 'interventions') {
-        renderInterventions();
-        populatePatientDatalists();
-      }
-    }
+  // 5. Trigger view-specific re-renders
+  if (tabName === 'checkin') {
+    loadActiveShiftSnapshot();
+    updatePdfReport();
+  } else if (tabName === 'summary') {
+    renderPfSummaryReport();
+  } else if (tabName === 'di') {
+    renderDiLogs();
+  } else if (tabName === 'followup') {
+    renderFollowUpLogs();
+  } else if (tabName === 'interventions') {
+    renderInterventions();
+    populatePatientDatalists();
+  } else if (tabName === 'attendance') {
+    attendanceData = safeJsonParse('cp3_attendance_db', []);
+    rosterLocksData = safeJsonParse('cp3_roster_locks_db', {});
+    renderPersonalCalendarModule();
+  }
+}
 
     async function testApiConnection() {
       const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
@@ -2907,15 +2940,22 @@ async function copyPci(id) {
     
 function renderInterventions() {
   const listEl = document.getElementById('interventions-list');
-  // SAFEGUARD: Exit immediately if the container element does not exist or is currently hidden
   if (!listEl || listEl.offsetParent === null) return;
 
   const targetDate = document.getElementById('global-shift-date').value;
   const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
   const target = new Date(cleanTargetDate);
-  const minDateObj = new Date(target);
-  minDateObj.setDate(minDateObj.getDate() - 4);
-  const minDateStr = minDateObj.toISOString().split('T')[0];
+
+  // Capture UI Filters
+  const timeFilter = document.getElementById('int-time-filter')?.value || 'all';
+  const limitFilter = document.getElementById('int-limit-filter')?.value || '20';
+
+  let minDateStr = "1900-01-01"; // Default for 'All time'
+  if (timeFilter !== 'all') {
+    const minDateObj = new Date(target);
+    minDateObj.setDate(minDateObj.getDate() - parseInt(timeFilter));
+    minDateStr = minDateObj.toISOString().split('T')[0];
+  }
 
   const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
   const userAssignedWard = currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE";
@@ -2924,7 +2964,7 @@ function renderInterventions() {
   const activeWard = isAdmin ? selectedDropdownWard : userAssignedWard;
   const cleanStr = (str) => String(str || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
 
-  const filtered = interventionsData.filter(item => {
+  let filtered = interventionsData.filter(item => {
     const itemDate = normalizeToISO(item.date).split('T')[0];
     const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
     const wardMatch = cleanStr(item.ward) === cleanStr(activeWard);
@@ -2936,10 +2976,15 @@ function renderInterventions() {
   const entryCountEl = document.getElementById('entry-count');
   if (entryCountEl) entryCountEl.innerText = filtered.length;
 
+  // Apply Pagination / Limit Filter
+  if (limitFilter !== 'all') {
+    filtered = filtered.slice(0, parseInt(limitFilter));
+  }
+
   listEl.innerHTML = '';
 
   if (filtered.length === 0) {
-    listEl.innerHTML = `<div class="p-4 text-xs text-slate-400 italic">No interventions logged for ${activeWard} in the last 5 days.</div>`;
+    listEl.innerHTML = `<div class="p-4 text-xs text-slate-400 italic">No interventions found matching the current filters.</div>`;
     return;
   }
 
@@ -2951,7 +2996,6 @@ function renderInterventions() {
     const isAcc = item.accepted === true || isAccStr === "YES" || isAccStr === "TRUE";
     const isPhisRecorded = String(item.recordedToPhis || '').toUpperCase() === "YES";
 
-    // NM vs PO Badge logic
     const isNM = (item.type === 'NM' || item.isNearMiss === true);
     const typeBadge = isNM 
       ? '<span class="text-xs bg-amber-950 text-amber-300 border border-amber-800 font-bold px-2 py-0.5 rounded">Near Miss (NM)</span>'
@@ -2976,7 +3020,6 @@ function renderInterventions() {
         <p class="text-xs text-slate-300">${item.desc}</p>
       </div>
 
-      <!-- ACTION BUTTONS -->
       <div class="flex items-center space-x-2 shrink-0 self-end sm:self-center">
         <button onclick="copyPci('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold transition shadow flex items-center space-x-1 border border-sky-400/30">
           <i class="fa-solid fa-copy me-1"></i>
@@ -3126,23 +3169,27 @@ function renderDiLogs() {
   const targetDate = document.getElementById('global-shift-date').value;
   const cleanTargetDate = normalizeToISO(targetDate).split('T')[0];
   const target = new Date(cleanTargetDate);
-  const minDateObj = new Date(target);
-  minDateObj.setDate(minDateObj.getDate() - 4);
-  const minDateStr = minDateObj.toISOString().split('T')[0];
 
-  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+  // Capture UI Filters
+  const timeFilter = document.getElementById('di-time-filter')?.value || 'all';
+  const limitFilter = document.getElementById('di-limit-filter')?.value || '20';
 
-  const filtered = diLogsData.filter(item => {
+  let minDateStr = "1900-01-01"; // Default for 'All time'
+  if (timeFilter !== 'all') {
+    const minDateObj = new Date(target);
+    minDateObj.setDate(minDateObj.getDate() - parseInt(timeFilter));
+    minDateStr = minDateObj.toISOString().split('T')[0];
+  }
+
+  let filtered = diLogsData.filter(item => {
     const itemDate = normalizeToISO(item.date).split('T')[0];
     const dateMatch = itemDate >= minDateStr && itemDate <= cleanTargetDate;
 
-    let userMatch = true;
-    if (!isAdmin) {
-      const itemUser = (item.user_name || '').toUpperCase();
-      const currUser = (currentUser ? currentUser.name : '').toUpperCase();
-      const currKey = (localStorage.getItem('active_user_key') || '').toUpperCase();
-      userMatch = itemUser.includes(currUser) || itemUser.includes(currKey);
-    }
+    // STRICT USER MATCH: Users only ever see their own DI enquiries
+    const itemUser = (item.user_name || '').toUpperCase();
+    const currUser = (currentUser ? currentUser.name : '').toUpperCase();
+    const currKey = (localStorage.getItem('active_user_key') || '').toUpperCase();
+    const userMatch = itemUser.includes(currUser) || itemUser.includes(currKey);
 
     return dateMatch && userMatch;
   });
@@ -3152,12 +3199,17 @@ function renderDiLogs() {
   const countEl = document.getElementById('di-entry-count');
   if (countEl) countEl.innerText = filtered.length;
 
+  // Apply Pagination / Limit Filter
+  if (limitFilter !== 'all') {
+    filtered = filtered.slice(0, parseInt(limitFilter));
+  }
+
   const listEl = document.getElementById('di-logs-list');
   if (!listEl) return;
   listEl.innerHTML = '';
 
   if (filtered.length === 0) {
-    listEl.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No Drug Information enquiries logged for your profile in the last 5 days.</div>';
+    listEl.innerHTML = '<div class="p-4 text-xs text-slate-400 italic">No Drug Information enquiries found for your profile under current filters.</div>';
     return;
   }
 
@@ -3180,7 +3232,6 @@ function renderDiLogs() {
         <p class="text-xs text-emerald-400 bg-slate-900/60 p-2 rounded border border-slate-700/80"><strong>A:</strong> ${item.response}</p>
       </div>
 
-      <!-- ACTION BUTTONS -->
       <div class="flex items-center space-x-2 shrink-0 self-end sm:self-center">
         <button onclick="copyDi('${item.id}')" class="bg-sky-600 hover:bg-sky-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-bold transition shadow flex items-center space-x-1 border border-sky-400/30">
           <i class="fa-solid fa-copy me-1"></i>
@@ -4098,18 +4149,15 @@ function exportSummaryExcel() {
 // RETEN INPUT MENU
     
 function openRetenInputTabModule() {
-  // Hide all standard view panels
-  const views = ['checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'attendance', 'reten-input'];
+  const views = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input'];
   views.forEach(v => {
     const el = document.getElementById('view-' + v);
     if (el) el.classList.add('hidden');
   });
 
-  // Activate Reten Input View
   const retenView = document.getElementById('view-reten-input');
   if (retenView) retenView.classList.remove('hidden');
 
-  // Pre-fill default month
   const monthInput = document.getElementById('reten-month');
   if (monthInput && !monthInput.value) {
     monthInput.value = getCurrentYearMonthISO();
@@ -4479,32 +4527,8 @@ function deleteRetenRecord(id) {
   };
 
   function openAttendanceTabModule() {
-    // Hide standard view panels
-    const views = ['checkin', 'interventions', 'di', 'followup', 'admin', 'summary'];
-    views.forEach(v => {
-      const el = document.getElementById('view-' + v);
-      if (el) el.classList.add('hidden');
-    });
-
-    // Reset standard nav tab button styles
-    const tabs = ['checkin', 'interventions', 'di', 'followup'];
-    tabs.forEach(t => {
-      const el = document.getElementById('tab-' + t);
-      if (el) el.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-    });
-
-    // Activate Attendance View & Tab
-    const attView = document.getElementById('view-attendance');
-    const attBtn = document.getElementById('tab-attendance');
-
-    if (attView) attView.classList.remove('hidden');
-    if (attBtn) attBtn.className = "tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap";
-
-    // Reload Data from Local Storage & Re-render
-    attendanceData = safeJsonParse('cp3_attendance_db', []);
-    rosterLocksData = safeJsonParse('cp3_roster_locks_db', {});
-    renderPersonalCalendarModule();
-  }
+  switchTab('attendance');
+}
 
   function renderPersonalCalendarModule() {
     const grid = document.getElementById('att-calendar-grid');
