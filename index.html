@@ -1763,6 +1763,8 @@
     let interventionsData = safeJsonParse('cp3_interventions_db', []);
     let diLogsData = safeJsonParse('cp3_dilogs_db', []);
     let followUpData = safeJsonParse('cp3_followup_db', []);
+    let attendanceData = safeJsonParse('cp3_attendance_db', []);
+    let rosterLocksData = safeJsonParse('cp3_roster_locks_db', {});
 
     // PORTAL INITIALIZER
    function initPortal() {
@@ -4566,8 +4568,6 @@ if (document.readyState === 'loading') {
   // =========================================================
   // PERSONAL CALENDAR & ATTENDANCE LOGIC (STRICT ADMIN UNLOCK)
   // =========================================================
-  let attendanceData = safeJsonParse('cp3_attendance_db', []);
-  let rosterLocksData = safeJsonParse('cp3_roster_locks_db', {});
 
   const ATT_STATUS_STYLES = {
     "P": "bg-emerald-950 text-emerald-300 border-emerald-700 font-bold",
