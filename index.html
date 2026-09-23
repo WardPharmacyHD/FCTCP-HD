@@ -2109,15 +2109,33 @@
                 }
               }
             });
-            localStorage.setItem('cp3_checkins_db', JSON.stringify(checkinsData));
-          }
+localStorage.setItem('cp3_checkins_db', JSON.stringify(checkinsData));
         }
+      }
+      // ADDED: Pull Attendance Data from Cloud on Startup
+      const attUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
+      const resAtt = await fetch(attUrl);
+      if (resAtt.ok) {
+        const rawAtt = await resAtt.json();
+        const cloudAtt = extractArray(rawAtt);
+        if (cloudAtt && cloudAtt.length > 0) {
+          // Overwrite local attendance state with the latest cloud data
+          attendanceData = cloudAtt;
+          localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
+        }
+      }
 
-        loadActiveShiftSnapshot();
-        renderInterventions();
-        renderDiLogs();
-        updatePdfReport();
-        renderPfSummaryReport();
+      loadActiveShiftSnapshot();
+      renderInterventions();
+      renderDiLogs();
+      updatePdfReport();
+      renderPfSummaryReport();
+      
+      // ADDED: Re-render the calendar if the user is actively viewing the Roster tab
+      const attView = document.getElementById('view-attendance');
+      if (attView && !attView.classList.contains('hidden')) {
+        renderPersonalCalendarModule();
+      }
       } catch (err) {
         console.warn("Using local cached records.", err);
       }
