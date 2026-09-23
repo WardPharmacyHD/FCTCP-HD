@@ -1135,6 +1135,11 @@
             </select>
           </div>
         </div>
+        
+        <!-- ADDED: The missing target container for JS to render the list -->
+        <div id="interventions-list" class="divide-y divide-slate-800 bg-slate-900/40"></div>
+        
+    </div> <!-- ADDED: This properly closes the view-interventions Tab -->
 
     <!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG -->
     <div id="view-di" class="hidden space-y-6">
@@ -1213,6 +1218,10 @@
             </select>
           </div>
         </div>
+      
+      <div id="di-logs-list" class="divide-y divide-slate-800 bg-slate-900/40"></div>
+        
+    </div>
 
     <!-- TAB 4: FOLLOW-UP REQUIRED SPREADSHEET CHECKLIST (EDITABLE) -->
     <div id="view-followup" class="hidden space-y-6">
