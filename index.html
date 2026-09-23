@@ -4296,155 +4296,216 @@ function deleteRetenRecord(id) {
   }
 
   // GLOBAL OVERRIDE: PATCH NATIVE switchTab TO PROPERLY HIDE ROSTER VIEW ON ANY TAB SWITCH
- window.addEventListener('DOMContentLoaded', () => {
-    // 1. Inject "1. Daily Attendance Roster" button in Navigation Bar if missing
-    const navFlexContainer = document.querySelector('main > div.bg-slate-800 > div.flex');
-    if (navFlexContainer && !document.getElementById('tab-attendance')) {
-      const btn = document.createElement('button');
-      btn.id = 'tab-attendance';
-      btn.onclick = () => switchTab('attendance');
-      btn.className = 'py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap';
-      btn.innerHTML = `<i class="fa-solid fa-calendar-days text-emerald-400"></i><span>1. Daily Attendance Roster</span>`;
-      
-      navFlexContainer.insertBefore(btn, navFlexContainer.firstChild);
-    }
+// GLOBAL OVERRIDE: PATCH NATIVE switchTab TO PROPERLY HIDE ROSTER VIEW ON ANY TAB SWITCH
+function initStandaloneModule() {
+  // 1. Inject "1. Daily Attendance Roster" button in Navigation Bar if missing
+  const navFlexContainer = document.querySelector('main > div.bg-slate-800 > div.flex');
+  if (navFlexContainer && !document.getElementById('tab-attendance')) {
+    const btn = document.createElement('button');
+    btn.id = 'tab-attendance';
+    btn.onclick = () => switchTab('attendance');
+    btn.className = 'py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap';
+    btn.innerHTML = `<i class="fa-solid fa-calendar-days text-emerald-400"></i><span>1. Daily Attendance Roster</span>`;
+    
+    navFlexContainer.insertBefore(btn, navFlexContainer.firstChild);
+  }
 
-    // 2. Renumber tab 2 on load
-    const checkinBtn = document.getElementById('tab-checkin');
-    if (checkinBtn) {
-      const span = checkinBtn.querySelector('span');
-      if (span) span.innerText = "2. Live CP3 Dashboard & Finalize";
-    }
+  // 2. Renumber tab 2 on load
+  const checkinBtn = document.getElementById('tab-checkin');
+  if (checkinBtn) {
+    const span = checkinBtn.querySelector('span');
+    if (span) span.innerText = "2. Live CP3 Dashboard & Finalize";
+  }
 
-    // 3. Inject Multi-Month Roster Matrix button into Admin Dropdown if missing
-    const adminDropdown = document.getElementById('admin-menu-dropdown');
-    if (adminDropdown && !document.getElementById('btn-admin-print-roster')) {
-      const btn = document.createElement('button');
-      btn.id = 'btn-admin-print-roster';
-      btn.onclick = () => { hideAdminMenu(); openAdminRosterPrintModal(); };
-      btn.className = "w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition";
-      btn.innerHTML = `<i class="fa-solid fa-boxes-packing text-emerald-400 w-4 text-center"></i><span class="font-medium">Multi-Month Roster Batch (PDF/Excel)</span>`;
-      adminDropdown.appendChild(btn);
-    }
+  // 3. Inject Multi-Month Roster Matrix button into Admin Dropdown if missing
+  const adminDropdown = document.getElementById('admin-menu-dropdown');
+  if (adminDropdown && !document.getElementById('btn-admin-print-roster')) {
+    const btn = document.createElement('button');
+    btn.id = 'btn-admin-print-roster';
+    btn.onclick = () => { hideAdminMenu(); openAdminRosterPrintModal(); };
+    btn.className = "w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-700 hover:text-white flex items-center space-x-2.5 border-t border-slate-700/60 transition";
+    btn.innerHTML = `<i class="fa-solid fa-boxes-packing text-emerald-400 w-4 text-center"></i><span class="font-medium">Multi-Month Roster Batch (PDF/Excel)</span>`;
+    adminDropdown.appendChild(btn);
+  }
 
-    // 4. Inject Attendance View Container if missing
-    const mainEl = document.querySelector('main');
-    const checkinView = document.getElementById('view-checkin');
-    const currentYM = getCurrentYearMonthISO();
+  // 4. Inject Attendance View Container if missing
+  const mainEl = document.querySelector('main');
+  const checkinView = document.getElementById('view-checkin');
+  const currentYM = getCurrentYearMonthISO();
 
-    if (mainEl && !document.getElementById('view-attendance')) {
-      const viewDiv = document.createElement('div');
-      viewDiv.id = 'view-attendance';
-      viewDiv.className = 'hidden space-y-6';
-      viewDiv.innerHTML = `
-        <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-4 gap-3">
-            <div>
-              <div class="flex items-center space-x-2">
-                <h2 class="text-sm font-bold text-slate-100 flex items-center">
-                  <i class="fa-solid fa-calendar-days text-emerald-400 me-2"></i> My Duty Roster & Attendance Calendar
-                </h2>
-                <span id="att-lock-status-badge" class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700">UNLOCKED</span>
-              </div>
-              <p class="text-xs text-slate-400 mt-0.5">Select status from the dropdown in each date tile</p>
+  if (mainEl && !document.getElementById('view-attendance')) {
+    const viewDiv = document.createElement('div');
+    viewDiv.id = 'view-attendance';
+    viewDiv.className = 'hidden space-y-6';
+    viewDiv.innerHTML = `
+      <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-4 gap-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-sm font-bold text-slate-100 flex items-center">
+                <i class="fa-solid fa-calendar-days text-emerald-400 me-2"></i> My Duty Roster & Attendance Calendar
+              </h2>
+              <span id="att-lock-status-badge" class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700">UNLOCKED</span>
             </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-              <input type="month" id="att-month-select" value="${currentYM}" onchange="renderPersonalCalendarModule()" class="bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
-              <button id="btn-toggle-roster-lock" onclick="toggleRosterLockModule()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0">
-                <i class="fa-solid fa-lock me-1.5"></i> Lock Roster Data
-              </button>
-              <button onclick="manualMarkTodayPresentModule()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0">
-                <i class="fa-solid fa-user-check me-1.5"></i> Mark Today Present
-              </button>
-            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Select status from the dropdown in each date tile</p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-900/60 p-3 rounded-xl border border-slate-700">
-            <span class="text-[10px] font-bold text-slate-400 uppercase me-1">Legend:</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">P - Present</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-950 text-sky-300 border border-sky-700">CR/DO - Leave/Off</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-950 text-purple-300 border border-purple-700">K/M/Adt - Kursus/Meeting/Audit</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-950 text-rose-300 border border-rose-700">EL - Emergency Leave</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-orange-950 text-orange-300 border border-orange-700">PH - Public Holiday</span>
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-700">MTC - MTAC</span>
-          </div>
-
-          <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-3">
-            <div id="att-calendar-grid" class="grid grid-cols-7 gap-1.5 min-w-[600px] text-center"></div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="month" id="att-month-select" value="${currentYM}" onchange="renderPersonalCalendarModule()" class="bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
+            <button id="btn-toggle-roster-lock" onclick="toggleRosterLockModule()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0">
+              <i class="fa-solid fa-lock me-1.5"></i> Lock Roster Data
+            </button>
+            <button onclick="manualMarkTodayPresentModule()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0">
+              <i class="fa-solid fa-user-check me-1.5"></i> Mark Today Present
+            </button>
           </div>
         </div>
-      `;
 
-      if (checkinView) {
-        mainEl.insertBefore(viewDiv, checkinView);
-      } else {
-        mainEl.appendChild(viewDiv);
-      }
+        <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-900/60 p-3 rounded-xl border border-slate-700">
+          <span class="text-[10px] font-bold text-slate-400 uppercase me-1">Legend:</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">P - Present</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-sky-950 text-sky-300 border border-sky-700">CR/DO - Leave/Off</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-purple-950 text-purple-300 border border-purple-700">K/M/Adt - Kursus/Meeting/Audit</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-rose-950 text-rose-300 border border-rose-700">EL - Emergency Leave</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-orange-950 text-orange-300 border border-orange-700">PH - Public Holiday</span>
+          <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-700">MTC - MTAC</span>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-3">
+          <div id="att-calendar-grid" class="grid grid-cols-7 gap-1.5 min-w-[600px] text-center"></div>
+        </div>
+      </div>
+    `;
+
+    if (checkinView) {
+      mainEl.insertBefore(viewDiv, checkinView);
+    } else {
+      mainEl.appendChild(viewDiv);
     }
+  }
 
-      // Force Tab 1 Landing Isolation
-      setTimeout(openAttendanceTabModule, 100);
- });
-  
-    // 6. INJECT BATCH MULTI-MONTH ROSTER PRINT MODAL INTO BODY
-    if (!document.getElementById('admin-roster-print-modal')) {
-      const modal = document.createElement('div');
-      modal.id = 'admin-roster-print-modal';
-      modal.className = 'hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[120] flex items-center justify-center p-4';
-      modal.innerHTML = `
-        <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-5xl w-full p-6 border border-slate-700 max-h-[90vh] flex flex-col">
-          <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
-            <h3 class="font-bold text-slate-100 text-sm flex items-center">
-              <i class="fa-solid fa-boxes-packing text-emerald-400 me-2"></i> Multi-Month Team Roster Batch Exporter
-            </h3>
-            <button onclick="closeAdminRosterPrintModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+  // Force Tab 1 Landing Isolation
+  setTimeout(openAttendanceTabModule, 100);
+
+  // 6. INJECT BATCH MULTI-MONTH ROSTER PRINT MODAL INTO BODY
+  if (!document.getElementById('admin-roster-print-modal')) {
+    const modal = document.createElement('div');
+    modal.id = 'admin-roster-print-modal';
+    modal.className = 'hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[120] flex items-center justify-center p-4';
+    modal.innerHTML = `
+      <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-5xl w-full p-6 border border-slate-700 max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+          <h3 class="font-bold text-slate-100 text-sm flex items-center">
+            <i class="fa-solid fa-boxes-packing text-emerald-400 me-2"></i> Multi-Month Team Roster Batch Exporter
+          </h3>
+          <button onclick="closeAdminRosterPrintModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- MULTI-MONTH BATCH RANGE CONTROLS -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700 mb-4 items-end">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Start Month & Year</label>
+            <input type="month" id="admin-roster-start-month" value="${currentYM}" onchange="renderMultiMonthBatchPreview()" class="w-full bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
           </div>
 
-          <!-- MULTI-MONTH BATCH RANGE CONTROLS -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700 mb-4 items-end">
-            <div>
-              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Start Month & Year</label>
-              <input type="month" id="admin-roster-start-month" value="${currentYM}" onchange="renderMultiMonthBatchPreview()" class="w-full bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
-            </div>
-
-            <div>
-              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">End Month & Year</label>
-              <input type="month" id="admin-roster-end-month" value="${currentYM}" onchange="renderMultiMonthBatchPreview()" class="w-full bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
-            </div>
-
-            <div>
-              <button onclick="exportBatchRosterMatrixExcel()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
-                <i class="fa-solid fa-file-excel me-1.5"></i> Export Excel (.csv)
-              </button>
-            </div>
-
-            <div>
-              <button onclick="printAdminRosterMatrix()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
-                <i class="fa-solid fa-print me-1.5"></i> Print PDF Matrix
-              </button>
-            </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">End Month & Year</label>
+            <input type="month" id="admin-roster-end-month" value="${currentYM}" onchange="renderMultiMonthBatchPreview()" class="w-full bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
           </div>
 
-          <!-- PRINTABLE MULTI-MONTH CONTAINER -->
-          <div class="overflow-auto rounded-xl border border-slate-700 bg-slate-900 p-4 flex-grow space-y-8">
-            <div id="printable-admin-roster-matrix">
-              <!-- Dynamically Populated Pages per Month -->
-            </div>
+          <div>
+            <button onclick="exportBatchRosterMatrixExcel()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
+              <i class="fa-solid fa-file-excel me-1.5"></i> Export Excel (.csv)
+            </button>
+          </div>
+
+          <div>
+            <button onclick="printAdminRosterMatrix()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
+              <i class="fa-solid fa-print me-1.5"></i> Print PDF Matrix
+            </button>
           </div>
         </div>
-      `;
-      document.body.appendChild(modal);
-    }
 
-    // 7. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
-    const intForm = document.getElementById('intervention-form');
-    if (intForm) {
-      intForm.addEventListener('submit', () => {
-        setTimeout(autoMarkPresentOnInterventionModule, 400);
-      });
-    }
-  });
+        <!-- PRINTABLE MULTI-MONTH CONTAINER -->
+        <div class="overflow-auto rounded-xl border border-slate-700 bg-slate-900 p-4 flex-grow space-y-8">
+          <div id="printable-admin-roster-matrix">
+            <!-- Dynamically Populated Pages per Month -->
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // 7. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
+// 6. INJECT BATCH MULTI-MONTH ROSTER PRINT MODAL INTO BODY
+  if (!document.getElementById('admin-roster-print-modal')) {
+    const modal = document.createElement('div');
+    modal.id = 'admin-roster-print-modal';
+    modal.className = 'hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[120] flex items-center justify-center p-4';
+    modal.innerHTML = `
+      <div class="bg-slate-800 text-slate-100 rounded-2xl shadow-2xl max-w-5xl w-full p-6 border border-slate-700 max-h-[90vh] flex flex-col">
+        <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-3">
+          <h3 class="font-bold text-slate-100 text-sm flex items-center">
+            <i class="fa-solid fa-boxes-packing text-emerald-400 me-2"></i> Multi-Month Team Roster Batch Exporter
+          </h3>
+          <button onclick="closeAdminRosterPrintModal()" class="text-slate-400 hover:text-slate-200"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <!-- MULTI-MONTH BATCH RANGE CONTROLS -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-900/60 p-3 rounded-xl border border-slate-700 mb-4 items-end">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Start Month & Year</label>
+            <input type="month" id="admin-roster-start-month" value="${currentYM}" onchange="renderMultiMonthBatchPreview()" class="w-full bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">End Month & Year</label>
+            <input type="month" id="admin-roster-end-month" value="${currentYM}" onchange="renderMultiMonthBatchPreview()" class="w-full bg-slate-950 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
+          </div>
+
+          <div>
+            <button onclick="exportBatchRosterMatrixExcel()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
+              <i class="fa-solid fa-file-excel me-1.5"></i> Export Excel (.csv)
+            </button>
+          </div>
+
+          <div>
+            <button onclick="printAdminRosterMatrix()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
+              <i class="fa-solid fa-print me-1.5"></i> Print PDF Matrix
+            </button>
+          </div>
+        </div>
+
+        <!-- PRINTABLE MULTI-MONTH CONTAINER -->
+        <div class="overflow-auto rounded-xl border border-slate-700 bg-slate-900 p-4 flex-grow space-y-8">
+          <div id="printable-admin-roster-matrix">
+            <!-- Dynamically Populated Pages per Month -->
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // 7. HOOK INTO INTERVENTION SUBMISSION FOR AUTO-PRESENT
+  const intForm = document.getElementById('intervention-form');
+  if (intForm) {
+    intForm.addEventListener('submit', () => {
+      setTimeout(autoMarkPresentOnInterventionModule, 400);
+    });
+  }
+
+  // Force Tab 1 Landing Isolation
+  setTimeout(openAttendanceTabModule, 100);
+} // <--- THIS CLOSES THE initStandaloneModule FUNCTION
+
+// SAFE EXECUTION CHECK (Matches the logic used at the top of the file)
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', initStandaloneModule);
+} else {
+  initStandaloneModule();
+}
 
   // =========================================================
   // OFFICIAL TERENGGANU PUBLIC HOLIDAY GAZETTE (2026)
