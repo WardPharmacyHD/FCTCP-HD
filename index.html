@@ -2047,20 +2047,13 @@
       }
     }
 
-    async function fetchCloudData() {
-      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-      if (!activeUrl) return;
+try {
+        // ADDED: Timestamp Cache Buster to force mobile browsers to fetch fresh data
+        const ts = new Date().getTime();
+        const noCacheUrl = activeUrl.includes('?') ? `${activeUrl}&nocache=${ts}` : `${activeUrl}?nocache=${ts}`;
 
-      const extractArray = (json) => {
-        if (Array.isArray(json)) return json;
-        if (json && Array.isArray(json.data)) return json.data;
-        if (json && Array.isArray(json.result)) return json.result;
-        return null;
-      };
-
-      try {
-        const patientsUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Patients` : `${activeUrl}?sheet=Patients`;
-        const resPat = await fetch(patientsUrl);
+        const patientsUrl = `${noCacheUrl}&sheet=Patients`;
+        const resPat = await fetch(patientsUrl, { cache: "no-store" });
         if (resPat.ok) {
           const rawPat = await resPat.json();
           const cloudPat = extractArray(rawPat);
@@ -2071,7 +2064,7 @@
           }
         }
 
-        const resInt = await fetch(activeUrl);
+        const resInt = await fetch(noCacheUrl, { cache: "no-store" });
         if (resInt.ok) {
           const rawInt = await resInt.json();
           const cloudInt = extractArray(rawInt);
@@ -2081,8 +2074,8 @@
           }
         }
 
-        const diUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=DrugInfo` : `${activeUrl}?sheet=DrugInfo`;
-        const resDi = await fetch(diUrl);
+        const diUrl = `${noCacheUrl}&sheet=DrugInfo`;
+        const resDi = await fetch(diUrl, { cache: "no-store" });
         if (resDi.ok) {
           const rawDi = await resDi.json();
           const cloudDi = extractArray(rawDi);
@@ -2092,8 +2085,8 @@
           }
         }
 
-        const checkinUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
-        const resCheck = await fetch(checkinUrl);
+        const checkinUrl = `${noCacheUrl}&sheet=CheckIn`;
+        const resCheck = await fetch(checkinUrl, { cache: "no-store" });
         if (resCheck.ok) {
           const rawCheck = await resCheck.json();
           const cloudCheck = extractArray(rawCheck);
@@ -2114,18 +2107,30 @@
 localStorage.setItem('cp3_checkins_db', JSON.stringify(checkinsData));
         }
       }
-      // ADDED: Pull Attendance Data from Cloud on Startup
-      const attUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
-      const resAtt = await fetch(attUrl);
-      if (resAtt.ok) {
-        const rawAtt = await resAtt.json();
-        const cloudAtt = extractArray(rawAtt);
-        if (cloudAtt && cloudAtt.length > 0) {
-          // Overwrite local attendance state with the latest cloud data
-          attendanceData = cloudAtt;
-          localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
+    // ADDED: Pull Attendance Data from Cloud on Startup (SMART MERGE & CACHE BUSTER)
+        const attUrl = `${noCacheUrl}&sheet=Attendance`;
+        const resAtt = await fetch(attUrl, { cache: "no-store" });
+        if (resAtt.ok) {
+          const rawAtt = await resAtt.json();
+          let cloudAtt = extractArray(rawAtt);
+          if (cloudAtt && cloudAtt.length > 0) {
+            // Safeguard: Only process actual attendance records to prevent accidental wipeouts
+            cloudAtt = cloudAtt.filter(item => String(item.id || '').startsWith('att-'));
+            
+            if (cloudAtt.length > 0) {
+              cloudAtt.forEach(cloudSnap => {
+                const cloudId = String(cloudSnap.id || '').trim();
+                const idx = attendanceData.findIndex(a => String(a.id || '').trim() === cloudId);
+                if (idx === -1) {
+                  attendanceData.push(cloudSnap); // Add new
+                } else {
+                  attendanceData[idx] = cloudSnap; // Update existing safely
+                }
+              });
+              localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
+            }
+          }
         }
-      }
 
       loadActiveShiftSnapshot();
       renderInterventions();
