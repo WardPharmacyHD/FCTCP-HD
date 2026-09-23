@@ -30,8 +30,8 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // 1. Bypass Google Apps Script API calls entirely (never cache the live database)
-  if (event.request.url.includes('script.google.com')) {
+  // 1. Bypass Google Apps Script AND their hidden redirects (CRITICAL FOR MOBILE SYNC)
+  if (event.request.url.includes('google.com') || event.request.url.includes('googleusercontent.com')) {
     return;
   }
 
@@ -39,7 +39,6 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        // If we got a valid response from the network, open the cache and update it
         if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
           const responseToCache = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -49,7 +48,6 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       })
       .catch(() => {
-        // If the network fails (offline), fallback to the cached version
         return caches.match(event.request);
       })
   );
