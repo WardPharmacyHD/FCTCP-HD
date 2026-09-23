@@ -1111,9 +1111,8 @@
         </form>
       </div>
 
-<!-- LOGGED INTERVENTIONS LIST -->
-      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
-        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <!-- LOGGED INTERVENTIONS LIST -->
+<div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h3 class="font-bold text-slate-100 text-sm">Logged Interventions (<span id="entry-count">0</span>)</h3>
             <p class="text-[11px] text-slate-400">Showing entries for your active ward location</p>
@@ -1137,14 +1136,8 @@
           </div>
         </div>
 
-        <!-- THIS IS THE DIV THAT WENT MISSING -->
-        <div id="interventions-list" class="divide-y divide-slate-700/80"></div>
-      </div>
-
-<!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG -->
+    <!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG -->
     <div id="view-di" class="hidden space-y-6">
-      
-      <!-- 1. DATA ENTRY FORM (Untouched) -->
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700">
         <h2 class="text-sm font-bold text-slate-100 mb-4 flex items-center border-b border-slate-700 pb-3">
           <i class="fa-solid fa-circle-info text-sky-400 me-2"></i> Drug Information Enquiry Form
@@ -1196,9 +1189,8 @@
         </form>
       </div>
 
-      <!-- 2. LOGGED DRUG INFO ENQUIRIES LIST (WITH NEXUS-STYLE DROPDOWNS) -->
-      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
-        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <!-- LOGGED DRUG INFO ENQUIRIES LIST -->
+<div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h3 class="font-bold text-slate-100 text-sm">My DI Enquiries (<span id="di-entry-count">0</span>)</h3>
             <p class="text-[11px] text-sky-400">Strictly filtered to your personal user profile</p>
@@ -1221,10 +1213,6 @@
             </select>
           </div>
         </div>
-
-        <div id="di-logs-list" class="divide-y divide-slate-700/80"></div>
-      </div>
-    </div>
 
     <!-- TAB 4: FOLLOW-UP REQUIRED SPREADSHEET CHECKLIST (EDITABLE) -->
     <div id="view-followup" class="hidden space-y-6">
@@ -3244,7 +3232,7 @@ function renderDiLogs() {
     listEl.appendChild(div);
   });
 }
-    
+
     function deleteDiEntry(id) {
       diLogsData = diLogsData.filter(item => item.id !== id);
       localStorage.setItem('cp3_dilogs_db', JSON.stringify(diLogsData));
