@@ -2044,11 +2044,12 @@
         showToast('Error updating entry', 'error');
       } finally {
         hideLoading();
-      }
     }
-
-try {
-        // ADDED: Timestamp Cache Buster to force mobile browsers to fetch fresh data
+  }
+    
+ // ADDED: Timestamp Cache Buster to force mobile browsers to fetch fresh data
+  async function fetchCloudData() {
+    try {
         const ts = new Date().getTime();
         const noCacheUrl = activeUrl.includes('?') ? `${activeUrl}&nocache=${ts}` : `${activeUrl}?nocache=${ts}`;
 
