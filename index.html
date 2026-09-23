@@ -2649,14 +2649,14 @@ function switchTab(tabName) {
     return;
   }
 
-  // 1. Hide ALL view panels completely
+  // 1. Hide ALL 8 view containers
   const allViews = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input'];
   allViews.forEach(v => {
     const el = document.getElementById('view-' + v);
     if (el) el.classList.add('hidden');
   });
 
-  // 2. Reset ALL top tab button styling
+  // 2. Reset ALL top navigation tab button styles
   const allTabs = ['attendance', 'checkin', 'interventions', 'di', 'followup'];
   allTabs.forEach(t => {
     const el = document.getElementById('tab-' + t);
@@ -4296,42 +4296,27 @@ function deleteRetenRecord(id) {
   }
 
   // GLOBAL OVERRIDE: PATCH NATIVE switchTab TO PROPERLY HIDE ROSTER VIEW ON ANY TAB SWITCH
-  window.addEventListener('DOMContentLoaded', () => {
-    if (typeof window.switchTab === 'function') {
-      const originalSwitchTab = window.switchTab;
-      window.switchTab = function(tabName) {
-        // Automatically hide attendance view on any native tab switch
-        const attView = document.getElementById('view-attendance');
-        const attBtn = document.getElementById('tab-attendance');
-        if (attView) attView.classList.add('hidden');
-        if (attBtn) attBtn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
-        
-        // Execute original switch tab logic
-        originalSwitchTab(tabName);
-      };
-    }
-
-    // 1. INJECT "1. DAILY ATTENDANCE ROSTER" BUTTON IN NAVIGATION BAR
+ window.addEventListener('DOMContentLoaded', () => {
+    // 1. Inject "1. Daily Attendance Roster" button in Navigation Bar if missing
     const navFlexContainer = document.querySelector('main > div.bg-slate-800 > div.flex');
     if (navFlexContainer && !document.getElementById('tab-attendance')) {
       const btn = document.createElement('button');
       btn.id = 'tab-attendance';
-      btn.onclick = () => openAttendanceTabModule();
-      btn.className = 'tab-active py-4 px-5 text-sm flex items-center space-x-2 whitespace-nowrap';
+      btn.onclick = () => switchTab('attendance');
+      btn.className = 'py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap';
       btn.innerHTML = `<i class="fa-solid fa-calendar-days text-emerald-400"></i><span>1. Daily Attendance Roster</span>`;
       
       navFlexContainer.insertBefore(btn, navFlexContainer.firstChild);
     }
 
-    // 2. RENUMBER EXISTING TAB 1 (CHECKIN) ON LOAD & STRIP ACTIVE CLASS
+    // 2. Renumber tab 2 on load
     const checkinBtn = document.getElementById('tab-checkin');
     if (checkinBtn) {
-      checkinBtn.className = "py-4 px-5 text-sm text-slate-400 hover:text-slate-200 flex items-center space-x-2 whitespace-nowrap";
       const span = checkinBtn.querySelector('span');
       if (span) span.innerText = "2. Live CP3 Dashboard & Finalize";
     }
 
-    // 3. INJECT "MULTI-MONTH BATCH ROSTER MATRIX" INTO ADMIN DROPDOWN MENU
+    // 3. Inject Multi-Month Roster Matrix button into Admin Dropdown if missing
     const adminDropdown = document.getElementById('admin-menu-dropdown');
     if (adminDropdown && !document.getElementById('btn-admin-print-roster')) {
       const btn = document.createElement('button');
@@ -4342,20 +4327,7 @@ function deleteRetenRecord(id) {
       adminDropdown.appendChild(btn);
     }
 
-    // 4. INJECT EXPORT TO EXCEL BUTTON ON ADMIN CP3 BATCH CARD
-    const batchCardControls = document.querySelector('#view-admin .grid.grid-cols-1.md\\:grid-cols-3');
-    if (batchCardControls && !document.getElementById('btn-export-cp3-excel')) {
-      const div = document.createElement('div');
-      div.className = 'mt-2 md:mt-0';
-      div.innerHTML = `
-        <button id="btn-export-cp3-excel" onclick="exportMonthlyCp3BatchExcel()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs transition shadow flex items-center justify-center">
-          <i class="fa-solid fa-file-excel me-1.5"></i> Export CP3 Batch to Excel (.csv)
-        </button>
-      `;
-      batchCardControls.appendChild(div);
-    }
-
-    // 5. INJECT PERSONAL CALENDAR VIEW CONTAINER
+    // 4. Inject Attendance View Container if missing
     const mainEl = document.querySelector('main');
     const checkinView = document.getElementById('view-checkin');
     const currentYM = getCurrentYearMonthISO();
@@ -4363,11 +4335,9 @@ function deleteRetenRecord(id) {
     if (mainEl && !document.getElementById('view-attendance')) {
       const viewDiv = document.createElement('div');
       viewDiv.id = 'view-attendance';
-      viewDiv.className = 'space-y-6';
+      viewDiv.className = 'hidden space-y-6';
       viewDiv.innerHTML = `
         <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
-          
-          <!-- HEADER CONTROLS WITH MONTH PICKER, LOCK TOGGLE & TODAY BUTTON -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-4 gap-3">
             <div>
               <div class="flex items-center space-x-2">
@@ -4381,18 +4351,15 @@ function deleteRetenRecord(id) {
 
             <div class="flex flex-wrap items-center gap-2">
               <input type="month" id="att-month-select" value="${currentYM}" onchange="renderPersonalCalendarModule()" class="bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-xs rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer [color-scheme:dark]">
-              
               <button id="btn-toggle-roster-lock" onclick="toggleRosterLockModule()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0">
                 <i class="fa-solid fa-lock me-1.5"></i> Lock Roster Data
               </button>
-
               <button onclick="manualMarkTodayPresentModule()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0">
                 <i class="fa-solid fa-user-check me-1.5"></i> Mark Today Present
               </button>
             </div>
           </div>
 
-          <!-- STATUS LEGEND BADGES -->
           <div class="flex flex-wrap items-center gap-2 text-xs bg-slate-900/60 p-3 rounded-xl border border-slate-700">
             <span class="text-[10px] font-bold text-slate-400 uppercase me-1">Legend:</span>
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">P - Present</span>
@@ -4403,13 +4370,9 @@ function deleteRetenRecord(id) {
             <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-950 text-indigo-300 border border-indigo-700">MTC - MTAC</span>
           </div>
 
-          <!-- 7-COLUMN MONTHLY CALENDAR GRID -->
           <div class="overflow-x-auto rounded-xl border border-slate-700 bg-slate-900 p-3">
-            <div id="att-calendar-grid" class="grid grid-cols-7 gap-1.5 min-w-[600px] text-center">
-              <!-- Rendered Dynamically -->
-            </div>
+            <div id="att-calendar-grid" class="grid grid-cols-7 gap-1.5 min-w-[600px] text-center"></div>
           </div>
-
         </div>
       `;
 
@@ -4418,11 +4381,12 @@ function deleteRetenRecord(id) {
       } else {
         mainEl.appendChild(viewDiv);
       }
+    }
 
       // Force Tab 1 Landing Isolation
       setTimeout(openAttendanceTabModule, 100);
-    }
-
+ });
+  
     // 6. INJECT BATCH MULTI-MONTH ROSTER PRINT MODAL INTO BODY
     if (!document.getElementById('admin-roster-print-modal')) {
       const modal = document.createElement('div');
