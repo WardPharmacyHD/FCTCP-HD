@@ -4731,7 +4731,7 @@ if (document.readyState === 'loading') {
     }
   }
 
- function autoMarkPresentOnInterventionModule() {
+function autoMarkPresentOnInterventionModule() {
   if (!currentUser || !currentUser.name) return;
 
   const rawShiftDate = document.getElementById('global-shift-date')?.value;
@@ -4739,18 +4739,20 @@ if (document.readyState === 'loading') {
     ? normalizeToISO(rawShiftDate).split('T')[0] 
     : new Date().toISOString().split('T')[0];
 
-  // Unconditionally mark status as Present "P" for the logging user
-  saveAttendanceStatusModule(targetDate, currentUser.name, "P");
+  // Unconditionally mark status as Present "P", bypassing manual UI locks (true)
+  saveAttendanceStatusModule(targetDate, currentUser.name, "P", true);
 }
 
-async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
+async function saveAttendanceStatusModule(dateStr, targetUserName, status, bypassLock = false) {
   const monthVal = dateStr.substring(0, 7);
   const cleanUserName = String(targetUserName).trim();
   const userKey = cleanUserName.replace(/[^a-zA-Z0-9]/g, '_');
   const lockKey = `${monthVal}_${userKey}`;
 
-  if (rosterLocksData[lockKey] === true) {
+  // Block manual dropdown edits if locked, but allow system auto-bypasses
+  if (!bypassLock && rosterLocksData[lockKey] === true) {
     console.warn("Cannot edit attendance: Roster data for this month is locked.");
+    if (typeof showToast === 'function') showToast("Roster locked. Edit blocked.", "error");
     renderPersonalCalendarModule();
     return;
   }
