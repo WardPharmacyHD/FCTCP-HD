@@ -1111,7 +1111,9 @@
         </form>
       </div>
 
-    <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+<!-- LOGGED INTERVENTIONS LIST -->
+      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
+        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
             <h3 class="font-bold text-slate-100 text-sm">Logged Interventions (<span id="entry-count">0</span>)</h3>
             <p class="text-[11px] text-slate-400">Showing entries for your active ward location</p>
@@ -1134,6 +1136,10 @@
             </select>
           </div>
         </div>
+
+        <!-- THIS IS THE DIV THAT WENT MISSING -->
+        <div id="interventions-list" class="divide-y divide-slate-700/80"></div>
+      </div>
 
     <!-- TAB 3: DRUG INFORMATION ENQUIRIES LOG -->
     <div id="view-di" class="hidden space-y-6">
@@ -1188,9 +1194,11 @@
         </form>
       </div>
 
-    <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+<!-- LOGGED DRUG INFO ENQUIRIES LIST -->
+      <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
+        <div class="p-4 bg-slate-900/60 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
           <div>
-            <h3 class="font-bold text-slate-100 text-sm">My DI Enquiries (<span id="di-entry-count">0</span>)</h3>
+            <h3 class="font-bold text-slate-100 text-sm">Drug Info Enquiries (<span id="di-entry-count">0</span>)</h3>
             <p class="text-[11px] text-sky-400">Strictly filtered to your personal user profile</p>
           </div>
           <div class="flex items-center space-x-2 text-xs">
@@ -1211,6 +1219,10 @@
             </select>
           </div>
         </div>
+
+        <!-- THIS IS THE DIV THAT WENT MISSING -->
+        <div id="di-logs-list" class="divide-y divide-slate-700/80"></div>
+      </div>
 
     <!-- TAB 4: FOLLOW-UP REQUIRED SPREADSHEET CHECKLIST (EDITABLE) -->
     <div id="view-followup" class="hidden space-y-6">
