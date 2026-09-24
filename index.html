@@ -2047,101 +2047,95 @@
       }
     }
 
-    async function fetchCloudData() {
-      const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-      if (!activeUrl) return;
+async function fetchCloudData() {
+  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+  if (!activeUrl) return;
 
-      const extractArray = (json) => {
-        if (Array.isArray(json)) return json;
-        if (json && Array.isArray(json.data)) return json.data;
-        if (json && Array.isArray(json.result)) return json.result;
-        return null;
-      };
+  const extractArray = (json) => {
+    if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.data)) return json.data;
+    if (json && Array.isArray(json.result)) return json.result;
+    return null;
+  };
 
-      try {
-        const patientsUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Patients` : `${activeUrl}?sheet=Patients`;
-        const resPat = await fetch(patientsUrl);
-        if (resPat.ok) {
-          const rawPat = await resPat.json();
-          const cloudPat = extractArray(rawPat);
-          if (cloudPat && cloudPat.length > 0) {
-            patientsData = cloudPat;
-            localStorage.setItem('cp3_patients_db', JSON.stringify(patientsData));
-            populatePatientDatalists();
-          }
-        }
-
-        const resInt = await fetch(activeUrl);
-        if (resInt.ok) {
-          const rawInt = await resInt.json();
-          const cloudInt = extractArray(rawInt);
-          if (cloudInt && cloudInt.length > 0) {
-            interventionsData = cloudInt;
-            localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
-          }
-        }
-
-        const diUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=DrugInfo` : `${activeUrl}?sheet=DrugInfo`;
-        const resDi = await fetch(diUrl);
-        if (resDi.ok) {
-          const rawDi = await resDi.json();
-          const cloudDi = extractArray(rawDi);
-          if (cloudDi && cloudDi.length > 0) {
-            diLogsData = cloudDi;
-            localStorage.setItem('cp3_dilogs_db', JSON.stringify(diLogsData));
-          }
-        }
-
-        const checkinUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
-        const resCheck = await fetch(checkinUrl);
-        if (resCheck.ok) {
-          const rawCheck = await resCheck.json();
-          const cloudCheck = extractArray(rawCheck);
-          if (cloudCheck && cloudCheck.length > 0) {
-            cloudCheck.forEach(cloudSnap => {
-              const cloudId = String(cloudSnap.id || '').trim();
-              const idx = checkinsData.findIndex(c => String(c.id || '').trim() === cloudId);
-              if (idx === -1) {
-                checkinsData.push(cloudSnap);
-              } else {
-                const localTime = new Date(checkinsData[idx].updatedAt || 0).getTime();
-                const cloudTime = new Date(cloudSnap.updatedAt || 0).getTime();
-                if (cloudTime >= localTime) {
-                  checkinsData[idx] = cloudSnap;
-                }
-              }
-            });
-localStorage.setItem('cp3_checkins_db', JSON.stringify(checkinsData));
-        }
-      }
-      // ADDED: Pull Attendance Data from Cloud on Startup
-      const attUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
-      const resAtt = await fetch(attUrl);
-      if (resAtt.ok) {
-        const rawAtt = await resAtt.json();
-        const cloudAtt = extractArray(rawAtt);
-        if (cloudAtt && cloudAtt.length > 0) {
-          // Overwrite local attendance state with the latest cloud data
-          attendanceData = cloudAtt;
-          localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
-        }
-      }
-
-      loadActiveShiftSnapshot();
-      renderInterventions();
-      renderDiLogs();
-      updatePdfReport();
-      renderPfSummaryReport();
-      
-      // ADDED: Re-render the calendar if the user is actively viewing the Roster tab
-      const attView = document.getElementById('view-attendance');
-      if (attView && !attView.classList.contains('hidden')) {
-        renderPersonalCalendarModule();
-      }
-      } catch (err) {
-        console.warn("Using local cached records.", err);
+  try {
+    const patientsUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Patients` : `${activeUrl}?sheet=Patients`;
+    const resPat = await fetch(patientsUrl);
+    if (resPat.ok) {
+      const rawPat = await resPat.json();
+      const cloudPat = extractArray(rawPat);
+      if (cloudPat && cloudPat.length > 0) {
+        patientsData = cloudPat;
+        localStorage.setItem('cp3_patients_db', JSON.stringify(patientsData));
+        populatePatientDatalists();
       }
     }
+
+    const resInt = await fetch(activeUrl);
+    if (resInt.ok) {
+      const rawInt = await resInt.json();
+      const cloudInt = extractArray(rawInt);
+      if (cloudInt && cloudInt.length > 0) {
+        interventionsData = cloudInt;
+        localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
+      }
+    }
+
+    const diUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=DrugInfo` : `${activeUrl}?sheet=DrugInfo`;
+    const resDi = await fetch(diUrl);
+    if (resDi.ok) {
+      const rawDi = await resDi.json();
+      const cloudDi = extractArray(rawDi);
+      if (cloudDi && cloudDi.length > 0) {
+        diLogsData = cloudDi;
+        localStorage.setItem('cp3_dilogs_db', JSON.stringify(diLogsData));
+      }
+    }
+
+    const checkinUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
+    const resCheck = await fetch(checkinUrl);
+    if (resCheck.ok) {
+      const rawCheck = await resCheck.json();
+      const cloudCheck = extractArray(rawCheck);
+      if (cloudCheck && cloudCheck.length > 0) {
+        cloudCheck.forEach(cloudSnap => {
+          const cloudId = String(cloudSnap.id || '').trim();
+          const idx = checkinsData.findIndex(c => String(c.id || '').trim() === cloudId);
+          if (idx === -1) {
+            checkinsData.push(cloudSnap);
+          } else {
+            const localTime = new Date(checkinsData[idx].updatedAt || 0).getTime();
+            const cloudTime = new Date(cloudSnap.updatedAt || 0).getTime();
+            if (cloudTime >= localTime) {
+              checkinsData[idx] = cloudSnap;
+            }
+          }
+        });
+        localStorage.setItem('cp3_checkins_db', JSON.stringify(checkinsData));
+      }
+    }
+
+    const attUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
+    const resAtt = await fetch(attUrl);
+    if (resAtt.ok) {
+      const rawAtt = await resAtt.json();
+      const cloudAtt = extractArray(rawAtt);
+      if (cloudAtt && cloudAtt.length > 0) {
+        attendanceData = cloudAtt;
+        localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
+      }
+    }
+
+    loadActiveShiftSnapshot();
+    renderInterventions();
+    renderDiLogs();
+    updatePdfReport();
+    renderPfSummaryReport();
+    renderPersonalCalendarModule(); // FIX: Trigger calendar re-render once cloud data arrives
+  } catch (err) {
+    console.warn("Using local cached records.", err);
+  }
+}
 
     function showToast(message, type = 'success') {
       const container = document.getElementById('toast-container');
@@ -4582,129 +4576,132 @@ if (document.readyState === 'loading') {
   switchTab('attendance');
 }
 
-  function renderPersonalCalendarModule() {
-    const grid = document.getElementById('att-calendar-grid');
-    const currentYM = getCurrentYearMonthISO();
-    const monthVal = document.getElementById('att-month-select')?.value || currentYM;
-    if (!grid) return;
+function renderPersonalCalendarModule() {
+  const grid = document.getElementById('att-calendar-grid');
+  const currentYM = getCurrentYearMonthISO();
+  const monthVal = document.getElementById('att-month-select')?.value || currentYM;
+  if (!grid) return;
 
-    grid.innerHTML = '';
-    const [year, month] = monthVal.split('-').map(Number);
+  grid.innerHTML = '';
+  const [year, month] = monthVal.split('-').map(Number);
 
-    const activeUser = currentUser ? currentUser.name : "Anonymous";
-    const lockKey = `${monthVal}_${activeUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
-    const isLocked = rosterLocksData[lockKey] === true;
+  const activeUser = currentUser ? currentUser.name : "Anonymous";
+  const lockKey = `${monthVal}_${activeUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
+  const isLocked = rosterLocksData[lockKey] === true;
 
-    // Update UI Lock Controls
-    const badge = document.getElementById('att-lock-status-badge');
-    const lockBtn = document.getElementById('btn-toggle-roster-lock');
+  // Update UI Lock Controls
+  const badge = document.getElementById('att-lock-status-badge');
+  const lockBtn = document.getElementById('btn-toggle-roster-lock');
 
-    if (isLocked) {
-      if (badge) {
-        badge.innerText = "LOCKED (READ-ONLY)";
-        badge.className = "text-[10px] font-black uppercase px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-700";
-      }
-      if (lockBtn) {
-        lockBtn.innerText = "🔓 Unlock Roster (Admin Only)";
-        lockBtn.className = "bg-rose-900 hover:bg-rose-800 text-rose-200 font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0 border border-rose-700";
-      }
-    } else {
-      if (badge) {
-        badge.innerText = "UNLOCKED";
-        badge.className = "text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700";
-      }
-      if (lockBtn) {
-        lockBtn.innerText = "🔒 Lock Roster Data";
-        lockBtn.className = "bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0";
-      }
+  if (isLocked) {
+    if (badge) {
+      badge.innerText = "LOCKED (READ-ONLY)";
+      badge.className = "text-[10px] font-black uppercase px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-700";
+    }
+    if (lockBtn) {
+      lockBtn.innerText = "🔓 Unlock Roster (Admin Only)";
+      lockBtn.className = "bg-rose-900 hover:bg-rose-800 text-rose-200 font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0 border border-rose-700";
+    }
+  } else {
+    if (badge) {
+      badge.innerText = "UNLOCKED";
+      badge.className = "text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700";
+    }
+    if (lockBtn) {
+      lockBtn.innerText = "🔒 Lock Roster Data";
+      lockBtn.className = "bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-3 py-2 rounded-lg text-xs transition shadow flex items-center shrink-0";
+    }
+  }
+
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  days.forEach(d => {
+    const th = document.createElement('div');
+    th.className = 'py-2 font-bold text-xs text-slate-400 uppercase tracking-wider bg-slate-950 rounded';
+    th.innerText = d;
+    grid.appendChild(th);
+  });
+
+  const firstDayIndex = new Date(year, month - 1, 1).getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+
+  for (let i = 0; i < firstDayIndex; i++) {
+    const blank = document.createElement('div');
+    blank.className = 'bg-slate-950/40 rounded-lg min-h-[72px]';
+    grid.appendChild(blank);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
+
+    // FIX: Normalize cloud dates to YYYY-MM-DD and accept alternative user property names
+    const entry = attendanceData.find(a => {
+      if (!a || !a.date) return false;
+      const cleanADate = normalizeToISO(a.date).split('T')[0];
+      const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || '').trim().toUpperCase();
+      return cleanADate === dateStr && aUser === String(activeUser).trim().toUpperCase();
+    });
+    
+    let status = entry ? entry.status : (holidayName ? "PH" : "");
+    if (status === "K" || status === "M") status = "K/M/Adt";
+
+    const cell = document.createElement('div');
+    cell.className = `p-2 rounded-lg border min-h-[72px] flex flex-col justify-between select-none ${isLocked ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-800/80 border-slate-700/80'}`;
+
+    const dateHeaderContainer = document.createElement('div');
+    dateHeaderContainer.className = "flex flex-col items-center";
+
+    const dateHeader = document.createElement('span');
+    dateHeader.className = `text-xs font-mono font-bold ${status ? 'text-slate-200' : 'text-slate-400'}`;
+    dateHeader.innerText = day;
+    dateHeaderContainer.appendChild(dateHeader);
+
+    if (holidayName) {
+      const holLabel = document.createElement('span');
+      holLabel.className = "text-[9px] font-bold text-orange-400 leading-tight truncate max-w-[70px] mt-0.5";
+      holLabel.title = holidayName;
+      holLabel.innerText = holidayName;
+      dateHeaderContainer.appendChild(holLabel);
     }
 
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    days.forEach(d => {
-      const th = document.createElement('div');
-      th.className = 'py-2 font-bold text-xs text-slate-400 uppercase tracking-wider bg-slate-950 rounded';
-      th.innerText = d;
-      grid.appendChild(th);
+    const select = document.createElement('select');
+    select.disabled = isLocked;
+    select.className = `text-[10px] py-1 px-1 rounded border text-center font-bold mt-1 ${isLocked ? 'cursor-not-allowed opacity-75' : 'cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500'} [color-scheme:dark] ${
+      ATT_STATUS_STYLES[status] || 'bg-slate-900 text-slate-400 border-slate-700'
+    }`;
+
+    const options = [
+      { val: "", label: "- Clear -" },
+      { val: "P", label: "P - Present" },
+      { val: "CR/DO", label: "CR/DO - Leave/Off" },
+      { val: "K/M/Adt", label: "K/M/Adt - Kursus/Mtg/Audit" },
+      { val: "EL", label: "EL - Emergency" },
+      { val: "PH", label: "PH - Holiday" },
+      { val: "MTC", label: "MTC - MTAC" }
+    ];
+
+    options.forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt.val;
+      o.innerText = opt.label;
+      if (opt.val === status) o.selected = true;
+      select.appendChild(o);
     });
 
-    const firstDayIndex = new Date(year, month - 1, 1).getDay();
-    const daysInMonth = new Date(year, month, 0).getDate();
-
-    for (let i = 0; i < firstDayIndex; i++) {
-      const blank = document.createElement('div');
-      blank.className = 'bg-slate-950/40 rounded-lg min-h-[72px]';
-      grid.appendChild(blank);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
-
-      const entry = attendanceData.find(a => 
-        a.date === dateStr && 
-        String(a.user_name).toUpperCase() === String(activeUser).toUpperCase()
-      );
-      
-      let status = entry ? entry.status : (holidayName ? "PH" : "");
-      if (status === "K" || status === "M") status = "K/M/Adt";
-
-      const cell = document.createElement('div');
-      cell.className = `p-2 rounded-lg border min-h-[72px] flex flex-col justify-between select-none ${isLocked ? 'bg-slate-900/60 border-slate-800' : 'bg-slate-800/80 border-slate-700/80'}`;
-
-      const dateHeaderContainer = document.createElement('div');
-      dateHeaderContainer.className = "flex flex-col items-center";
-
-      const dateHeader = document.createElement('span');
-      dateHeader.className = `text-xs font-mono font-bold ${status ? 'text-slate-200' : 'text-slate-400'}`;
-      dateHeader.innerText = day;
-      dateHeaderContainer.appendChild(dateHeader);
-
-      if (holidayName) {
-        const holLabel = document.createElement('span');
-        holLabel.className = "text-[9px] font-bold text-orange-400 leading-tight truncate max-w-[70px] mt-0.5";
-        holLabel.title = holidayName;
-        holLabel.innerText = holidayName;
-        dateHeaderContainer.appendChild(holLabel);
-      }
-
-      const select = document.createElement('select');
-      select.disabled = isLocked;
-      select.className = `text-[10px] py-1 px-1 rounded border text-center font-bold mt-1 ${isLocked ? 'cursor-not-allowed opacity-75' : 'cursor-pointer focus:outline-none focus:ring-1 focus:ring-emerald-500'} [color-scheme:dark] ${
-        ATT_STATUS_STYLES[status] || 'bg-slate-900 text-slate-400 border-slate-700'
-      }`;
-
-      const options = [
-        { val: "", label: "- Clear -" },
-        { val: "P", label: "P - Present" },
-        { val: "CR/DO", label: "CR/DO - Leave/Off" },
-        { val: "K/M/Adt", label: "K/M/Adt - Kursus/Mtg/Audit" },
-        { val: "EL", label: "EL - Emergency" },
-        { val: "PH", label: "PH - Holiday" },
-        { val: "MTC", label: "MTC - MTAC" }
-      ];
-
-      options.forEach(opt => {
-        const o = document.createElement('option');
-        o.value = opt.val;
-        o.innerText = opt.label;
-        if (opt.val === status) o.selected = true;
-        select.appendChild(o);
-      });
-
-     const handleSelectChange = (e) => {
+    const handleSelectChange = (e) => {
       e.stopPropagation();
       const val = e.target.value;
       saveAttendanceStatusModule(dateStr, activeUser, val);
-      };
+    };
 
-      select.onchange = handleSelectChange;
-      select.oninput = handleSelectChange;
+    select.onchange = handleSelectChange;
+    select.oninput = handleSelectChange;
 
-      cell.appendChild(dateHeaderContainer);
-      cell.appendChild(select);
-      grid.appendChild(cell);
-    }
+    cell.appendChild(dateHeaderContainer);
+    cell.appendChild(select);
+    grid.appendChild(cell);
   }
+}
 
   // STRICT ROLE-BASED LOCK & UNLOCK FUNCTION
   function toggleRosterLockModule() {
@@ -4763,10 +4760,12 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
     status: status
   };
 
-  const existingIdx = attendanceData.findIndex(a => 
-    a.date === dateStr && 
-    String(a.user_name || '').trim().toUpperCase() === cleanUserName.toUpperCase()
-  );
+  const existingIdx = attendanceData.findIndex(a => {
+    if (!a || !a.date) return false;
+    const cleanADate = normalizeToISO(a.date).split('T')[0];
+    const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || '').trim().toUpperCase();
+    return cleanADate === dateStr && aUser === cleanUserName.toUpperCase();
+  });
 
   if (existingIdx !== -1) {
     attendanceData[existingIdx] = payload;
@@ -4775,7 +4774,6 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
   }
   localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
 
-  // Instantly re-render the attendance calendar grid
   renderPersonalCalendarModule();
 
   const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) 
@@ -4791,7 +4789,7 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
       fetch(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ data: [payload] })
+        body: JSON.stringify({ sheet: "Attendance", data: [payload] }) // FIX: Include sheet parameter in POST body
       }).catch(err => console.warn('Offline attendance update saved locally.'));
     } catch (err) {}
   }
