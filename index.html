@@ -2116,6 +2116,7 @@ async function fetchCloudData() {
     }
 
     // Attendance fetch with non-destructive merge & mobile cache busting
+// Attendance fetch reading 'shift_type' from Column E
     const attUrl = activeUrl.includes('?') 
       ? `${activeUrl}&sheet=Attendance&_t=${Date.now()}` 
       : `${activeUrl}?sheet=Attendance&_t=${Date.now()}`;
@@ -2128,21 +2129,41 @@ async function fetchCloudData() {
         cloudAtt.forEach(cloudRecord => {
           if (!cloudRecord || !cloudRecord.date) return;
           const cleanDate = normalizeToISO(cloudRecord.date).split('T')[0];
-          const cleanUser = String(cloudRecord.user_name || cloudRecord.userName || cloudRecord.user || '').trim();
+          const cleanUser = String(
+            cloudRecord.user_name || cloudRecord.userName || cloudRecord.user || cloudRecord.Pharmacist || ''
+          ).trim();
           if (!cleanUser) return;
           
-          const recordId = cloudRecord.id || `att-${cleanDate}-${cleanUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
+          // READS 'shift_type' FROM COLUMN E
+          const cloudStatus = String(
+            cloudRecord.shift_type || cloudRecord.status || cloudRecord.Status || cloudRecord.STATUS || ''
+          ).trim();
+          
+          const recordId = cloudRecord.id || cloudRecord.ID || `att-${cleanDate}-${cleanUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
 
-          const existingIdx = attendanceData.findIndex(a => a.id === recordId || isAttendanceMatch(a, cleanDate, cleanUser));
+          const existingIdx = attendanceData.findIndex(a => {
+            if (!a || !a.date) return false;
+            const cleanADate = normalizeToISO(a.date).split('T')[0];
+            const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || a.Pharmacist || '').trim().toUpperCase();
+            return (a.id === recordId) || (cleanADate === cleanDate && aUser === cleanUser.toUpperCase());
+          });
           
           if (existingIdx === -1) {
-            attendanceData.push({ ...cloudRecord, date: cleanDate, id: recordId });
+            if (cloudStatus !== "") {
+              attendanceData.push({ ...cloudRecord, date: cleanDate, user_name: cleanUser, shift_type: cloudStatus, status: cloudStatus, id: recordId });
+            }
           } else {
             const localRec = attendanceData[existingIdx];
-            const cloudTime = new Date(cloudRecord.updatedAt || 0).getTime();
-            const localTime = new Date(localRec.updatedAt || 0).getTime();
-            if (cloudTime >= localTime || !localRec.status) {
-              attendanceData[existingIdx] = { ...cloudRecord, date: cleanDate, id: recordId };
+            if (cloudStatus !== "") {
+              attendanceData[existingIdx] = { 
+                ...localRec, 
+                ...cloudRecord, 
+                date: cleanDate, 
+                user_name: cleanUser, 
+                shift_type: cloudStatus,
+                status: cloudStatus, 
+                id: recordId 
+              };
             }
           }
         });
@@ -4697,15 +4718,15 @@ function renderPersonalCalendarModule() {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
 
-    // FIX: Normalize cloud dates to YYYY-MM-DD and accept alternative user property names
     const entry = attendanceData.find(a => {
       if (!a || !a.date) return false;
       const cleanADate = normalizeToISO(a.date).split('T')[0];
-      const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || '').trim().toUpperCase();
+      const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || a.Pharmacist || '').trim().toUpperCase();
       return cleanADate === dateStr && aUser === String(activeUser).trim().toUpperCase();
     });
     
-    let status = entry ? entry.status : (holidayName ? "PH" : "");
+    // READS 'shift_type' FROM COLUMN E
+    let status = entry ? (entry.shift_type || entry.status || entry.Status || entry.STATUS || "") : (holidayName ? "PH" : "");
     if (status === "K" || status === "M") status = "K/M/Adt";
 
     const cell = document.createElement('div');
@@ -4819,20 +4840,27 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
   }
 
   const recordId = `att-${cleanDate}-${userKey}`;
+  const wardVal = document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE");
+
+  // EXACT MATCH FOR YOUR SHEET: Column E is 'shift_type'
   const payload = {
     id: recordId,
     sheet: "Attendance",
     sheetName: "Attendance",
     date: cleanDate,
-    ward: document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE"),
+    ward: wardVal,
     user_name: cleanUserName,
-    status: status,
+    shift_type: status, // Directly maps to Column E in Google Sheets
+    status: status,     // Keeps local database backwards-compatible
     updatedAt: new Date().toISOString()
   };
 
-  const existingIdx = attendanceData.findIndex(a => 
-    a.id === recordId || isAttendanceMatch(a, cleanDate, cleanUserName)
-  );
+  const existingIdx = attendanceData.findIndex(a => {
+    if (!a || !a.date) return false;
+    const cleanADate = normalizeToISO(a.date).split('T')[0];
+    const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || a.Pharmacist || '').trim().toUpperCase();
+    return (a.id === recordId) || (cleanADate === cleanDate && aUser === cleanUserName.toUpperCase());
+  });
 
   if (existingIdx !== -1) {
     attendanceData[existingIdx] = payload;
@@ -4841,7 +4869,7 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
   }
   localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
 
-  // Instantly re-render PC UI
+  // Instantly update local PC UI
   renderPersonalCalendarModule();
 
   const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) 
@@ -4854,7 +4882,6 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
         ? `${activeUrl}&sheet=Attendance` 
         : `${activeUrl}?sheet=Attendance`;
 
-      // Pass sheet inside JSON body so Google Apps Script never loses it on redirect
       fetch(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
