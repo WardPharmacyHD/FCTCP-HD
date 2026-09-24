@@ -2115,13 +2115,37 @@ async function fetchCloudData() {
       }
     }
 
-    const attUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
+    // Attendance fetch with non-destructive merge & mobile cache busting
+    const attUrl = activeUrl.includes('?') 
+      ? `${activeUrl}&sheet=Attendance&_t=${Date.now()}` 
+      : `${activeUrl}?sheet=Attendance&_t=${Date.now()}`;
+      
     const resAtt = await fetch(attUrl);
     if (resAtt.ok) {
       const rawAtt = await resAtt.json();
       const cloudAtt = extractArray(rawAtt);
       if (cloudAtt && cloudAtt.length > 0) {
-        attendanceData = cloudAtt;
+        cloudAtt.forEach(cloudRecord => {
+          if (!cloudRecord || !cloudRecord.date) return;
+          const cleanDate = normalizeToISO(cloudRecord.date).split('T')[0];
+          const cleanUser = String(cloudRecord.user_name || cloudRecord.userName || cloudRecord.user || '').trim();
+          if (!cleanUser) return;
+          
+          const recordId = cloudRecord.id || `att-${cleanDate}-${cleanUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
+          const existingIdx = attendanceData.findIndex(a => a.id === recordId || isAttendanceMatch(a, cleanDate, cleanUser));
+          
+          if (existingIdx === -1) {
+            attendanceData.push({ ...cloudRecord, date: cleanDate, id: recordId });
+          } else {
+            const localRec = attendanceData[existingIdx];
+            const cloudTime = new Date(cloudRecord.updatedAt || 0).getTime();
+            const localTime = new Date(localRec.updatedAt || 0).getTime();
+            if (cloudTime >= localTime || !localRec.status) {
+              attendanceData[existingIdx] = { ...cloudRecord, date: cleanDate, id: recordId };
+            }
+          }
+        });
         localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
       }
     }
@@ -2131,7 +2155,7 @@ async function fetchCloudData() {
     renderDiLogs();
     updatePdfReport();
     renderPfSummaryReport();
-    renderPersonalCalendarModule(); // FIX: Trigger calendar re-render once cloud data arrives
+    renderPersonalCalendarModule();
   } catch (err) {
     console.warn("Using local cached records.", err);
   }
@@ -4576,6 +4600,41 @@ if (document.readyState === 'loading') {
   switchTab('attendance');
 }
 
+// HELPER: Flexible Date & User Match Check
+function isAttendanceMatch(record, targetDateStr, targetUserName) {
+  if (!record || !record.date) return false;
+  const recordDateIso = normalizeToISO(record.date).split('T')[0];
+  const cleanTargetDate = normalizeToISO(targetDateStr).split('T')[0];
+  if (recordDateIso !== cleanTargetDate) return false;
+
+  const recordUser = String(record.user_name || record.userName || record.user || record.pharmacist_name || '').trim().toUpperCase();
+  const cleanTargetUser = String(targetUserName || '').trim().toUpperCase();
+
+  return recordUser === cleanTargetUser || recordUser.includes(cleanTargetUser) || cleanTargetUser.includes(recordUser);
+}
+
+// Button Click Handler
+function manualMarkTodayPresentModule() {
+  if (!currentUser || !currentUser.name) {
+    if (typeof showToast === 'function') showToast("Please log in first", "error");
+    return;
+  }
+  const rawShiftDate = document.getElementById('global-shift-date')?.value;
+  const targetDate = rawShiftDate 
+    ? normalizeToISO(rawShiftDate).split('T')[0] 
+    : new Date().toISOString().split('T')[0];
+
+  const monthSelect = document.getElementById('att-month-select');
+  if (monthSelect) {
+    monthSelect.value = targetDate.substring(0, 7);
+  }
+
+  saveAttendanceStatusModule(targetDate, currentUser.name, "P");
+  if (typeof showToast === 'function') {
+    showToast(`Marked ${currentUser.name} as Present (P) on ${formatDateDDMMYYYY(targetDate)}`, 'success');
+  }
+}
+  
 function renderPersonalCalendarModule() {
   const grid = document.getElementById('att-calendar-grid');
   const currentYM = getCurrentYearMonthISO();
