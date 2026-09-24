@@ -4600,15 +4600,19 @@ if (document.readyState === 'loading') {
   switchTab('attendance');
 }
 
-// HELPER: Flexible Date & User Match Check
+// HELPER: Flexible Date & User Match Check (Fixed empty string matching)
 function isAttendanceMatch(record, targetDateStr, targetUserName) {
   if (!record || !record.date) return false;
+  
   const recordDateIso = normalizeToISO(record.date).split('T')[0];
   const cleanTargetDate = normalizeToISO(targetDateStr).split('T')[0];
   if (recordDateIso !== cleanTargetDate) return false;
 
   const recordUser = String(record.user_name || record.userName || record.user || record.pharmacist_name || '').trim().toUpperCase();
   const cleanTargetUser = String(targetUserName || '').trim().toUpperCase();
+
+  // GUARD: Prevent empty strings from matching everything
+  if (!recordUser || !cleanTargetUser) return false;
 
   return recordUser === cleanTargetUser || recordUser.includes(cleanTargetUser) || cleanTargetUser.includes(recordUser);
 }
@@ -4800,8 +4804,11 @@ function renderPersonalCalendarModule() {
 }
 
 async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
-  const monthVal = dateStr.substring(0, 7);
-  const cleanUserName = String(targetUserName).trim();
+  const cleanDate = normalizeToISO(dateStr).split('T')[0];
+  const monthVal = cleanDate.substring(0, 7);
+  const cleanUserName = String(targetUserName || '').trim();
+  if (!cleanUserName) return;
+
   const userKey = cleanUserName.replace(/[^a-zA-Z0-9]/g, '_');
   const lockKey = `${monthVal}_${userKey}`;
 
@@ -4811,20 +4818,21 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
     return;
   }
 
+  const recordId = `att-${cleanDate}-${userKey}`;
   const payload = {
-    id: `att-${dateStr}-${userKey}`,
-    date: dateStr,
+    id: recordId,
+    sheet: "Attendance",
+    sheetName: "Attendance",
+    date: cleanDate,
     ward: document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE"),
     user_name: cleanUserName,
-    status: status
+    status: status,
+    updatedAt: new Date().toISOString()
   };
 
-  const existingIdx = attendanceData.findIndex(a => {
-    if (!a || !a.date) return false;
-    const cleanADate = normalizeToISO(a.date).split('T')[0];
-    const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || '').trim().toUpperCase();
-    return cleanADate === dateStr && aUser === cleanUserName.toUpperCase();
-  });
+  const existingIdx = attendanceData.findIndex(a => 
+    a.id === recordId || isAttendanceMatch(a, cleanDate, cleanUserName)
+  );
 
   if (existingIdx !== -1) {
     attendanceData[existingIdx] = payload;
@@ -4833,6 +4841,7 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
   }
   localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
 
+  // Instantly re-render PC UI
   renderPersonalCalendarModule();
 
   const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) 
@@ -4845,10 +4854,16 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
         ? `${activeUrl}&sheet=Attendance` 
         : `${activeUrl}?sheet=Attendance`;
 
+      // Pass sheet inside JSON body so Google Apps Script never loses it on redirect
       fetch(targetUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ sheet: "Attendance", data: [payload] }) // FIX: Include sheet parameter in POST body
+        body: JSON.stringify({ 
+          action: "save",
+          sheet: "Attendance", 
+          sheetName: "Attendance", 
+          data: [payload] 
+        })
       }).catch(err => console.warn('Offline attendance update saved locally.'));
     } catch (err) {}
   }
