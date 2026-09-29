@@ -2059,6 +2059,62 @@ async function fetchCloudData() {
   };
 
   try {
+    // 1. FETCH & MERGE USER PROFILES (PINs, Roles, Wards across devices)
+    const usersUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Users&_t=${Date.now()}` : `${activeUrl}?sheet=Users&_t=${Date.now()}`;
+    const resUsers = await fetch(usersUrl);
+    if (resUsers.ok) {
+      const rawUsers = await resUsers.json();
+      const cloudUsers = extractArray(rawUsers);
+      if (cloudUsers && cloudUsers.length > 0) {
+        cloudUsers.forEach(u => {
+          const key = (u.username || u.id || '').toLowerCase().trim();
+          if (!key) return;
+
+          const localUser = PIN_DATABASE[key];
+          const cloudTime = new Date(u.updatedAt || 0).getTime();
+          const localTime = new Date(localUser?.updatedAt || 0).getTime();
+
+          if (!localUser || cloudTime >= localTime) {
+            PIN_DATABASE[key] = {
+              pin: String(u.pin),
+              name: u.name,
+              ward: u.ward,
+              role: u.role,
+              updatedAt: u.updatedAt || new Date().toISOString()
+            };
+          }
+        });
+
+        localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
+        
+        const activeKey = localStorage.getItem('active_user_key');
+        if (activeKey && PIN_DATABASE[activeKey]) {
+          currentUser = PIN_DATABASE[activeKey];
+          applyUserSessionUI();
+        }
+        populateUserLoginDropdown();
+        renderUserDirectoryTable();
+      }
+    }
+
+    // 2. FETCH & MERGE ROSTER LOCK STATES across devices
+    const locksUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=RosterLocks&_t=${Date.now()}` : `${activeUrl}?sheet=RosterLocks&_t=${Date.now()}`;
+    const resLocks = await fetch(locksUrl);
+    if (resLocks.ok) {
+      const rawLocks = await resLocks.json();
+      const cloudLocks = extractArray(rawLocks);
+      if (cloudLocks && cloudLocks.length > 0) {
+        cloudLocks.forEach(l => {
+          if (l.id) {
+            const isLock = String(l.isLocked).toUpperCase() === "YES" || l.isLocked === true;
+            rosterLocksData[l.id] = isLock;
+          }
+        });
+        localStorage.setItem('cp3_roster_locks_db', JSON.stringify(rosterLocksData));
+      }
+    }
+
+    // 3. PATIENTS
     const patientsUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Patients` : `${activeUrl}?sheet=Patients`;
     const resPat = await fetch(patientsUrl);
     if (resPat.ok) {
@@ -2071,6 +2127,7 @@ async function fetchCloudData() {
       }
     }
 
+    // 4. INTERVENTIONS
     const resInt = await fetch(activeUrl);
     if (resInt.ok) {
       const rawInt = await resInt.json();
@@ -2081,6 +2138,7 @@ async function fetchCloudData() {
       }
     }
 
+    // 5. DRUG INFO
     const diUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=DrugInfo` : `${activeUrl}?sheet=DrugInfo`;
     const resDi = await fetch(diUrl);
     if (resDi.ok) {
@@ -2092,6 +2150,7 @@ async function fetchCloudData() {
       }
     }
 
+    // 6. CHECKIN / SHIFT SNAPSHOTS
     const checkinUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=CheckIn` : `${activeUrl}?sheet=CheckIn`;
     const resCheck = await fetch(checkinUrl);
     if (resCheck.ok) {
@@ -2115,8 +2174,7 @@ async function fetchCloudData() {
       }
     }
 
-    // Attendance fetch with non-destructive merge & mobile cache busting
-// Attendance fetch reading 'shift_type' from Column E
+    // 7. ATTENDANCE (READS shift_type FROM COLUMN E)
     const attUrl = activeUrl.includes('?') 
       ? `${activeUrl}&sheet=Attendance&_t=${Date.now()}` 
       : `${activeUrl}?sheet=Attendance&_t=${Date.now()}`;
@@ -2134,7 +2192,6 @@ async function fetchCloudData() {
           ).trim();
           if (!cleanUser) return;
           
-          // READS 'shift_type' FROM COLUMN E
           const cloudStatus = String(
             cloudRecord.shift_type || cloudRecord.status || cloudRecord.Status || cloudRecord.STATUS || ''
           ).trim();
@@ -2294,6 +2351,7 @@ async function fetchCloudData() {
         PIN_DATABASE[activeKey].pin = newPin;
         currentUser.pin = newPin;
         localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
+        syncUsersToCloud();
         renderUserDirectoryTable();
         closeChangePinModal();
         showToast('Security PIN updated successfully!', 'success');
@@ -2332,6 +2390,7 @@ async function fetchCloudData() {
       PIN_DATABASE[key].role = document.getElementById('edit-user-role').value;
 
       localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
+      syncUsersToCloud();
 
       if (localStorage.getItem('active_user_key') === key) {
         currentUser = PIN_DATABASE[key];
@@ -2593,6 +2652,7 @@ async function fetchCloudData() {
 
       PIN_DATABASE[key] = { pin, name, ward, role };
       localStorage.setItem('registered_users_db', JSON.stringify(PIN_DATABASE));
+      syncUsersToCloud();
       
       populateUserLoginDropdown();
       renderUserDirectoryTable();
@@ -4895,31 +4955,85 @@ function renderPersonalCalendarModule() {
   }
 }
 
-  // STRICT ROLE-BASED LOCK & UNLOCK FUNCTION
-  function toggleRosterLockModule() {
-    const monthVal = document.getElementById('att-month-select')?.value || getCurrentYearMonthISO();
-    const activeUser = currentUser ? currentUser.name : "Anonymous";
-    const lockKey = `${monthVal}_${activeUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
-    const currentlyLocked = rosterLocksData[lockKey] === true;
+// STRICT ROLE-BASED LOCK & UNLOCK FUNCTION (WITH CLOUD SYNC)
+async function toggleRosterLockModule() {
+  const monthVal = document.getElementById('att-month-select')?.value || getCurrentYearMonthISO();
+  const activeUser = currentUser ? currentUser.name : "Anonymous";
+  const userKey = activeUser.replace(/[^a-zA-Z0-9]/g, '_');
+  const lockKey = `${monthVal}_${userKey}`;
+  const currentlyLocked = rosterLocksData[lockKey] === true;
 
-    const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
+  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
 
-    // Strictly enforce Admin permission to unlock
-    if (currentlyLocked && !isAdmin) {
-      alert("Access Denied: Roster data for this month is locked for data integrity. Only system Administrators can unlock finalized roster schedules.");
-      return;
-    }
-
-    rosterLocksData[lockKey] = !currentlyLocked;
-    localStorage.setItem('cp3_roster_locks_db', JSON.stringify(rosterLocksData));
-
-    renderPersonalCalendarModule();
-
-    if (typeof showToast === 'function') {
-      showToast(`Roster for ${monthVal} ${rosterLocksData[lockKey] ? 'LOCKED (Read-Only)' : 'UNLOCKED by Admin'}`, 'success');
-    }
+  // Strictly enforce Admin permission to unlock
+  if (currentlyLocked && !isAdmin) {
+    alert("Access Denied: Roster data for this month is locked for data integrity. Only system Administrators can unlock finalized roster schedules.");
+    return;
   }
 
+  const newLockState = !currentlyLocked;
+  rosterLocksData[lockKey] = newLockState;
+  localStorage.setItem('cp3_roster_locks_db', JSON.stringify(rosterLocksData));
+
+  renderPersonalCalendarModule();
+
+  if (typeof showToast === 'function') {
+    showToast(`Roster for ${monthVal} ${newLockState ? 'LOCKED (Read-Only)' : 'UNLOCKED by Admin'}`, 'success');
+  }
+
+  // SYNC LOCK STATE TO GOOGLE SHEETS
+  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+  if (activeUrl) {
+    try {
+      const targetUrl = activeUrl.includes('?') 
+        ? `${activeUrl}&sheet=RosterLocks` 
+        : `${activeUrl}?sheet=RosterLocks`;
+
+      const payload = {
+        id: lockKey,
+        month: monthVal,
+        user_name: activeUser,
+        isLocked: newLockState ? "YES" : "NO",
+        updatedAt: new Date().toISOString()
+      };
+
+      fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ sheet: "RosterLocks", sheetName: "RosterLocks", data: [payload] })
+      }).catch(err => console.warn('Offline lock state saved locally.'));
+    } catch (e) {}
+  }
+}
+
+// HELPER: Sync User Profiles to Cloud
+async function syncUsersToCloud() {
+  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
+  if (!activeUrl) return;
+
+  const userPayloads = Object.entries(PIN_DATABASE).map(([key, val]) => ({
+    id: key,
+    username: key,
+    name: val.name,
+    ward: val.ward || '',
+    pin: val.pin,
+    role: val.role || 'user',
+    updatedAt: val.updatedAt || new Date().toISOString()
+  }));
+
+  try {
+    const targetUrl = activeUrl.includes('?') 
+      ? `${activeUrl}&sheet=Users` 
+      : `${activeUrl}?sheet=Users`;
+
+    fetch(targetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ sheet: "Users", sheetName: "Users", data: userPayloads })
+    }).catch(err => console.warn('User database sync offline. Saved locally.'));
+  } catch (err) {}
+}
+  
  function autoMarkPresentOnInterventionModule() {
   if (!currentUser || !currentUser.name) return;
 
