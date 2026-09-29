@@ -2270,6 +2270,8 @@ async function fetchCloudData() {
       }, 4000);
     }
 
+
+    
     function formatDateDDMMYYYY(dateStr) {
       if (!dateStr || dateStr === "N/A") return "N/A";
       const clean = normalizeToISO(dateStr).split('T')[0];
@@ -4886,15 +4888,22 @@ function renderPersonalCalendarModule() {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
 
+    const cleanActiveUser = String(activeUser).trim();
+    const editKey = `${dateStr}_${cleanActiveUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const pendingEdit = (typeof unsavedRosterChanges !== 'undefined') ? unsavedRosterChanges[editKey] : null;
+
     const entry = attendanceData.find(a => {
       if (!a || !a.date) return false;
       const cleanADate = normalizeToISO(a.date).split('T')[0];
       const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || a.Pharmacist || '').trim().toUpperCase();
-      return cleanADate === dateStr && aUser === String(activeUser).trim().toUpperCase();
+      return cleanADate === dateStr && aUser === cleanActiveUser.toUpperCase();
     });
     
-    // READS 'shift_type' FROM COLUMN E
-    let status = entry ? (entry.shift_type || entry.status || entry.Status || entry.STATUS || "") : (holidayName ? "PH" : "");
+    // Reads pending edit first, fallback to cloud entry (shift_type / status)
+    let status = pendingEdit 
+      ? pendingEdit.status 
+      : (entry ? (entry.shift_type || entry.status || entry.Status || entry.STATUS || "") : (holidayName ? "PH" : ""));
+
     if (status === "K" || status === "M") status = "K/M/Adt";
 
     const cell = document.createElement('div');
@@ -4940,14 +4949,13 @@ function renderPersonalCalendarModule() {
       select.appendChild(o);
     });
 
-    const handleSelectChange = (e) => {
+    // Mobile fix: Handle change only when user confirms selection
+    select.onchange = (e) => {
       e.stopPropagation();
       const val = e.target.value;
       saveAttendanceStatusModule(dateStr, activeUser, val);
     };
-
-    select.onchange = handleSelectChange;
-    select.oninput = handleSelectChange;
+    select.oninput = null; // Explicitly nullify oninput to stop mobile scroll events
 
     cell.appendChild(dateHeaderContainer);
     cell.appendChild(select);
@@ -5046,6 +5054,144 @@ async function syncUsersToCloud() {
   saveAttendanceStatusModule(targetDate, currentUser.name, "P");
 }
 
+// TRACK UNSAVED ROSTER EDITS
+let unsavedRosterChanges = {};
+
+function markRosterTileDirty(dateStr, targetUserName, newStatus) {
+  const cleanDate = normalizeToISO(dateStr).split('T')[0];
+  const cleanUser = String(targetUserName || '').trim();
+  const key = `${cleanDate}_${cleanUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
+
+  unsavedRosterChanges[key] = {
+    date: cleanDate,
+    userName: cleanUser,
+    status: newStatus
+  };
+
+  showRosterSaveBar();
+}
+
+function showRosterSaveBar() {
+  let bar = document.getElementById('roster-save-bar');
+  const count = Object.keys(unsavedRosterChanges).length;
+
+  if (count === 0) {
+    if (bar) bar.classList.add('hidden');
+    return;
+  }
+
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'roster-save-bar';
+    bar.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] bg-slate-800 border-2 border-emerald-500 text-slate-100 px-5 py-3 rounded-2xl shadow-2xl flex items-center space-x-4 max-w-md w-full justify-between';
+    document.body.appendChild(bar);
+  }
+
+  bar.innerHTML = `
+    <div class="flex items-center space-x-2">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+      <span class="text-xs font-bold text-emerald-300"><span id="roster-pending-count">${count}</span> unsaved roster edit(s)</span>
+    </div>
+    <div class="flex items-center space-x-2">
+      <button onclick="discardPendingRosterEdits()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs px-3 py-1.5 rounded-lg font-semibold transition">
+        Discard
+      </button>
+      <button onclick="confirmAndSaveRosterEdits()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-4 py-1.5 rounded-lg font-bold shadow-lg transition flex items-center space-x-1">
+        <i class="fa-solid fa-floppy-disk me-1"></i> Save Changes
+      </button>
+    </div>
+  `;
+  bar.classList.remove('hidden');
+}
+
+function discardPendingRosterEdits() {
+  unsavedRosterChanges = {};
+  showRosterSaveBar();
+  renderPersonalCalendarModule();
+  if (typeof showToast === 'function') showToast("Roster changes discarded", "error");
+}
+
+async function confirmAndSaveRosterEdits() {
+  const keys = Object.keys(unsavedRosterChanges);
+  if (keys.length === 0) return;
+
+  showLoading(`Saving ${keys.length} roster update(s)...`);
+
+  try {
+    const payloads = [];
+
+    keys.forEach(k => {
+      const edit = unsavedRosterChanges[k];
+      const monthVal = edit.date.substring(0, 7);
+      const userKey = edit.userName.replace(/[^a-zA-Z0-9]/g, '_');
+      const recordId = `att-${edit.date}-${userKey}`;
+      const wardVal = document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE");
+
+      const payload = {
+        id: recordId,
+        sheet: "Attendance",
+        sheetName: "Attendance",
+        date: edit.date,
+        ward: wardVal,
+        user_name: edit.userName,
+        shift_type: edit.status,
+        status: edit.status,
+        updatedAt: new Date().toISOString()
+      };
+
+      payloads.push(payload);
+
+      const existingIdx = attendanceData.findIndex(a => {
+        if (!a || !a.date) return false;
+        const cleanADate = normalizeToISO(a.date).split('T')[0];
+        const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || a.Pharmacist || '').trim().toUpperCase();
+        return (a.id === recordId) || (cleanADate === edit.date && aUser === edit.userName.toUpperCase());
+      });
+
+      if (existingIdx !== -1) {
+        attendanceData[existingIdx] = payload;
+      } else {
+        attendanceData.push(payload);
+      }
+    });
+
+    localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
+
+    // Clear buffer
+    unsavedRosterChanges = {};
+    showRosterSaveBar();
+    renderPersonalCalendarModule();
+
+    // Push to Google Sheets API
+    const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) 
+      ? sheetDbApiUrl 
+      : (typeof defaultSheetDbUrl !== 'undefined' ? defaultSheetDbUrl : "");
+
+    if (activeUrl) {
+      const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
+      await fetch(targetUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: "save",
+          sheet: "Attendance",
+          sheetName: "Attendance",
+          data: payloads
+        })
+      });
+    }
+
+    if (typeof showToast === 'function') showToast("Roster saved & synced successfully!", "success");
+  } catch (err) {
+    console.warn("Saved locally, cloud sync pending.");
+    if (typeof showToast === 'function') showToast("Saved locally (Offline/Sync pending)", "error");
+  } finally {
+    hideLoading();
+  }
+}
+
+// Single-date direct save (used for Mark Today Present button)
+// Single-date direct save & instant cloud push
 async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
   const cleanDate = normalizeToISO(dateStr).split('T')[0];
   const monthVal = cleanDate.substring(0, 7);
@@ -5064,16 +5210,24 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
   const recordId = `att-${cleanDate}-${userKey}`;
   const wardVal = document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE");
 
-  // EXACT MATCH FOR YOUR SHEET: Column E is 'shift_type'
+  // Exact match for Column E ('shift_type') in Google Sheets
   const payload = {
     id: recordId,
+    ID: recordId,
     sheet: "Attendance",
     sheetName: "Attendance",
     date: cleanDate,
+    Date: cleanDate,
     ward: wardVal,
+    Ward: wardVal,
     user_name: cleanUserName,
-    shift_type: status, // Directly maps to Column E in Google Sheets
-    status: status,     // Keeps local database backwards-compatible
+    userName: cleanUserName,
+    'User Name': cleanUserName,
+    pharmacist_name: cleanUserName,
+    Pharmacist: cleanUserName,
+    shift_type: status, // Column E match
+    status: status,     // Local fallback
+    Status: status,
     updatedAt: new Date().toISOString()
   };
 
@@ -5091,9 +5245,10 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
   }
   localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
 
-  // Instantly update local PC UI
+  // Instantly re-render local UI grid
   renderPersonalCalendarModule();
 
+  // POST directly to Google Sheets API
   const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) 
     ? sheetDbApiUrl 
     : (typeof defaultSheetDbUrl !== 'undefined' ? defaultSheetDbUrl : "");
@@ -5111,13 +5266,13 @@ async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
           action: "save",
           sheet: "Attendance", 
           sheetName: "Attendance", 
-          data: [payload] 
+          data: [payload],
+          ...payload
         })
       }).catch(err => console.warn('Offline attendance update saved locally.'));
     } catch (err) {}
   }
 }
-
   // =========================================================
   // EXCEL CSV EXPORTER LOGIC (ROSTER & CP3 BATCH)
   // =========================================================
