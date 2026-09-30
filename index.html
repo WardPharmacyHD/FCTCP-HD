@@ -1251,6 +1251,16 @@
  @media (max-width: 640px) { .app-nav { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); } .app-nav-group { width: 100%; } .app-nav-button { font-size: .7rem; } .information-page-heading { align-items: flex-start; } .information-prose { font-size: .85rem; } }
 }
 </style>
+<style id="cloud-sync-status-style">@media screen {
+.sync-health-panel { padding: .8rem 1rem; border: 1px solid #475569; border-radius: 5px; background: #0f172a; color: #cbd5e1; font-size: .75rem; }
+.sync-health-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.sync-health-actions { display: flex; flex-wrap: wrap; gap: .4rem; }
+.sync-health-panel button { border: 1px solid #475569; border-radius: 4px; padding: .35rem .6rem; background: #334155; color: #f1f5f9; white-space: nowrap; }
+.sync-conflict-row { padding-top: .7rem; margin-top: .7rem; border-top: 1px solid #475569; }
+.sync-conflict-row p { margin-bottom: .4rem; color: #fcd34d; }
+.sync-conflict-row button { margin-right: .5rem; }
+@media(max-width:640px){.sync-health-heading { align-items: flex-start; flex-direction: column; gap: .5rem; }}
+}</style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col relative pb-8">
 
@@ -1657,6 +1667,7 @@
          Static HTML container; behavior is supplied by the Attendance module.
          ========================================================= -->
     <div id="view-attendance" class="view-panel hidden space-y-6">
+<section class="sync-health-panel no-print"><div class="sync-health-heading"><p data-sync-status role="status" aria-live="polite">Checking cloud connection…</p><div class="sync-health-actions"><button type="button" onclick="syncManagedData()">Retry / Refresh cloud</button><button type="button" onclick="exportManagedSyncBackup()">Export sync backup</button></div></div><div data-sync-conflicts></div></section>
 
       <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-4 gap-3">
@@ -2787,6 +2798,7 @@
 
 <!-- VIEW: DEDICATED MANUAL RETEN INPUT MODULE -->
 <div id="view-reten-input" class="view-panel hidden space-y-6">
+<section class="sync-health-panel no-print"><div class="sync-health-heading"><p data-sync-status role="status" aria-live="polite">Checking cloud connection…</p><div class="sync-health-actions"><button type="button" onclick="syncManagedData()">Retry / Refresh cloud</button><button type="button" onclick="exportManagedSyncBackup()">Export sync backup</button></div></div><div data-sync-conflicts></div></section>
   <div class="bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-700 space-y-4">
     
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700 pb-3 gap-3">
@@ -3019,6 +3031,185 @@
     let followUpData = safeJsonParse('cp3_followup_db', []);
     let attendanceData = safeJsonParse('cp3_attendance_db', []);
     let rosterLocksData = safeJsonParse('cp3_roster_locks_db', {});
+
+/* Checked cloud sync for Attendance, MonthlyReten and RosterLocks. */
+var cpSyncQueue = safeJsonParse('cp3_sync_queue_v2', {});
+var cpSyncConflicts = safeJsonParse('cp3_sync_conflicts_v2', []);
+var cpSyncCloud = { Attendance: [], MonthlyReten: [], RosterLocks: [] };
+var cpSyncTask = null;
+var cpSyncMessage = 'Checking cloud connection…';
+var cpSyncLastSuccess = '';
+if(localStorage.getItem('cp3_attendance_before_cloud_v2')===null)localStorage.setItem('cp3_attendance_before_cloud_v2',JSON.stringify(attendanceData));
+function cpSyncEndpoint() { return sheetDbApiUrl || defaultSheetDbUrl || ''; }
+function cpSyncKey(sheet, row) {
+  const user = String(row.user_name || row.userName || row.Pharmacist || '').trim().toUpperCase();
+  if (sheet === 'Attendance') return sheet+'|'+normalizeToISO(row.date).split('T')[0]+'|'+user;
+  if (sheet === 'MonthlyReten') return sheet+'|'+String(row.month).slice(0,7)+'|'+String(row.ward||'').trim().toUpperCase()+'|'+user;
+  return sheet+'|'+String(row.id||'').trim();
+}
+function cpSyncStorage() {
+  localStorage.setItem('cp3_sync_queue_v2', JSON.stringify(cpSyncQueue));
+  localStorage.setItem('cp3_sync_conflicts_v2', JSON.stringify(cpSyncConflicts));
+}
+function cpSyncRows(sheet) {
+  if(sheet==='Attendance')return attendanceData;
+  if(sheet==='MonthlyReten')return safeJsonParse('cp3_reten_input_db', []);
+  return cpSyncCloud.RosterLocks;
+}
+function cpSyncPersistRows(sheet, rows) {
+  if(sheet==='Attendance') {attendanceData=rows;localStorage.setItem('cp3_attendance_db',JSON.stringify(rows));}
+  if(sheet==='MonthlyReten')localStorage.setItem('cp3_reten_input_db',JSON.stringify(rows.filter(row=>!cpSyncDeleted(row))));
+  if(sheet==='RosterLocks') {
+    rosterLocksData={};rows.forEach(row=>rosterLocksData[row.id]=/^(YES|TRUE|1)$/i.test(String(row.isLocked)));
+    localStorage.setItem('cp3_roster_locks_db',JSON.stringify(rosterLocksData));
+  }
+}
+function cpSyncDeleted(row) { return row && /^(true|yes|1)$/i.test(String(row.deleted)); }
+function cpSyncOverlay(sheet, rows) {
+  const map = new Map();
+  rows.forEach(row=>{
+    const key=cpSyncKey(sheet,row), old=map.get(key);
+    if(!old || Number(row.syncVersion||0)>Number(old.syncVersion||0) || (Number(row.syncVersion||0)===Number(old.syncVersion||0) && Date.parse(row.updatedAt||0)>Date.parse(old.updatedAt||0)))map.set(key,row);
+  });
+  Object.values(cpSyncQueue).filter(op=>op.sheet===sheet && op.endpoint===cpSyncEndpoint()).forEach(op=>map.set(op.key,{...op.record,deleted:op.action==='delete'}));
+  return [...map.values()];
+}
+function cpSyncApply(sheet, record, key) {
+  let rows=cpSyncRows(sheet).filter(row=>cpSyncKey(sheet,row)!==key);
+  if(record && !(sheet==='MonthlyReten' && cpSyncDeleted(record)))rows.push(record);
+  cpSyncPersistRows(sheet,rows);
+}
+function cpSyncEnqueue(sheet, record, action='save', intent='edit') {
+  const key=cpSyncKey(sheet,record), previous=cpSyncQueue[key];
+  const existing=cpSyncRows(sheet).find(row=>cpSyncKey(sheet,row)===key) || cpSyncCloud[sheet].find(row=>cpSyncKey(sheet,row)===key);
+  const baseVersion=previous ? previous.baseVersion : Number(record.syncVersion ?? existing?.syncVersion ?? 0);
+  const mutationId=typeof crypto!=='undefined' && crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2);
+  cpSyncQueue[key]={key,sheet,record:{...record,updatedAt:new Date().toISOString()},action,intent,baseVersion,mutationId,endpoint:cpSyncEndpoint()};
+  cpSyncStorage();
+  cpSyncApply(sheet, {...record,deleted:action==='delete'}, key);
+  cpSyncMessage='Saved on this device; waiting for cloud confirmation.';
+  cpSyncRender();
+  return cpSyncQueue[key];
+}
+async function cpSyncRequest(sheet, body) {
+  const endpoint=cpSyncEndpoint();if(!endpoint)throw new Error('API endpoint not configured');
+  const url=new URL(endpoint);url.searchParams.set('sheet',sheet);url.searchParams.set('sync','1');
+  if(!body)url.searchParams.set('_t',String(Date.now()));
+  const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),25000);
+  try {
+    const response=await fetch(url.href,body ? {method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),signal:controller.signal} : {cache:'no-store',signal:controller.signal});
+    if(!response.ok)throw new Error('Cloud request failed');
+    const result=await response.json();
+    if(result.status!=='success' || result.apiVersion!==2)throw new Error(result.message || 'Deploy the updated Apps Script API first');
+    if(!body && !Array.isArray(result.data))throw new Error('Invalid cloud response');
+    if(body && !Array.isArray(result.results))throw new Error('Missing save confirmation');
+    return result;
+  } finally {clearTimeout(timer);}
+}
+async function cpSyncFlush() {
+  // Snapshot the keys, but pick the current operation just before each request.
+  for(const key of Object.keys(cpSyncQueue)) {
+    const op=cpSyncQueue[key];if(!op || op.endpoint!==cpSyncEndpoint())continue;
+    const result=await cpSyncRequest(op.sheet,{action:op.action,sheet:op.sheet,data:[{...op.record,baseVersion:op.baseVersion,mutationId:op.mutationId,intent:op.intent}]});
+    const ack=result.results.find(row=>String(row.id)===String(op.record.id));
+    if(!ack || !['saved','conflict','locked'].includes(ack.status))throw new Error('Record was not acknowledged');
+    const newest=cpSyncQueue[key];
+    if(ack.status==='saved') {
+      if(!ack.record)throw new Error('Save confirmation has no record');
+      cpSyncCloud[op.sheet]=cpSyncCloud[op.sheet].filter(row=>cpSyncKey(op.sheet,row)!==key).concat(ack.record);
+      if(newest?.mutationId===op.mutationId){delete cpSyncQueue[key];cpSyncApply(op.sheet,ack.record,key);}
+      else if(newest){newest.baseVersion=Number(ack.record.syncVersion||0);newest.record.syncVersion=newest.baseVersion;}
+    } else {
+      // Retain the attempted edit for an explicit review; never overwrite silently.
+      if(newest?.mutationId===op.mutationId) {
+        delete cpSyncQueue[key];
+        if(op.intent!=='if_empty')cpSyncConflicts.push({...op,cloud:ack.record,reason:ack.message||ack.status});
+        cpSyncApply(op.sheet,ack.record,key);
+      } else if(newest) {
+        delete cpSyncQueue[key];
+        cpSyncConflicts.push({...newest,cloud:ack.record,reason:'Another device changed this record'});
+        cpSyncApply(op.sheet,ack.record,key);
+      }
+      if(op.intent!=='if_empty')showToast('Another device changed or locked this record. Review the sync conflict below.','error');
+    }
+    cpSyncStorage();
+  }
+}
+async function syncManagedData() {
+  if(cpSyncTask)return cpSyncTask;
+  cpSyncTask=(async()=>{
+    try {
+      await cpSyncFlush();
+      for(const sheet of ['Attendance','MonthlyReten','RosterLocks']) {
+        const result=await cpSyncRequest(sheet);
+        cpSyncCloud[sheet]=result.data;
+        if(sheet==='MonthlyReten')cpSyncMigrateReten(result.data);
+        cpSyncPersistRows(sheet,cpSyncOverlay(sheet,result.data));
+      }
+      await cpSyncFlush();
+      cpSyncLastSuccess=new Date().toLocaleTimeString();
+      cpSyncMessage='Cloud synchronized at '+cpSyncLastSuccess;
+      return !Object.keys(cpSyncQueue).length;
+    } catch(error) {
+      cpSyncMessage=Object.keys(cpSyncQueue).length ? 'Edits remain saved on this device. Cloud sync pending: '+error.message : 'Cloud sync unavailable: '+error.message;
+      return false;
+    } finally {cpSyncRender();}
+  })();
+  try{return await cpSyncTask;}finally{cpSyncTask=null;}
+}
+function cpSyncMigrateReten(cloudRows) {
+  const endpoint=cpSyncEndpoint();const migrations=safeJsonParse('cp3_reten_migrated_endpoints_v2',[]);
+  if(migrations.includes(endpoint))return;
+  const local=safeJsonParse('cp3_reten_input_db',[]);
+  // Keep the original device-only records before importing missing keys.
+  localStorage.setItem('cp3_reten_before_cloud_v2',JSON.stringify(local));
+  const keys=new Set(cloudRows.map(row=>cpSyncKey('MonthlyReten',row)));
+  local.forEach(row=>{
+    const key=cpSyncKey('MonthlyReten',row);
+    if(!keys.has(key) && !cpSyncQueue[key])cpSyncEnqueue('MonthlyReten',row);
+  });
+  migrations.push(endpoint);localStorage.setItem('cp3_reten_migrated_endpoints_v2',JSON.stringify(migrations));
+}
+function cpSyncRender() {
+  document.querySelectorAll('[data-sync-status]').forEach(el=>el.textContent=cpSyncMessage+(Object.keys(cpSyncQueue).length?' ('+Object.keys(cpSyncQueue).length+' pending)':''));
+  document.querySelectorAll('[data-sync-conflicts]').forEach(container=>{
+    container.replaceChildren();
+    cpSyncConflicts.forEach((op,index)=>{
+      const row=document.createElement('div');row.className='sync-conflict-row';
+      const text=document.createElement('p');
+      const attempted=op.action==='delete'?'delete':op.sheet==='RosterLocks'?'lock '+op.record.isLocked:op.record.shift_type || 'CP1 '+op.record.cp1+', CP2 '+op.record.cp2+', BD '+op.record.bd;
+      const current=op.sheet==='RosterLocks'?'lock '+(op.cloud?.isLocked||'NO'):op.cloud?.shift_type || (op.cloud && !cpSyncDeleted(op.cloud)?'CP1 '+op.cloud.cp1+', CP2 '+op.cloud.cp2+', BD '+op.cloud.bd:'no active record');
+      text.textContent=op.sheet+' — '+(op.record.date||op.record.month||'')+' / '+op.record.user_name+': your edit '+attempted+'; cloud '+current+'. '+op.reason;
+      const retry=document.createElement('button');retry.type='button';retry.textContent='Reapply my edit';retry.onclick=()=>cpSyncResolve(index,true);
+      const keep=document.createElement('button');keep.type='button';keep.textContent='Keep cloud version';keep.onclick=()=>cpSyncResolve(index,false);
+      row.append(text,retry,keep);container.append(row);
+    });
+  });
+  if(typeof renderPersonalCalendarModule==='function')renderPersonalCalendarModule();
+  if(typeof renderMonthlyRetenTable==='function')renderMonthlyRetenTable();
+  if(typeof renderMonthlyWardRetenSummary==='function')renderMonthlyWardRetenSummary();
+}
+function cpSyncResolve(index,reapply) {
+  const op=cpSyncConflicts[index];if(!op)return;
+  if(reapply && op.sheet==='Attendance') {
+    const userKey=String(op.record.user_name).replace(/[^a-zA-Z0-9]/g,'_');
+    if(rosterLocksData[op.record.date.slice(0,7)+'_'+userKey]){showToast('Unlock the roster before reapplying this edit.','error');return;}
+  }
+  cpSyncConflicts.splice(index,1);cpSyncStorage();
+  if(reapply)cpSyncEnqueue(op.sheet,{...op.record,syncVersion:Number(op.cloud?.syncVersion||0)},op.action);
+  cpSyncRender();if(reapply)void syncManagedData();
+}
+function exportManagedSyncBackup() {
+  const backup={attendance:attendanceData,manualReten:safeJsonParse('cp3_reten_input_db',[]),rosterLocks:rosterLocksData,pending:cpSyncQueue,conflicts:cpSyncConflicts,attendanceBeforeUpgrade:safeJsonParse('cp3_attendance_before_cloud_v2',[]),retenBeforeUpgrade:safeJsonParse('cp3_reten_before_cloud_v2',[])};
+  const url=URL.createObjectURL(new Blob([JSON.stringify(backup,null,2)],{type:'application/json'}));
+  const link=document.createElement('a');link.href=url;link.download='cp_portal_sync_backup_'+Date.now()+'.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function cpSyncRefreshOnReturn() {if(currentUser && !document.hidden)void syncManagedData();}
+window.addEventListener('online',cpSyncRefreshOnReturn);
+window.addEventListener('focus',cpSyncRefreshOnReturn);
+document.addEventListener('visibilitychange',cpSyncRefreshOnReturn);
+setInterval(cpSyncRefreshOnReturn,30000);
+
 
 /* ==========================================================================
    MODULE 02 — APPLICATION INITIALIZATION
@@ -3477,23 +3668,6 @@ async function fetchCloudData() {
       }
     }
 
-    // 2. FETCH & MERGE ROSTER LOCK STATES across devices
-    const locksUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=RosterLocks&_t=${Date.now()}` : `${activeUrl}?sheet=RosterLocks&_t=${Date.now()}`;
-    const resLocks = await fetch(locksUrl);
-    if (resLocks.ok) {
-      const rawLocks = await resLocks.json();
-      const cloudLocks = extractArray(rawLocks);
-      if (cloudLocks && cloudLocks.length > 0) {
-        cloudLocks.forEach(l => {
-          if (l.id) {
-            const isLock = String(l.isLocked).toUpperCase() === "YES" || l.isLocked === true;
-            rosterLocksData[l.id] = isLock;
-          }
-        });
-        localStorage.setItem('cp3_roster_locks_db', JSON.stringify(rosterLocksData));
-      }
-    }
-
     // 3. PATIENTS
     const patientsUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Patients` : `${activeUrl}?sheet=Patients`;
     const resPat = await fetch(patientsUrl);
@@ -3554,59 +3728,7 @@ async function fetchCloudData() {
       }
     }
 
-    // 7. ATTENDANCE (READS shift_type FROM COLUMN E)
-    const attUrl = activeUrl.includes('?') 
-      ? `${activeUrl}&sheet=Attendance&_t=${Date.now()}` 
-      : `${activeUrl}?sheet=Attendance&_t=${Date.now()}`;
-      
-    const resAtt = await fetch(attUrl);
-    if (resAtt.ok) {
-      const rawAtt = await resAtt.json();
-      const cloudAtt = extractArray(rawAtt);
-      if (cloudAtt && cloudAtt.length > 0) {
-        cloudAtt.forEach(cloudRecord => {
-          if (!cloudRecord || !cloudRecord.date) return;
-          const cleanDate = normalizeToISO(cloudRecord.date).split('T')[0];
-          const cleanUser = String(
-            cloudRecord.user_name || cloudRecord.userName || cloudRecord.user || cloudRecord.Pharmacist || ''
-          ).trim();
-          if (!cleanUser) return;
-          
-          const cloudStatus = String(
-            cloudRecord.shift_type || cloudRecord.status || cloudRecord.Status || cloudRecord.STATUS || ''
-          ).trim();
-          
-          const recordId = cloudRecord.id || cloudRecord.ID || `att-${cleanDate}-${cleanUser.replace(/[^a-zA-Z0-9]/g, '_')}`;
-
-          const existingIdx = attendanceData.findIndex(a => {
-            if (!a || !a.date) return false;
-            const cleanADate = normalizeToISO(a.date).split('T')[0];
-            const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || a.Pharmacist || '').trim().toUpperCase();
-            return (a.id === recordId) || (cleanADate === cleanDate && aUser === cleanUser.toUpperCase());
-          });
-          
-          if (existingIdx === -1) {
-            if (cloudStatus !== "") {
-              attendanceData.push({ ...cloudRecord, date: cleanDate, user_name: cleanUser, shift_type: cloudStatus, status: cloudStatus, id: recordId });
-            }
-          } else {
-            const localRec = attendanceData[existingIdx];
-            if (cloudStatus !== "") {
-              attendanceData[existingIdx] = { 
-                ...localRec, 
-                ...cloudRecord, 
-                date: cleanDate, 
-                user_name: cleanUser, 
-                shift_type: cloudStatus,
-                status: cloudStatus, 
-                id: recordId 
-              };
-            }
-          }
-        });
-        localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
-      }
-    }
+    await syncManagedData();
 
     loadActiveShiftSnapshot();
     renderInterventions();
@@ -4318,7 +4440,7 @@ function switchTab(tabName) {
     }
 
     function exportDataBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ checkins: checkinsData, interventions: interventionsData, drugInfo: diLogsData, followUp: followUpData, patients: patientsData }, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ checkins: checkinsData, interventions: interventionsData, drugInfo: diLogsData, followUp: followUpData, patients: patientsData, attendance: attendanceData, manualReten: safeJsonParse('cp3_reten_input_db', []), rosterLocks: rosterLocksData, pendingSync: cpSyncQueue, syncConflicts: cpSyncConflicts }, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `cp3_backup_${Date.now()}.json`);
@@ -4521,6 +4643,7 @@ function handleEditInterventionTypeToggle(changedType) {
       updatePdfReport();
       renderPfSummaryReport();
       showToast('Intervention Logged Successfully!', 'success');
+      void autoMarkPresentOnInterventionModule();
     }
 
 async function copyPci(id) {
@@ -5947,64 +6070,16 @@ function openRetenInputTabModule() {
   renderMonthlyWardRetenSummary();
 }
 
-function saveMonthlyRetenModule() {
-  const activeUserName = currentUser ? currentUser.name : null;
-  if (!activeUserName) {
-    alert("Please log in to submit monthly reten figures.");
-    return;
-  }
-
-  const monthVal = document.getElementById('reten-month')?.value;
-  const wardVal = document.getElementById('reten-ward')?.value;
-  const cp1Val = parseInt(document.getElementById('reten-cp1')?.value || '0', 10);
-  const cp2Val = parseInt(document.getElementById('reten-cp2')?.value || '0', 10);
-  const bdVal = parseInt(document.getElementById('reten-bd')?.value || '0', 10);
-
-  if (!monthVal || !wardVal) {
-    alert("Please fill in both Month and Ward selection.");
-    return;
-  }
-
-  const cleanUserName = String(activeUserName).trim();
-  const userKey = cleanUserName.replace(/[^a-zA-Z0-9]/g, '_');
-  const wardKey = wardVal.replace(/[^a-zA-Z0-9]/g, '_');
-  const recordId = `reten-${monthVal}-${wardKey}-${userKey}`;
-
-  let retenDb = typeof safeJsonParse === 'function' 
-    ? safeJsonParse('cp3_reten_input_db', []) 
-    : JSON.parse(localStorage.getItem('cp3_reten_input_db') || '[]');
-
-  const payload = {
-    id: recordId,
-    month: monthVal,
-    ward: wardVal,
-    user_name: cleanUserName,
-    cp1: cp1Val,
-    cp2: cp2Val,
-    bd: bdVal,
-    updatedAt: new Date().toISOString()
-  };
-
-  const existingIdx = retenDb.findIndex(item => item.id === recordId);
-  if (existingIdx !== -1) {
-    retenDb[existingIdx] = payload;
-  } else {
-    retenDb.push(payload);
-  }
-
-  localStorage.setItem('cp3_reten_input_db', JSON.stringify(retenDb));
-
-  if (typeof showToast === 'function') {
-    showToast(`Saved monthly reten for ${wardVal} (${monthVal})`, 'success');
-  }
-
-  // Clear numeric inputs
-  document.getElementById('reten-cp1').value = '';
-  document.getElementById('reten-cp2').value = '';
-  document.getElementById('reten-bd').value = '';
-
-  renderMonthlyRetenTable();
-  renderMonthlyWardRetenSummary();
+async function saveMonthlyRetenModule() {
+  if(!currentUser?.name){alert('Please log in first.');return;}
+  const month=document.getElementById('reten-month').value,ward=document.getElementById('reten-ward').value;
+  const cp1=Number(document.getElementById('reten-cp1').value),cp2=Number(document.getElementById('reten-cp2').value),bd=Number(document.getElementById('reten-bd').value);
+  if(!month || !ward || [cp1,cp2,bd].some(n=>!Number.isInteger(n)||n<0)){alert('Select a month and ward and enter non-negative whole numbers.');return;}
+  const user=String(currentUser.name).trim(),id='reten-'+month+'-'+ward.replace(/[^a-zA-Z0-9]/g,'_')+'-'+user.replace(/[^a-zA-Z0-9]/g,'_');
+  cpSyncEnqueue('MonthlyReten',{id,month,ward,user_name:user,cp1,cp2,bd});
+  ['reten-cp1','reten-cp2','reten-bd'].forEach(id=>document.getElementById(id).value='');
+  const synced=await syncManagedData();
+  showToast(synced && !cpSyncConflicts.length?'Manual Reten saved and cloud confirmed.':'Manual Reten saved on this device; review cloud sync status below.',synced && !cpSyncConflicts.length?'success':'error');
 }
 
 function renderMonthlyRetenTable() {
@@ -6048,16 +6123,13 @@ function renderMonthlyRetenTable() {
   });
 }
 
-function deleteRetenRecord(id) {
-  if (!confirm("Are you sure you want to delete this reten record?")) return;
-  let retenDb = typeof safeJsonParse === 'function' 
-    ? safeJsonParse('cp3_reten_input_db', []) 
-    : JSON.parse(localStorage.getItem('cp3_reten_input_db') || '[]');
-
-  retenDb = retenDb.filter(item => item.id !== id);
-  localStorage.setItem('cp3_reten_input_db', JSON.stringify(retenDb));
-  renderMonthlyRetenTable();
-  renderMonthlyWardRetenSummary();
+async function deleteRetenRecord(id) {
+  const row=safeJsonParse('cp3_reten_input_db',[]).find(row=>String(row.id)===String(id));if(!row)return;
+  const owner=currentUser?.name && String(row.user_name).trim().toUpperCase()===String(currentUser.name).trim().toUpperCase();
+  if(!owner && String(currentUser?.role).toLowerCase()!=='admin'){showToast('You cannot delete this record.','error');return;}
+  if(!confirm('Delete this manual Reten record?'))return;
+  cpSyncEnqueue('MonthlyReten',row,'delete');
+  await syncManagedData();
 }
     
 </script>
@@ -6098,15 +6170,6 @@ function initStandaloneModule() {
   const rosterEnd = document.getElementById('admin-roster-end-month');
   if (rosterStart && !rosterStart.value) rosterStart.value = currentYM;
   if (rosterEnd && !rosterEnd.value) rosterEnd.value = currentYM;
-
-  // Preserve the existing automatic Present action after an intervention is submitted.
-  const intForm = document.getElementById('intervention-form');
-  if (intForm && !intForm.dataset.autoPresentHooked) {
-    intForm.addEventListener('submit', () => {
-      setTimeout(autoMarkPresentOnInterventionModule, 400);
-    });
-    intForm.dataset.autoPresentHooked = 'true';
-  }
 
   // The application now opens on Daily Activities & CP3 rather than forcibly opening the roster.
 } // <--- THIS CLOSES THE initStandaloneModule FUNCTION
@@ -6188,29 +6251,16 @@ function isAttendanceMatch(record, targetDateStr, targetUserName) {
   // GUARD: Prevent empty strings from matching everything
   if (!recordUser || !cleanTargetUser) return false;
 
-  return recordUser === cleanTargetUser || recordUser.includes(cleanTargetUser) || cleanTargetUser.includes(recordUser);
+  return recordUser === cleanTargetUser;
 }
 
 // Button Click Handler
-function manualMarkTodayPresentModule() {
-  if (!currentUser || !currentUser.name) {
-    if (typeof showToast === 'function') showToast("Please log in first", "error");
-    return;
-  }
-  const rawShiftDate = document.getElementById('global-shift-date')?.value;
-  const targetDate = rawShiftDate 
-    ? normalizeToISO(rawShiftDate).split('T')[0] 
-    : new Date().toISOString().split('T')[0];
-
-  const monthSelect = document.getElementById('att-month-select');
-  if (monthSelect) {
-    monthSelect.value = targetDate.substring(0, 7);
-  }
-
-  saveAttendanceStatusModule(targetDate, currentUser.name, "P");
-  if (typeof showToast === 'function') {
-    showToast(`Marked ${currentUser.name} as Present (P) on ${formatDateDDMMYYYY(targetDate)}`, 'success');
-  }
+async function manualMarkTodayPresentModule() {
+  if(!currentUser?.name){showToast('Please log in first.','error');return;}
+  const date=normalizeToISO(document.getElementById('global-shift-date')?.value||new Date().toISOString().slice(0,10)).split('T')[0];
+  const selector=document.getElementById('att-month-select');if(selector)selector.value=date.slice(0,7);
+  const saved=await saveAttendanceStatusModule(date,currentUser.name,'P');
+  if(saved && !cpSyncConflicts.length)showToast('Present status saved and cloud confirmed.','success');
 }
   
 function renderPersonalCalendarModule() {
@@ -6348,53 +6398,13 @@ function renderPersonalCalendarModule() {
 
 // STRICT ROLE-BASED LOCK & UNLOCK FUNCTION (WITH CLOUD SYNC)
 async function toggleRosterLockModule() {
-  const monthVal = document.getElementById('att-month-select')?.value || getCurrentYearMonthISO();
-  const activeUser = currentUser ? currentUser.name : "Anonymous";
-  const userKey = activeUser.replace(/[^a-zA-Z0-9]/g, '_');
-  const lockKey = `${monthVal}_${userKey}`;
-  const currentlyLocked = rosterLocksData[lockKey] === true;
-
-  const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
-
-  // Strictly enforce Admin permission to unlock
-  if (currentlyLocked && !isAdmin) {
-    alert("Access Denied: Roster data for this month is locked for data integrity. Only system Administrators can unlock finalized roster schedules.");
-    return;
-  }
-
-  const newLockState = !currentlyLocked;
-  rosterLocksData[lockKey] = newLockState;
-  localStorage.setItem('cp3_roster_locks_db', JSON.stringify(rosterLocksData));
-
-  renderPersonalCalendarModule();
-
-  if (typeof showToast === 'function') {
-    showToast(`Roster for ${monthVal} ${newLockState ? 'LOCKED (Read-Only)' : 'UNLOCKED by Admin'}`, 'success');
-  }
-
-  // SYNC LOCK STATE TO GOOGLE SHEETS
-  const activeUrl = sheetDbApiUrl || defaultSheetDbUrl;
-  if (activeUrl) {
-    try {
-      const targetUrl = activeUrl.includes('?') 
-        ? `${activeUrl}&sheet=RosterLocks` 
-        : `${activeUrl}?sheet=RosterLocks`;
-
-      const payload = {
-        id: lockKey,
-        month: monthVal,
-        user_name: activeUser,
-        isLocked: newLockState ? "YES" : "NO",
-        updatedAt: new Date().toISOString()
-      };
-
-      fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ sheet: "RosterLocks", sheetName: "RosterLocks", data: [payload] })
-      }).catch(err => console.warn('Offline lock state saved locally.'));
-    } catch (e) {}
-  }
+  const month=document.getElementById('att-month-select')?.value||getCurrentYearMonthISO(),user=currentUser?.name;
+  if(!user)return;
+  const id=month+'_'+user.replace(/[^a-zA-Z0-9]/g,'_'),locked=rosterLocksData[id]===true;
+  if(locked && String(currentUser.role).toLowerCase()!=='admin'){alert('Only administrators can unlock finalized rosters.');return;}
+  cpSyncEnqueue('RosterLocks',{id,month,user_name:user,isLocked:locked?'NO':'YES'});
+  const saved=await syncManagedData();
+  if(saved && !cpSyncConflicts.length)showToast('Roster lock state confirmed by cloud.','success');
 }
 
 // HELPER: Sync User Profiles to Cloud
@@ -6430,16 +6440,11 @@ async function syncUsersToCloud() {
   } catch (err) {}
 }
   
- function autoMarkPresentOnInterventionModule() {
-  if (!currentUser || !currentUser.name) return;
-
-  const rawShiftDate = document.getElementById('global-shift-date')?.value;
-  const targetDate = rawShiftDate 
-    ? normalizeToISO(rawShiftDate).split('T')[0] 
-    : new Date().toISOString().split('T')[0];
-
-  // Unconditionally mark status as Present "P" for the logging user
-  saveAttendanceStatusModule(targetDate, currentUser.name, "P");
+ async function autoMarkPresentOnInterventionModule() {
+  if(!currentUser?.name)return;
+  const date=normalizeToISO(document.getElementById('global-shift-date')?.value||new Date().toISOString().slice(0,10)).split('T')[0];
+  // Fill only an empty day; preserve leave/off-day/manual statuses on every device.
+  return saveAttendanceStatusModule(date,currentUser.name,'P','if_empty');
 }
 
 // TRACK UNSAVED ROSTER EDITS
@@ -6500,166 +6505,33 @@ function discardPendingRosterEdits() {
 }
 
 async function confirmAndSaveRosterEdits() {
-  const keys = Object.keys(unsavedRosterChanges);
-  if (keys.length === 0) return;
-
-  showLoading(`Saving ${keys.length} roster update(s)...`);
-
+  const keys=Object.keys(unsavedRosterChanges);if(!keys.length)return;
+  showLoading('Saving roster changes…');
   try {
-    const payloads = [];
-
-    keys.forEach(k => {
-      const edit = unsavedRosterChanges[k];
-      const monthVal = edit.date.substring(0, 7);
-      const userKey = edit.userName.replace(/[^a-zA-Z0-9]/g, '_');
-      const recordId = `att-${edit.date}-${userKey}`;
-      const wardVal = document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE");
-
-      const payload = {
-        id: recordId,
-        sheet: "Attendance",
-        sheetName: "Attendance",
-        date: edit.date,
-        ward: wardVal,
-        user_name: edit.userName,
-        shift_type: edit.status,
-        status: edit.status,
-        updatedAt: new Date().toISOString()
-      };
-
-      payloads.push(payload);
-
-      const existingIdx = attendanceData.findIndex(a => {
-        if (!a || !a.date) return false;
-        const cleanADate = normalizeToISO(a.date).split('T')[0];
-        const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || a.Pharmacist || '').trim().toUpperCase();
-        return (a.id === recordId) || (cleanADate === edit.date && aUser === edit.userName.toUpperCase());
-      });
-
-      if (existingIdx !== -1) {
-        attendanceData[existingIdx] = payload;
-      } else {
-        attendanceData.push(payload);
-      }
+    keys.forEach(key=>{
+      const edit=unsavedRosterChanges[key], userKey=edit.userName.replace(/[^a-zA-Z0-9]/g,'_');
+      if(rosterLocksData[edit.date.slice(0,7)+'_'+userKey])return;
+      cpSyncEnqueue('Attendance',{id:'att-'+edit.date+'-'+userKey,date:edit.date,ward:document.getElementById('ward-name')?.value||currentUser?.ward||'',user_name:edit.userName,shift_type:edit.status,status:edit.status});
+      delete unsavedRosterChanges[key];
     });
-
-    localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
-
-    // Clear buffer
-    unsavedRosterChanges = {};
-    showRosterSaveBar();
-    renderPersonalCalendarModule();
-
-    // Push to Google Sheets API
-    const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) 
-      ? sheetDbApiUrl 
-      : (typeof defaultSheetDbUrl !== 'undefined' ? defaultSheetDbUrl : "");
-
-    if (activeUrl) {
-      const targetUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=Attendance` : `${activeUrl}?sheet=Attendance`;
-      await fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          action: "save",
-          sheet: "Attendance",
-          sheetName: "Attendance",
-          data: payloads
-        })
-      });
-    }
-
-    if (typeof showToast === 'function') showToast("Roster saved & synced successfully!", "success");
-  } catch (err) {
-    console.warn("Saved locally, cloud sync pending.");
-    if (typeof showToast === 'function') showToast("Saved locally (Offline/Sync pending)", "error");
-  } finally {
-    hideLoading();
-  }
+    showRosterSaveBar();renderPersonalCalendarModule();
+    const synced=await syncManagedData();
+    showToast(synced && !cpSyncConflicts.length?'Roster saved and cloud confirmed.':'Review cloud sync status below; pending edits remain on this device.',synced && !cpSyncConflicts.length?'success':'error');
+  } finally {hideLoading();}
 }
 
 // Single-date direct save (used for Mark Today Present button)
 // Single-date direct save & instant cloud push
-async function saveAttendanceStatusModule(dateStr, targetUserName, status) {
-  const cleanDate = normalizeToISO(dateStr).split('T')[0];
-  const monthVal = cleanDate.substring(0, 7);
-  const cleanUserName = String(targetUserName || '').trim();
-  if (!cleanUserName) return;
-
-  const userKey = cleanUserName.replace(/[^a-zA-Z0-9]/g, '_');
-  const lockKey = `${monthVal}_${userKey}`;
-
-  if (rosterLocksData[lockKey] === true) {
-    console.warn("Cannot edit attendance: Roster data for this month is locked.");
-    renderPersonalCalendarModule();
-    return;
+async function saveAttendanceStatusModule(dateStr,targetUserName,status,intent='edit') {
+  const date=normalizeToISO(dateStr).split('T')[0],user=String(targetUserName||'').trim();if(!user)return;
+  const userKey=user.replace(/[^a-zA-Z0-9]/g,'_');
+  if(rosterLocksData[date.slice(0,7)+'_'+userKey]){showToast('This roster month is locked.','error');return;}
+  if(intent==='if_empty'){
+    const existing=attendanceData.find(row=>cpSyncKey('Attendance',row)===cpSyncKey('Attendance',{date,user_name:user}));
+    if(existing && String(existing.shift_type||existing.status||'').trim())return;
   }
-
-  const recordId = `att-${cleanDate}-${userKey}`;
-  const wardVal = document.getElementById('ward-name')?.value || (currentUser ? currentUser.ward : "WARD 1 - MEDICAL MALE");
-
-  // Exact match for Column E ('shift_type') in Google Sheets
-  const payload = {
-    id: recordId,
-    ID: recordId,
-    sheet: "Attendance",
-    sheetName: "Attendance",
-    date: cleanDate,
-    Date: cleanDate,
-    ward: wardVal,
-    Ward: wardVal,
-    user_name: cleanUserName,
-    userName: cleanUserName,
-    'User Name': cleanUserName,
-    pharmacist_name: cleanUserName,
-    Pharmacist: cleanUserName,
-    shift_type: status, // Column E match
-    status: status,     // Local fallback
-    Status: status,
-    updatedAt: new Date().toISOString()
-  };
-
-  const existingIdx = attendanceData.findIndex(a => {
-    if (!a || !a.date) return false;
-    const cleanADate = normalizeToISO(a.date).split('T')[0];
-    const aUser = String(a.user_name || a.userName || a.user || a.pharmacist_name || a.Pharmacist || '').trim().toUpperCase();
-    return (a.id === recordId) || (cleanADate === cleanDate && aUser === cleanUserName.toUpperCase());
-  });
-
-  if (existingIdx !== -1) {
-    attendanceData[existingIdx] = payload;
-  } else {
-    attendanceData.push(payload);
-  }
-  localStorage.setItem('cp3_attendance_db', JSON.stringify(attendanceData));
-
-  // Instantly re-render local UI grid
-  renderPersonalCalendarModule();
-
-  // POST directly to Google Sheets API
-  const activeUrl = (typeof sheetDbApiUrl !== 'undefined' && sheetDbApiUrl) 
-    ? sheetDbApiUrl 
-    : (typeof defaultSheetDbUrl !== 'undefined' ? defaultSheetDbUrl : "");
-
-  if (activeUrl) {
-    try {
-      const targetUrl = activeUrl.includes('?') 
-        ? `${activeUrl}&sheet=Attendance` 
-        : `${activeUrl}?sheet=Attendance`;
-
-      fetch(targetUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ 
-          action: "save",
-          sheet: "Attendance", 
-          sheetName: "Attendance", 
-          data: [payload],
-          ...payload
-        })
-      }).catch(err => console.warn('Offline attendance update saved locally.'));
-    } catch (err) {}
-  }
+  cpSyncEnqueue('Attendance',{id:'att-'+date+'-'+userKey,date,ward:document.getElementById('ward-name')?.value||currentUser?.ward||'',user_name:user,shift_type:status,status},'save',intent);
+  return syncManagedData();
 }
   // =========================================================
   // EXCEL CSV EXPORTER LOGIC (ROSTER & CP3 BATCH)
