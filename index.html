@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WARD PHARMACY PORTAL HD - Clinical Pharmacy Workspace</title>
+  <title>CP Portal HD — Ver. 2.0</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -1050,7 +1050,7 @@
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="CPhIS">
+  <meta name="apple-mobile-web-app-title" content="CP Portal HD">
 <style>
 @media screen {
   #btn-daily-menu { --menu-bg: #15803d; --menu-hover: #166534; --menu-text: #fff; --menu-border: #4ade80; }
@@ -1218,6 +1218,39 @@
   }
 }
 </style>
+<style id="information-center-style">
+@media screen {
+ .portal-version { color: #94a3b8; font-size: .68rem; margin-left: .45rem; font-weight: 500; white-space: nowrap; }
+ #btn-information-menu { --menu-bg: #1d4ed8; --menu-hover: #1e40af; --menu-text: #fff; --menu-border: #60a5fa; background: var(--menu-bg); color: #fff; border-color: var(--menu-border); }
+ #btn-information-menu:hover, #btn-information-menu:focus-visible { background: var(--menu-hover); color: #fff; outline: 2px solid #60a5fa; outline-offset: 3px; }
+ #btn-information-menu.active-group { box-shadow: inset 0 -3px 0 #60a5fa; }
+ .information-panel { border-radius: 5px; }
+ .information-page-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #334155; }
+ .information-page-heading h2 { font-weight: 700; }
+ .information-page-heading p, .information-status { color: #94a3b8; font-size: .78rem; }
+ .information-status:empty { display: none; }
+ .information-status { margin-top: .75rem; }
+ .information-refresh { flex-shrink: 0; border: 1px solid #475569; padding: .45rem .7rem; border-radius: 4px; font-size: .75rem; color: #e2e8f0; background: #334155; }
+ .information-prose { max-width: 960px; padding-top: 1.25rem; font-size: .9rem; color: #cbd5e1; line-height: 1.75; overflow-wrap: anywhere; }
+ .information-prose h1, .information-prose h2, .information-prose h3, .information-prose h4 { color: #f1f5f9; font-weight: 700; margin: 1.5rem 0 .65rem; }
+ .information-prose h1 { font-size: 1.4rem; }
+ #app-main .information-prose h2 { font-size: 1.15rem; }
+ .information-prose h3 { font-size: 1rem; }
+ .information-prose > :first-child { margin-top: 0; }
+ .information-prose p, .information-prose ul, .information-prose ol { margin-bottom: 1rem; }
+ .information-prose ul { list-style: disc; padding-left: 1.5rem; }
+ .information-prose ol { list-style: decimal; padding-left: 1.5rem; }
+ .information-prose li { margin: .35rem 0; }
+ .information-prose strong { color: #f1f5f9; }
+ .information-prose a { color: #7dd3fc; text-decoration: underline; }
+ .information-prose code { color: #bae6fd; background: #0f172a; border-radius: 3px; padding: .1rem .25rem; font-size: .85em; }
+ .information-prose pre { overflow-x: auto; padding: 1rem; background: #0f172a; border: 1px solid #334155; margin: 1rem 0; border-radius: 4px; }
+ .information-prose blockquote { border-left: 3px solid #60a5fa; padding: .7rem 1rem; background: #0f172a; margin: 1rem 0; }
+ .information-prose hr { border: 0; border-top: 1px solid #475569; margin: 1.5rem 0; }
+ @media (max-width: 1200px) { .app-module-inner { flex-wrap: wrap; } .app-clinical-context { flex: 1 1 26rem; } }
+ @media (max-width: 640px) { .app-nav { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); } .app-nav-group { width: 100%; } .app-nav-button { font-size: .7rem; } .information-page-heading { align-items: flex-start; } .information-prose { font-size: .85rem; } }
+}
+</style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col relative pb-8">
 
@@ -1327,7 +1360,7 @@
         <div class="bg-sky-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-sky-500/30">
           <i class="fa-solid fa-user-lock text-2xl"></i>
         </div>
-        <h2 class="text-xl font-bold text-slate-100">WARD PHARMACY PORTAL HD</h2>
+        <h2 class="text-xl font-bold text-slate-100">CP Portal HD — Ver. 2.0</h2>
         <p class="text-xs text-slate-400 mt-1">Select your profile and enter your 4-digit PIN</p>
       </div>
 
@@ -1468,7 +1501,7 @@
         <span id="api-status-dot" title="Checking Connection..." class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-slate-500 border-2 border-slate-950 rounded-full transition-colors duration-300"></span>
       </div>
       <div class="app-brand-title">
-        <h1>WARD PHARMACY PORTAL HD</h1>
+        <h1>CP Portal HD <span class="portal-version">Ver. 2.0</span></h1>
         <p>Clinical Pharmacy Workspace &middot; CP3 Report Generator</p>
       </div>
     </div>
@@ -1567,7 +1600,13 @@
 <button id="menu-change-pin" onclick="hideMainMenus(); openChangePinModal();" class="app-nav-item" role="menuitem">Change PIN</button>
 </div>
       </div>
-    </nav><div class="app-clinical-context"><div class="app-shift-box">
+    <div id="information-menu-container" class="app-nav-group">
+<button type="button" id="btn-information-menu" onclick="toggleInformationMenu(event)" class="app-nav-button" aria-haspopup="true" aria-controls="information-menu-dropdown" aria-expanded="false"><i class="fa-solid fa-circle-info"></i><span>Information Center</span><i class="fa-solid fa-chevron-down text-[9px] opacity-70"></i></button>
+<div id="information-menu-dropdown" class="hidden app-nav-dropdown" role="menu">
+<button id="tab-user-guides" onclick="switchTab('user-guides'); hideMainMenus();" class="app-nav-item" role="menuitem">User Guides</button>
+<button id="tab-documentation" onclick="switchTab('documentation'); hideMainMenus();" class="app-nav-item" role="menuitem">Documentation</button>
+<button id="tab-announcements" onclick="switchTab('announcements'); hideMainMenus();" class="app-nav-item" role="menuitem">Announcements</button>
+</div></div></nav><div class="app-clinical-context"><div class="app-shift-box">
         <i class="fa-regular fa-calendar-check text-cyan-300"></i>
         <div>
           <div class="shift-label">Shift date</div>
@@ -2906,6 +2945,24 @@
         </div>
       </div>
   </div></div>
+<div id="view-user-guides" class="view-panel hidden space-y-6" hidden>
+<section class="information-panel bg-slate-800 border border-slate-700 p-6">
+<div class="information-page-heading"><div><h2>User Guides</h2><p>Instructions for using CP Portal HD.</p></div><button type="button" class="information-refresh" onclick="loadInformationContent('user-guides')"><i class="fa-solid fa-rotate-right"></i> Refresh</button></div>
+<p id="information-status-user-guides" class="information-status" role="status" aria-live="polite"></p>
+<article id="information-content-user-guides" class="information-prose" aria-busy="false"></article>
+</section></div>
+<div id="view-documentation" class="view-panel hidden space-y-6" hidden>
+<section class="information-panel bg-slate-800 border border-slate-700 p-6">
+<div class="information-page-heading"><div><h2>Documentation</h2><p>Version history, changelogs and portal reference.</p></div><button type="button" class="information-refresh" onclick="loadInformationContent('documentation')"><i class="fa-solid fa-rotate-right"></i> Refresh</button></div>
+<p id="information-status-documentation" class="information-status" role="status" aria-live="polite"></p>
+<article id="information-content-documentation" class="information-prose" aria-busy="false"></article>
+</section></div>
+<div id="view-announcements" class="view-panel hidden space-y-6" hidden>
+<section class="information-panel bg-slate-800 border border-slate-700 p-6">
+<div class="information-page-heading"><div><h2>Announcements</h2><p>Portal notices and announcements.</p></div><button type="button" class="information-refresh" onclick="loadInformationContent('announcements')"><i class="fa-solid fa-rotate-right"></i> Refresh</button></div>
+<p id="information-status-announcements" class="information-status" role="status" aria-live="polite"></p>
+<article id="information-content-announcements" class="information-prose" aria-busy="false"></article>
+</section></div>
 </main>
 
   <!-- HIDDEN CONTAINER FOR BATCH PRINT STACKING -->
@@ -3022,6 +3079,7 @@
     });
 
     function toggleAdminMenu(e) {
+      hideInformationMenu();
       hideRetenMenu();
       if (e) e.stopPropagation();
       hideDailyMenu();
@@ -3039,6 +3097,7 @@
     }
 
     function toggleDailyMenu(e) {
+      hideInformationMenu();
       hideRetenMenu();
       if (e) e.stopPropagation();
       hideAdminMenu();
@@ -3056,6 +3115,7 @@
     }
 
     function toggleRetenMenu(e) {
+      hideInformationMenu();
       if (e) e.stopPropagation();
       hideDailyMenu(); hideAdminMenu();
       const dropdown = document.getElementById('reten-menu-dropdown');
@@ -3074,6 +3134,7 @@
       }
     });
     function hideMainMenus() {
+      hideInformationMenu();
       hideRetenMenu();
       hideAdminMenu();
       hideDailyMenu();
@@ -3091,6 +3152,9 @@
         'reten-input':{ title: 'MANUAL RETEN INPUT', subtitle: 'Enter monthly CP1, CP2 and bedside dispensing figures by ward.', badge: 'RETEN', icon: 'fa-pen-to-square', group: 'reten' }
       };
       Object.assign(meta, {
+        'user-guides': {title:'User Guides',subtitle:'Instructions for using CP Portal HD.',badge:'Information Center',icon:'fa-book-open',group:'information'},
+        documentation: {title:'Documentation',subtitle:'Version history, changelogs and portal reference.',badge:'Information Center',icon:'fa-file-lines',group:'information'},
+        announcements: {title:'Announcements',subtitle:'Portal notices and announcements.',badge:'Information Center',icon:'fa-bullhorn',group:'information'},
         'roster-batch': { title: 'Multi-Month Roster Batch', subtitle: 'Review and export the team roster across a selected month range.', badge: 'RETEN', icon: 'fa-calendar-days', group: 'reten' },
         'cp3-archive': { title: 'Monthly CP3 Batch Archive Exporter', subtitle: 'Compile daily CP3 forms by month and ward.', badge: 'RETEN', icon: 'fa-file-pdf', group: 'reten' },
         'admin-database': { title: 'Database / Connection Tools', subtitle: 'Manage the API connection and export a local backup.', badge: 'Admin / Settings', icon: 'fa-database', group: 'admin' },
@@ -3114,6 +3178,7 @@
       if (dailyBtn) dailyBtn.classList.toggle('active-group', m.group === 'daily');
       if (adminBtn) adminBtn.classList.toggle('active-group', m.group === 'admin');
       document.getElementById('btn-reten-menu')?.classList.toggle('active-group', m.group === 'reten');
+      document.getElementById('btn-information-menu')?.classList.toggle('active-group', m.group === 'information');
       updateWorkspaceBackButton();
     }
 
@@ -4148,7 +4213,7 @@ function goBackView() {
 
 function switchTab(tabName) {
   const isAdmin = currentUser && currentUser.role && currentUser.role.toLowerCase() === 'admin';
-  const validViews = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input', 'cp3-archive', 'admin-database', 'admin-directory', 'roster-batch'];
+  const validViews = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input', 'cp3-archive', 'admin-database', 'admin-directory', 'roster-batch', 'user-guides', 'documentation', 'announcements'];
 
   if (!validViews.includes(tabName)) return;
 
@@ -4199,7 +4264,9 @@ function switchTab(tabName) {
     window.scrollTo({ top: Math.max(0, absoluteTarget), behavior: 'auto' });
   });
 
-  if (tabName === 'checkin') {
+  if (['user-guides', 'documentation', 'announcements'].includes(tabName)) {
+    loadInformationContent(tabName);
+  } else if (tabName === 'checkin') {
     loadActiveShiftSnapshot();
     updatePdfReport();
   } else if (tabName === 'admin-directory') {
@@ -5865,7 +5932,7 @@ function openRetenInputTabModule() {
     return;
   }
 
-  const views = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input', 'cp3-archive', 'admin-database', 'admin-directory', 'roster-batch'];
+  const views = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input', 'cp3-archive', 'admin-database', 'admin-directory', 'roster-batch', 'user-guides', 'documentation', 'announcements'];
   views.forEach(v => {
     const el = document.getElementById('view-' + v);
     if (el) el.classList.add('hidden');
@@ -6952,7 +7019,7 @@ function exportWardRetenSummaryExcel() {
   // Explicitly establish a single visible workspace on first load.
   // This also repairs pages opened from a cached session after an older build.
   document.addEventListener('DOMContentLoaded', () => {
-    const visible = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input', 'cp3-archive', 'admin-database', 'admin-directory', 'roster-batch']
+    const visible = ['attendance', 'checkin', 'interventions', 'di', 'followup', 'admin', 'summary', 'reten-input', 'cp3-archive', 'admin-database', 'admin-directory', 'roster-batch', 'user-guides', 'documentation', 'announcements']
       .map(v => document.getElementById('view-' + v))
       .filter(Boolean);
 
@@ -7099,5 +7166,103 @@ if ('serviceWorker' in navigator) {
   body.printing-roster-matrix #printable-admin-roster-matrix { overflow: visible !important; }
 }
 </style>
+<script>
+/* INFORMATION CENTER — GitHub-managed Markdown content */
+const INFORMATION_SECTIONS = {
+  'user-guides': { file: 'user-guides.md', title: 'User Guides' },
+  documentation: { file: 'documentation.md', title: 'Documentation' },
+  announcements: { file: 'announcements.md', title: 'Announcements' }
+};
+const informationRequests = {};
+function hideInformationMenu() {
+  document.getElementById('information-menu-dropdown')?.classList.add('hidden');
+  document.getElementById('btn-information-menu')?.setAttribute('aria-expanded', 'false');
+}
+function toggleInformationMenu(event) {
+  if (event) event.stopPropagation();
+  hideDailyMenu(); hideRetenMenu(); hideAdminMenu();
+  const dropdown = document.getElementById('information-menu-dropdown');
+  dropdown.classList.toggle('hidden');
+  document.getElementById('btn-information-menu').setAttribute('aria-expanded', String(!dropdown.classList.contains('hidden')));
+}
+document.addEventListener('click', event => {
+  const container = document.getElementById('information-menu-container');
+  if (container && !container.contains(event.target)) hideInformationMenu();
+});
+function escapeInformationText(text) {
+  return String(text).replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
+}
+function informationInline(text) {
+  const pattern = /`([^`]+)`|\[([^\]]+)\]\(([^\s)]+)\)|\*\*([^*]+)\*\*|\*([^*]+)\*/g;
+  let html = '', last = 0;
+  for (const match of text.matchAll(pattern)) {
+    html += escapeInformationText(text.slice(last, match.index));
+    if (match[1] !== undefined) html += '<code>' + escapeInformationText(match[1]) + '</code>';
+    else if (match[2] !== undefined) {
+      try {
+        const url = new URL(match[3], new URL('./resources/', document.baseURI));
+        if (!['https:', 'http:', 'mailto:'].includes(url.protocol)) throw new Error('Unsupported link');
+        html += '<a href="' + escapeInformationText(url.href) + '" target="_blank" rel="noopener noreferrer">' + escapeInformationText(match[2]) + '</a>';
+      } catch { html += escapeInformationText(match[2]); }
+    } else if (match[4] !== undefined) html += '<strong>' + escapeInformationText(match[4]) + '</strong>';
+    else html += '<em>' + escapeInformationText(match[5]) + '</em>';
+    last = match.index + match[0].length;
+  }
+  return html + escapeInformationText(text.slice(last));
+}
+function renderInformationMarkdown(markdown) {
+  const lines = String(markdown).replace(/\r\n?/g, '\n').split('\n');
+  let html = '', paragraph = [], list = null, code = null;
+  const flush = () => { if (paragraph.length) { html += '<p>' + informationInline(paragraph.join(' ')) + '</p>'; paragraph = []; } };
+  const closeList = () => { if (list) { html += '</' + list + '>'; list = null; } };
+  for (const line of lines) {
+    if (code !== null) {
+      if (/^\s*```/.test(line)) { html += '<pre><code>' + escapeInformationText(code.join('\n')) + '</code></pre>'; code = null; }
+      else code.push(line);
+      continue;
+    }
+    if (/^\s*```/.test(line)) { flush(); closeList(); code = []; continue; }
+    if (!line.trim()) { flush(); closeList(); continue; }
+    const heading = /^(#{1,6})\s+(.+)$/.exec(line);
+    if (heading) { flush(); closeList(); const level = heading[1].length; html += '<h'+level+'>'+informationInline(heading[2])+'</h'+level+'>'; continue; }
+    if (/^\s*(?:---+|\*\*\*+)\s*$/.test(line)) { flush(); closeList(); html += '<hr>'; continue; }
+    const item = /^\s*(?:([-*])|\d+\.)\s+(.+)$/.exec(line);
+    if (item) { flush(); const type = item[1] ? 'ul' : 'ol'; if (list !== type) { closeList(); html += '<'+type+'>'; list = type; } html += '<li>'+informationInline(item[2])+'</li>'; continue; }
+    if (/^>\s?/.test(line)) { flush(); closeList(); html += '<blockquote>'+informationInline(line.replace(/^>\s?/, ''))+'</blockquote>'; continue; }
+    closeList(); paragraph.push(line.trim());
+  }
+  flush(); closeList();
+  if (code !== null) html += '<pre><code>' + escapeInformationText(code.join('\n')) + '</code></pre>';
+  return html;
+}
+async function loadInformationContent(section) {
+  const config = INFORMATION_SECTIONS[section];
+  const article = document.getElementById('information-content-' + section);
+  const status = document.getElementById('information-status-' + section);
+  if (!config || !article || !status) return;
+  const request = (informationRequests[section] || 0) + 1;
+  informationRequests[section] = request;
+  article.setAttribute('aria-busy', 'true');
+  status.textContent = 'Loading…';
+  try {
+    const url = new URL('./resources/' + config.file, document.baseURI);
+    url.searchParams.set('updated', String(Date.now()));
+    const response = await fetch(url.href, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Content unavailable');
+    const markdown = await response.text();
+    if (/^\s*(?:<!doctype html|<html)/i.test(markdown)) throw new Error('Content unavailable');
+    if (informationRequests[section] !== request) return;
+    article.innerHTML = markdown.trim() ? renderInformationMarkdown(markdown) : '<p>No content has been published yet.</p>';
+    status.textContent = '';
+  } catch {
+    if (informationRequests[section] !== request) return;
+    article.innerHTML = '<p>This content could not be loaded. Please try Refresh or contact your portal administrator.</p>';
+    status.textContent = 'Content unavailable';
+  } finally {
+    if (informationRequests[section] === request) article.setAttribute('aria-busy', 'false');
+  }
+}
+
+</script>
 </body>
 </html>
