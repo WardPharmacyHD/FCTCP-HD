@@ -6679,26 +6679,23 @@ function exportBatchRosterMatrixExcel() {
     document.body.removeChild(link);
   }
 
-  function renderMonthlyWardRetenSummary() {
+ function renderMonthlyWardRetenSummary() {
   const tbody = document.getElementById('ward-reten-summary-tbody');
   const monthPicker = document.getElementById('summary-reten-month-filter');
   if (!tbody) return;
 
-  // Set default month to current YYYY-MM if unselected
   if (monthPicker && !monthPicker.value) {
-    monthPicker.value = typeof getCurrentYearMonthISO === 'function' 
-      ? getCurrentYearMonthISO() 
+    monthPicker.value = typeof getCurrentYearMonthISO === 'function'
+      ? getCurrentYearMonthISO()
       : new Date().toISOString().slice(0, 7);
   }
 
   const selectedMonth = monthPicker?.value || "";
 
-  // 1. Fetch manual entries database
-  const retenDb = typeof safeJsonParse === 'function' 
-    ? safeJsonParse('cp3_reten_input_db', []) 
+  const retenDb = typeof safeJsonParse === 'function'
+    ? safeJsonParse('cp3_reten_input_db', [])
     : JSON.parse(localStorage.getItem('cp3_reten_input_db') || '[]');
 
-  // Standard Ward Roster List
   const allWards = [
     "ICU",
     "WARD 1 - MEDICAL MALE",
@@ -6716,19 +6713,18 @@ function exportBatchRosterMatrixExcel() {
 
   const grandTotals = { cp1: 0, cp2: 0, bd: 0 };
 
-  // 2. Aggregate per ward for the selected month
   allWards.forEach(wardName => {
-    const wardEntries = retenDb.filter(item => 
-      item.month === selectedMonth && 
+    const wardEntries = retenDb.filter(item =>
+      item.month === selectedMonth &&
       String(item.ward || '').trim().toUpperCase() === wardName.toUpperCase()
     );
 
     let wardCp1 = 0, wardCp2 = 0, wardBd = 0;
 
     wardEntries.forEach(entry => {
-      wardCp1 += parseInt(entry.cp1 || 0, 10);
-      wardCp2 += parseInt(entry.cp2 || 0, 10);
-      wardBd += parseInt(entry.bd || 0, 10);
+      wardCp1 += parseInt(entry.cp1, 10) || 0;
+      wardCp2 += parseInt(entry.cp2, 10) || 0;
+      wardBd += parseInt(entry.bd, 10) || 0;
     });
 
     grandTotals.cp1 += wardCp1;
@@ -6741,20 +6737,18 @@ function exportBatchRosterMatrixExcel() {
       <td class="p-2 border-r border-slate-700 font-bold text-left text-emerald-400">${wardName}</td>
       <td class="p-2 border-r border-slate-700 font-bold text-sky-400 bg-sky-950/20">${wardCp1}</td>
       <td class="p-2 border-r border-slate-700 font-bold text-purple-300 bg-purple-950/20">${wardCp2}</td>
-      <td class="p-2 border-r border-slate-700 font-bold text-amber-300 bg-amber-950/20">${wardBd}</td>
-      <td class="p-2 font-bold text-emerald-300 bg-emerald-950/30">${wardTotal}</td>
+      <td class="p-2 font-bold text-amber-300 bg-amber-950/20">${wardBd}</td>
     `;
     tbody.appendChild(tr);
   });
 
-  // 3. Append Grand Total Row Across All Wards
   const totalTr = document.createElement('tr');
   totalTr.className = "bg-slate-950 font-bold text-amber-300 border-t-2 border-slate-600";
   totalTr.innerHTML = `
     <td class="p-2 border-r border-slate-700 text-left">ALL WARDS COMBINED (TOTAL)</td>
     <td class="p-2 border-r border-slate-700 text-sky-300">${grandTotals.cp1}</td>
     <td class="p-2 border-r border-slate-700 text-purple-300">${grandTotals.cp2}</td>
-    <td class="p-2 border-r border-slate-700 text-amber-300">${grandTotals.bd}</td>
+    <td class="p-2 text-amber-300">${grandTotals.bd}</td>
   `;
   tbody.appendChild(totalTr);
 }
