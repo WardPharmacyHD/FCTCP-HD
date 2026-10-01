@@ -3681,16 +3681,24 @@ async function fetchCloudData() {
       }
     }
 
-    // 4. INTERVENTIONS
-    const resInt = await fetch(activeUrl);
-    if (resInt.ok) {
-      const rawInt = await resInt.json();
-      const cloudInt = extractArray(rawInt);
-      if (cloudInt && cloudInt.length > 0) {
-        interventionsData = cloudInt;
-        localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
-      }
-    }
+// 4. INTERVENTIONS — explicitly fetch the correct sheet without using a cached response
+const interventionsUrl = new URL(activeUrl);
+interventionsUrl.searchParams.set('sheet', 'INTERVENTION');
+interventionsUrl.searchParams.set('_t', String(Date.now()));
+
+const resInt = await fetch(interventionsUrl.toString(), { cache: 'no-store' });
+
+if (resInt.ok) {
+  const rawInt = await resInt.json();
+  const cloudInt = extractArray(rawInt);
+
+  // An empty array is a valid response; null means the response format was unexpected.
+  if (Array.isArray(cloudInt)) {
+    interventionsData = cloudInt;
+    localStorage.setItem('cp3_interventions_db', JSON.stringify(interventionsData));
+    console.info(`[PF 6.3(b)] Loaded ${interventionsData.length} intervention records`);
+  }
+}
 
     // 5. DRUG INFO
     const diUrl = activeUrl.includes('?') ? `${activeUrl}&sheet=DrugInfo` : `${activeUrl}?sheet=DrugInfo`;
