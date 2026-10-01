@@ -5844,26 +5844,35 @@ function renderClinicalActivitySummary() {
         const staffNameUpper = (user.name || "").trim().toUpperCase();
         
 const normalizeStaffName = value =>
-  String(value || '').trim().replace(/[^a-z0-9]/gi, '').toUpperCase();
+  String(value || '').trim().toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
 
-const staffAliases = new Set(
-  [user.name, key].map(normalizeStaffName).filter(Boolean)
-);
+const staffName = normalizeStaffName(user.name);
+const staffKey = normalizeStaffName(key);
+const staffTokens = staffName.split(/\s+/).filter(Boolean);
 
 const staffLogs = filtered.filter(item => {
-  const itemName = normalizeStaffName(
-    item.user_name ||
-    item.userName ||
-    item.pharmacist_name ||
-    item.pharmacist ||
-    item.username ||
-    item.user ||
+  const identities = [
+    item.user_name,
+    item.userName,
+    item.pharmacist_name,
+    item.pharmacist,
+    item.username,
+    item.user,
     item.Pharmacist
-  );
+  ].filter(value => String(value || '').trim() !== '');
 
-  return itemName !== '' && staffAliases.has(itemName);
-});
+  return identities.some(value => {
+    const itemName = normalizeStaffName(value);
+    if (!itemName) return false;
+    if (itemName === staffName || itemName === staffKey) return true;
 
+    const itemTokens = itemName.split(/\s+/).filter(Boolean);
+    const shorter = itemTokens.length <= staffTokens.length ? itemTokens : staffTokens;
+    const longer = itemTokens.length <= staffTokens.length ? staffTokens : itemTokens;
+
+    return shorter.length >= 2 && shorter.every(token => longer.includes(token));
+  });
+  
         const tallies = {
           rxReceived: 0, rxIntervened: staffLogs.length,
           c11:0, c12:0, c13:0, c14:0, c15:0, c16:0,
