@@ -6584,11 +6584,13 @@ function exportBatchRosterMatrixExcel() {
           const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
           
           const entry = attendanceData.find(a => 
-            a.date === dateStr && 
+           normalizeToISO(a.date).split('T')[0] === dateStr && 
             String(a.user_name).toUpperCase() === userNameUpper
           );
           
-          let st = entry ? entry.status : (holidayName ? "PH" : "");
+         let st = entry
+  ? (entry.shift_type || entry.status || "")
+  : (holidayName ? "PH" : "");
           if (st === "K" || st === "M") st = "K/M/Adt";
 
           row.push(`"${st || '-'}"`);
@@ -6855,11 +6857,13 @@ function exportWardRetenSummaryExcel() {
           const holidayName = MY_PUBLIC_HOLIDAYS[dateStr];
 
           const entry = attendanceData.find(a => 
-            a.date === dateStr && 
+            normalizeToISO(a.date).split('T')[0] === dateStr && 
             String(a.user_name).toUpperCase() === userNameUpper
           );
           
-          let status = entry ? entry.status : (holidayName ? "PH" : "");
+          let status = entry
+  ? (entry.shift_type || entry.status || "")
+  : (holidayName ? "PH" : "");
           if (status === "K" || status === "M") status = "K/M/Adt";
 
           let badgeClass = "text-slate-600";
