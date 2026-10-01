@@ -2903,7 +2903,6 @@
           <th class="p-2 border-r border-slate-700 w-28 bg-sky-950/80 text-sky-200">CP1</th>
           <th class="p-2 border-r border-slate-700 w-28 bg-purple-950/80 text-purple-200">CP2</th>
           <th class="p-2 border-r border-slate-700 w-32 bg-amber-950/80 text-amber-200">BEDSIDE DISPENSE (BD)</th>
-          <th class="p-2 w-32 bg-emerald-950/80 text-emerald-200 font-bold">JUMLAH KESELURUHAN</th>
         </tr>
       </thead>
       <tbody id="ward-reten-summary-tbody" class="divide-y divide-slate-800 font-mono">
@@ -6715,7 +6714,7 @@ function exportBatchRosterMatrixExcel() {
 
   tbody.innerHTML = '';
 
-  const grandTotals = { cp1: 0, cp2: 0, bd: 0, grand: 0 };
+  const grandTotals = { cp1: 0, cp2: 0, bd: 0 };
 
   // 2. Aggregate per ward for the selected month
   allWards.forEach(wardName => {
@@ -6732,12 +6731,9 @@ function exportBatchRosterMatrixExcel() {
       wardBd += parseInt(entry.bd || 0, 10);
     });
 
-    const wardTotal = wardCp1 + wardCp2 + wardBd;
-
     grandTotals.cp1 += wardCp1;
     grandTotals.cp2 += wardCp2;
     grandTotals.bd += wardBd;
-    grandTotals.grand += wardTotal;
 
     const tr = document.createElement('tr');
     tr.className = "hover:bg-slate-800 text-slate-200";
@@ -6759,7 +6755,6 @@ function exportBatchRosterMatrixExcel() {
     <td class="p-2 border-r border-slate-700 text-sky-300">${grandTotals.cp1}</td>
     <td class="p-2 border-r border-slate-700 text-purple-300">${grandTotals.cp2}</td>
     <td class="p-2 border-r border-slate-700 text-amber-300">${grandTotals.bd}</td>
-    <td class="p-2 bg-emerald-950 text-emerald-200">${grandTotals.grand}</td>
   `;
   tbody.appendChild(totalTr);
 }
