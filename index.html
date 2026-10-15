@@ -3495,8 +3495,6 @@ function renderDiLogs() {
       updatePdfReport();
     }
 
------ START FOLLOW-UP REPLACEMENT -----
-
 // Follow-Up synchronization: endpoint-scoped outbox, acknowledged writes and cloud reads.
 function fuEndpoint() { return sheetDbApiUrl || defaultSheetDbUrl || ''; }
 function fuQueue() { return safeJsonParse(fuQueueKey, {}); }
